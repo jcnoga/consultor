@@ -5,80 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APP Financeiro Profissional Completo</title>
     <style>
-        /* O CSS permanece o mesmo da versão anterior */
-        :root {
-            --primary-color: #005f73;
-            --secondary-color: #0a9396;
-            --background-color: #f4f4f9;
-            --card-background: #ffffff;
-            --text-color: #333;
-            --light-gray: #e9ecef;
-            --border-color: #dee2e6;
-            --success-color: #2a9d8f;
-            --danger-color: #e76f51;
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            --box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: var(--font-family); background-color: var(--background-color); color: var(--text-color); line-height: 1.6; }
-        .container { max-width: 1600px; margin: 0 auto; padding: 20px; }
-        #app { display: none; }
-        header { background-color: var(--primary-color); color: white; padding: 1rem; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--box-shadow); }
-        header h1 { font-size: 1.5rem; }
-        #logoutBtn { background: var(--danger-color); color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        nav { background-color: var(--secondary-color); display: flex; justify-content: center; flex-wrap: wrap; padding: 0.5rem 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        nav button { background: none; border: none; color: white; padding: 15px 20px; cursor: pointer; font-size: 1rem; font-weight: 500; transition: background-color 0.3s; }
-        nav button.active, nav button:hover { background-color: var(--primary-color); }
-        main .tab-content { display: none; padding: 20px; background-color: var(--card-background); margin-top: 20px; border-radius: 8px; box-shadow: var(--box-shadow); animation: fadeIn 0.5s; }
-        main .tab-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        #login-section { display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .login-container { background: var(--card-background); padding: 40px; border-radius: 8px; box-shadow: var(--box-shadow); width: 100%; max-width: 400px; text-align: center; }
-        .login-container h2 { margin-bottom: 20px; color: var(--primary-color); }
-        .toggle-form { color: var(--secondary-color); cursor: pointer; margin-top: 15px; display: inline-block; }
-        .input-group { margin-bottom: 20px; text-align: left; }
-        .input-group label { display: block; margin-bottom: 5px; font-weight: 600; }
-        .input-group input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 5px; font-size: 1rem; }
-        .btn { background-color: var(--secondary-color); color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: bold; width: 100%; transition: background-color 0.3s; }
-        .btn:hover { background-color: var(--primary-color); }
-        .error-message { color: var(--danger-color); margin-top: 10px; min-height: 1em; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
-        .section-header h2 { color: var(--primary-color); }
-        .controls { display: flex; gap: 10px; flex-wrap: wrap; }
-        .controls select, .controls button { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 5px; font-size: 0.9rem; background-color: white; cursor: pointer; }
-        .controls button.primary { background-color: var(--secondary-color); color: white; }
-        .controls button.danger { background-color: var(--danger-color); color: white; }
-        .table-container { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 12px; text-align: left; border: 1px solid var(--border-color); white-space: nowrap; }
-        th { background-color: var(--primary-color); color: white; font-weight: 600; }
-        td input[type="number"] { width: 120px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; }
-        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        .positive { color: var(--success-color); }
-        .negative { color: var(--danger-color); }
-        .indicators-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
-        .card { background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: var(--box-shadow); border-left: 5px solid var(--secondary-color); }
-        .card h3 { color: var(--primary-color); font-size: 1.1rem; margin-bottom: 10px; }
-        .card .value { font-size: 1.8rem; font-weight: bold; margin-bottom: 15px; }
-        .card .formula, .card .explanation { font-size: 0.9rem; color: #666; }
-        .card-category { margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid var(--light-gray); }
-        .card-category h2 { color: var(--primary-color); }
-        .charts-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; }
-        .chart-wrapper { background: #fff; padding: 20px; border-radius: 8px; box-shadow: var(--box-shadow); }
-        .chart-wrapper h3 { text-align: center; margin-bottom: 20px; color: var(--primary-color); }
-        canvas { width: 100% !important; height: auto !important; }
-        #glossary-search { width: 100%; padding: 12px; font-size: 1rem; margin-bottom: 20px; border: 1px solid var(--border-color); border-radius: 5px; }
-        .glossary-item { background: #fff; margin-bottom: 10px; border-radius: 8px; box-shadow: var(--box-shadow); overflow: hidden; }
-        .glossary-header { padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: bold; font-size: 1.1rem; color: var(--primary-color); border-left: 5px solid var(--primary-color); }
-        .glossary-header::after { content: '+'; font-size: 1.5rem; transition: transform 0.3s; }
-        .glossary-item.active .glossary-header::after { transform: rotate(45deg); }
-        .glossary-content { max-height: 0; overflow: hidden; padding: 0 20px; transition: max-height 0.4s ease-out; border-top: 1px solid var(--light-gray); }
-        .glossary-item.active .glossary-content { max-height: 500px; }
+        :root{--primary-color:#005f73;--secondary-color:#0a9396;--background-color:#f4f4f9;--card-background:#ffffff;--text-color:#333;--light-gray:#e9ecef;--border-color:#dee2e6;--success-color:#2a9d8f;--danger-color:#e76f51;--font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;--box-shadow:0 4px 8px rgba(0,0,0,0.1);}
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:var(--font-family);background-color:var(--background-color);color:var(--text-color);line-height:1.6;}
+        .container{max-width:1600px;margin:0 auto;padding:20px;}
+        #app{display:none;}
+        header{background-color:var(--primary-color);color:white;padding:1rem;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--box-shadow);}
+        header h1{font-size:1.5rem;}
+        #logoutBtn{background:var(--danger-color);color:white;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;font-weight:bold;}
+        nav{background-color:var(--secondary-color);display:flex;justify-content:center;flex-wrap:wrap;padding:0.5rem 0;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
+        nav button{background:none;border:none;color:white;padding:15px 20px;cursor:pointer;font-size:1rem;font-weight:500;transition:background-color 0.3s;}
+        nav button.active,nav button:hover{background-color:var(--primary-color);}
+        main .tab-content{display:none;padding:20px;background-color:var(--card-background);margin-top:20px;border-radius:8px;box-shadow:var(--box-shadow);animation:fadeIn 0.5s;}
+        main .tab-content.active{display:block;}
+        @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+        #login-section{display:flex;justify-content:center;align-items:center;height:100vh;}
+        .login-container{background:var(--card-background);padding:40px;border-radius:8px;box-shadow:var(--box-shadow);width:100%;max-width:400px;text-align:center;}
+        .login-container h2{margin-bottom:20px;color:var(--primary-color);}
+        .toggle-form{color:var(--secondary-color);cursor:pointer;margin-top:15px;display:inline-block;}
+        .input-group{margin-bottom:20px;text-align:left;}
+        .input-group label{display:block;margin-bottom:5px;font-weight:600;}
+        .input-group input{width:100%;padding:10px;border:1px solid var(--border-color);border-radius:5px;font-size:1rem;}
+        .btn{background-color:var(--secondary-color);color:white;padding:12px 20px;border:none;border-radius:5px;cursor:pointer;font-size:1rem;font-weight:bold;width:100%;transition:background-color 0.3s;}
+        .btn:hover{background-color:var(--primary-color);}
+        .error-message{color:var(--danger-color);margin-top:10px;min-height:1em;}
+        .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:15px;}
+        .section-header h2{color:var(--primary-color);}
+        .controls{display:flex;gap:10px;flex-wrap:wrap;}
+        .controls select,.controls button{padding:8px 12px;border:1px solid var(--border-color);border-radius:5px;font-size:0.9rem;background-color:white;cursor:pointer;}
+        .controls button.primary{background-color:var(--secondary-color);color:white;}
+        .controls button.danger{background-color:var(--danger-color);color:white;}
+        .table-container{overflow-x:auto;}
+        table{width:100%;border-collapse:collapse;margin-top:20px;}
+        th,td{padding:12px;text-align:left;border:1px solid var(--border-color);white-space:nowrap;}
+        th{background-color:var(--primary-color);color:white;font-weight:600;}
+        td input[type="number"]{width:120px;padding:8px;border:1px solid var(--border-color);border-radius:4px;}
+        input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
+        .positive{color:var(--success-color);}.negative{color:var(--danger-color);}
+        .indicators-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:20px;}
+        .card{background-color:#fff;padding:20px;border-radius:8px;box-shadow:var(--box-shadow);border-left:5px solid var(--secondary-color);}
+        .card h3{color:var(--primary-color);font-size:1.1rem;margin-bottom:10px;}
+        .card .value{font-size:1.8rem;font-weight:bold;margin-bottom:15px;}
+        .card .formula,.card .explanation{font-size:0.9rem;color:#666;}
+        .card-category{margin-bottom:25px;padding-bottom:15px;border-bottom:2px solid var(--light-gray);}
+        .card-category h2{color:var(--primary-color);}
+        .charts-container{display:grid;grid-template-columns:repeat(auto-fit, minmax(400px, 1fr));gap:30px;}
+        .chart-wrapper{background:#fff;padding:20px;border-radius:8px;box-shadow:var(--box-shadow);}
+        .chart-wrapper h3{text-align:center;margin-bottom:20px;color:var(--primary-color);}
+        canvas{width:100% !important;height:auto !important;}
+        #glossary-search{width:100%;padding:12px;font-size:1rem;margin-bottom:20px;border:1px solid var(--border-color);border-radius:5px;}
+        .glossary-item{background:#fff;margin-bottom:10px;border-radius:8px;box-shadow:var(--box-shadow);overflow:hidden;}
+        .glossary-header{padding:15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:bold;font-size:1.1rem;color:var(--primary-color);border-left:5px solid var(--primary-color);}
+        .glossary-header::after{content:'+';font-size:1.5rem;transition:transform 0.3s;}
+        .glossary-item.active .glossary-header::after{transform:rotate(45deg);}
+        .glossary-content{max-height:0;overflow:hidden;padding:0 20px;transition:max-height 0.4s ease-out;border-top:1px solid var(--light-gray);}
+        .glossary-item.active .glossary-content{max-height:500px;}
     </style>
 </head>
 <body>
 
-    <!-- TELA DE LOGIN E CADASTRO -->
     <div id="login-section">
         <div class="login-container">
             <form id="login-form">
@@ -100,7 +85,6 @@
         </div>
     </div>
 
-    <!-- APLICAÇÃO PRINCIPAL -->
     <div id="app" class="container">
         <header>
             <h1 id="company-name">Painel Financeiro</h1>
@@ -205,32 +189,31 @@
         </main>
     </div>
 
-<!-- SDKs do Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+<script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
+<script src="https://unpkg.com/jspdf-autotable@latest/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-// =================================== INÍCIO DA CONFIGURAÇÃO DO FIREBASE ===================================
-// ❗️❗️❗️ ATENÇÃO: COLE AQUI O OBJETO firebaseConfig DO SEU PROJETO ❗️❗️❗️
 const firebaseConfig = {
-  apiKey: "AIzaSyB30QPE40atu__s4z3WlDBXHaryIE6asfE",
-  authDomain: "consultor-3016e.firebaseapp.com",
-  projectId: "consultor-3016e",
-  storageBucket: "consultor-3016e.firebasestorage.app",
-  messagingSenderId: "819781871365",
-  appId: "1:819781871365:web:a13d6930c8738a69af396c",
-  measurementId: "G-C86JBXTK16"
+  apiKey: "AIzaSyB30QPE40atu__s4z3WlDBXHaryIE6asfE",
+  authDomain: "consultor-3016e.firebaseapp.com",
+  projectId: "consultor-3016e",
+  storageBucket: "consultor-3016e.firebasestorage.app",
+  messagingSenderId: "819781871365",
+  appId: "1:819781871365:web:a13d6930c8738a69af396c",
+  measurementId: "G-C86JBXTK16"
 };
 
-// Inicializa o Firebase
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-// =================================== FIM DA CONFIGURAÇÃO DO FIREBASE ===================================
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- REFERÊNCIAS AOS ELEMENTOS DO DOM ---
     const app = document.getElementById('app');
     const loginSection = document.getElementById('login-section');
     const loginForm = document.getElementById('login-form');
@@ -242,12 +225,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainNav = document.getElementById('main-nav');
     const tabContents = document.querySelectorAll('.tab-content');
     const recalculateAnnualBtn = document.getElementById('recalculate-annual');
-    const deleteAccountBtn = document.getElementById('delete-account-btn'); // Botão atualizado
+    const deleteAccountBtn = document.getElementById('delete-account-btn');
     const exportPdfMonthlyBtn = document.getElementById('export-pdf-monthly');
     const exportExcelMonthlyBtn = document.getElementById('export-excel-monthly');
     const recalculateAllBtn = document.getElementById('recalculate-all');
 
-    // --- ESTADO DA APLICAÇÃO ---
     let currentUser = null;
     let currentYear = new Date().getFullYear();
     let financialData = {};
@@ -258,11 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
         'numeroDeVendas', 'impostos', 'depreciacao', 'investimentos', 'financiamentosEntradas', 
         'amortizacaoDividas', 'aporteSocios', 'distribuicaoLucros'
     ];
-    // O GLOSSARY_DATA precisa estar completo aqui para funcionar
-    const GLOSSARY_DATA = { /* Cole aqui o objeto GLOSSARY_DATA completo da versão anterior */ };
+    const GLOSSARY_DATA = { /* Coloque o objeto glossário completo aqui */ };
 
-    // =================================== AUTENTICAÇÃO E GESTÃO DE CONTA ===================================
-    
     auth.onAuthStateChanged(async user => {
         if (user) {
             currentUser = user;
@@ -285,14 +264,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // ERRO HANDLING MELHORADO
     registerForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const email = document.getElementById('register-user').value;
         const pass = document.getElementById('register-password').value;
         const errorEl = document.getElementById('register-error');
         errorEl.textContent = '';
-        
         auth.createUserWithEmailAndPassword(email, pass)
             .then(userCredential => {
                 return db.collection('users').doc(userCredential.user.uid).set({
@@ -307,58 +284,31 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => {
                 switch (error.code) {
-                    case 'auth/email-already-in-use':
-                        errorEl.textContent = "Este email já está cadastrado.";
-                        break;
-                    case 'auth/weak-password':
-                        errorEl.textContent = "A senha deve ter no mínimo 6 caracteres.";
-                        break;
-                    case 'auth/invalid-email':
-                        errorEl.textContent = "O formato do email é inválido.";
-                        break;
-                    default:
-                        errorEl.textContent = "Ocorreu um erro. Verifique sua conexão ou tente novamente.";
-                        console.error("Erro de cadastro:", error);
-                        break;
+                    case 'auth/email-already-in-use': errorEl.textContent = "Este email já está cadastrado."; break;
+                    case 'auth/weak-password': errorEl.textContent = "A senha deve ter no mínimo 6 caracteres."; break;
+                    case 'auth/invalid-email': errorEl.textContent = "O formato do email é inválido."; break;
+                    default: errorEl.textContent = "Erro no cadastro. Verifique a config do Firebase."; console.error("Erro:", error); break;
                 }
             });
     });
     
     logoutBtn.addEventListener('click', () => auth.signOut());
 
-    // FUNÇÃO ADICIONADA: EXCLUIR CONTA E DADOS
     async function deleteAccountAndData() {
         if (!currentUser) return;
-
-        const confirmation1 = prompt("Esta ação é irreversível e apagará sua conta e todos os dados financeiros. Para confirmar, digite 'EXCLUIR' em maiúsculas.");
-        if (confirmation1 !== 'EXCLUIR') {
+        const confirmation = prompt("Atenção: Ação irreversível. Para excluir sua conta e todos os dados, digite 'EXCLUIR'.");
+        if (confirmation !== 'EXCLUIR') {
             alert("Ação cancelada.");
             return;
         }
-
-        const confirmation2 = confirm("Confirmação final: Tem certeza absoluta que deseja excluir sua conta?");
-        if (!confirmation2) {
-            alert("Ação cancelada.");
-            return;
-        }
-
         try {
-            // 1. Excluir dados do Firestore
             await db.collection('financialData').doc(currentUser.uid).delete();
             await db.collection('users').doc(currentUser.uid).delete();
-
-            // 2. Excluir usuário da Autenticação
             await currentUser.delete();
-
-            alert("Sua conta e todos os dados foram excluídos com sucesso.");
-            // O onAuthStateChanged vai lidar com o redirecionamento para a tela de login
+            alert("Conta e dados excluídos com sucesso.");
         } catch (error) {
             console.error("Erro ao excluir conta:", error);
-            if (error.code === 'auth/requires-recent-login') {
-                alert("Esta é uma operação sensível. Por segurança, faça o logout e login novamente antes de tentar excluir sua conta.");
-            } else {
-                alert("Ocorreu um erro ao tentar excluir sua conta.");
-            }
+            alert("Erro ao excluir conta. Pode ser necessário fazer login novamente por segurança.");
         }
     }
     deleteAccountBtn.addEventListener('click', deleteAccountAndData);
@@ -385,19 +335,15 @@ document.addEventListener('DOMContentLoaded', () => {
         app.style.display = 'none';
     }
 
-    // =================================== PERSISTÊNCIA DE DADOS ===================================
     async function loadDataFromFirestore(userId) {
         try {
             const doc = await db.collection('financialData').doc(userId).get();
             return doc.exists ? doc.data() : {};
-        } catch (error) {
-            console.error("Erro ao carregar dados:", error); return {};
-        }
+        } catch (error) { console.error("Erro ao carregar dados:", error); return {}; }
     }
 
     async function saveDataToFirestore(userId, data) {
-        try {
-            await db.collection('financialData').doc(userId).set(data, { merge: true });
+        try { await db.collection('financialData').doc(userId).set(data, { merge: true });
         } catch (error) {
             console.error("Erro ao salvar dados:", error);
             alert('Falha ao salvar. Verifique sua conexão.');
@@ -409,9 +355,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!currentUser) return;
         if (!financialData[currentYear]) financialData[currentYear] = {};
         document.querySelectorAll('#monthly-inputs input').forEach(input => {
-            const month = parseInt(input.dataset.month);
-            const field = input.dataset.field;
-            const value = parseFloat(input.value) || 0;
+            const month = parseInt(input.dataset.month), field = input.dataset.field, value = parseFloat(input.value) || 0;
             if (!financialData[currentYear][month]) financialData[currentYear][month] = {};
             financialData[currentYear][month][field] = value;
         });
@@ -419,11 +363,9 @@ document.addEventListener('DOMContentLoaded', () => {
             await saveDataToFirestore(currentUser.uid, financialData);
             alert('Dados salvos na nuvem com sucesso!');
             updateAllCalculations();
-        } catch (e) { /* Erro já tratado */ }
+        } catch (e) {}
     }
     saveDataBtn.addEventListener('click', saveMonthlyData);
-
-    // =================================== LÓGICA PRINCIPAL DO APP ===================================
     recalculateAllBtn.addEventListener('click', updateAllCalculations);
 
     mainNav.addEventListener('click', (e) => {
@@ -441,9 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
         yearSelector.innerHTML = '';
         for (let i = current + 1; i >= current - 5; i--) {
             const option = document.createElement('option');
-            option.value = i;
-            option.textContent = i;
-            option.selected = (i === currentYear);
+            option.value = i; option.textContent = i; option.selected = (i === currentYear);
             yearSelector.appendChild(option);
         }
     }
@@ -464,11 +404,8 @@ document.addEventListener('DOMContentLoaded', () => {
             INPUT_FIELDS.forEach(field => {
                 const td = document.createElement('td');
                 const input = document.createElement('input');
-                input.type = 'number';
-                input.dataset.month = index;
-                input.dataset.field = field;
-                input.value = monthData[field] || '';
-                input.placeholder = "0.00";
+                input.type = 'number'; input.dataset.month = index; input.dataset.field = field;
+                input.value = monthData[field] || ''; input.placeholder = "0.00";
                 td.appendChild(input);
                 row.appendChild(td);
             });
@@ -495,10 +432,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
     
-    function updateAllCalculations() {
-        renderMonthlyIndicators();
-        renderAnnualIndicators();
-    }
+    function updateAllCalculations() { renderMonthlyIndicators(); renderAnnualIndicators(); }
     
     function renderMonthlyIndicators() {
         const tableBody = document.querySelector('#monthly-indicators-table tbody');
@@ -507,36 +441,21 @@ document.addEventListener('DOMContentLoaded', () => {
         MONTHS.forEach((month, index) => {
             const indicators = calculateIndicators(yearData[index]);
             const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${month}</td>
-                <td class="${indicators.lucroLiquido >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.lucroLiquido)}</td>
-                <td class="${indicators.margemLiquida >= 0 ? 'positive' : 'negative'}">${formatPercent(indicators.margemLiquida)}</td>
-                <td class="${indicators.markup >= 0 ? 'positive' : 'negative'}">${formatPercent(indicators.markup)}</td>
-                <td class="${indicators.fluxoCaixaOperacional >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaOperacional)}</td>
-                <td class="${indicators.fluxoCaixaInvestimentos >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaInvestimentos)}</td>
-                <td class="${indicators.fluxoCaixaFinanciamentos >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaFinanciamentos)}</td>
-                <td class="${indicators.fluxoCaixaLivre >= 0 ? 'positive' : 'negative'}"><strong>${formatCurrency(indicators.fluxoCaixaLivre)}</strong></td>
-            `;
+            row.innerHTML = `<td>${month}</td><td class="${indicators.lucroLiquido >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.lucroLiquido)}</td><td class="${indicators.margemLiquida >= 0 ? 'positive' : 'negative'}">${formatPercent(indicators.margemLiquida)}</td><td class="${indicators.markup >= 0 ? 'positive' : 'negative'}">${formatPercent(indicators.markup)}</td><td class="${indicators.fluxoCaixaOperacional >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaOperacional)}</td><td class="${indicators.fluxoCaixaInvestimentos >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaInvestimentos)}</td><td class="${indicators.fluxoCaixaFinanciamentos >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaFinanciamentos)}</td><td class="${indicators.fluxoCaixaLivre >= 0 ? 'positive' : 'negative'}"><strong>${formatCurrency(indicators.fluxoCaixaLivre)}</strong></td>`;
             tableBody.appendChild(row);
         });
     }
 
-    function renderAnnualIndicators() {
-        // As funções de renderização precisam do glossário completo para funcionar
-    }
+    function renderAnnualIndicators() { /* Coloque a lógica de renderização dos cards anuais aqui */ }
     recalculateAnnualBtn.addEventListener('click', renderAnnualIndicators);
     
     let chartInstances = {};
-    function renderAllCharts() {
-        // As funções de gráfico precisam ser restauradas da versão anterior
-    }
+    function renderAllCharts() { /* Coloque a lógica de renderização dos gráficos aqui */ }
 
-    function renderGlossary() {
-        // A função de renderizar o glossário precisa ser restaurada da versão anterior
-    }
+    function renderGlossary() { /* Coloque a lógica de renderização do glossário aqui */ }
     
-    function exportMonthlyToPDF() { /* ... */ }
-    function exportMonthlyToExcel() { /* ... */ }
+    function exportMonthlyToPDF() { /* Coloque a lógica de exportação PDF aqui */ }
+    function exportMonthlyToExcel() { /* Coloque a lógica de exportação Excel aqui */ }
     exportPdfMonthlyBtn.addEventListener('click', exportMonthlyToPDF);
     exportExcelMonthlyBtn.addEventListener('click', exportMonthlyToExcel);
     
@@ -544,12 +463,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const formatPercent = (v) => (v || 0).toFixed(2).replace('.', ',') + '%';
 });
 </script>
-
-<!-- Bibliotecas externas -->
-<script src="https://unpkg.com/jspdf@latest/dist/jspdf.umd.min.js"></script>
-<script src="https://unpkg.com/jspdf-autotable@latest/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 </body>
 </html>
