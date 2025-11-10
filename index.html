@@ -150,15 +150,14 @@
 
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyB30QPE40atu__s4z3WlDBXHaryIE6asfE",
-  authDomain: "consultor-3016e.firebaseapp.com",
-  projectId: "consultor-3016e",
-  storageBucket: "consultor-3016e.firebasestorage.app",
-  messagingSenderId: "819781871365",
-  appId: "1:819781871365:web:a13d6930c8738a69af396c",
-  measurementId: "G-C86JBXTK16"
+    // ❗️❗️❗️ COLE SUAS CONFIGURAÇÕES DO FIREBASE AQUI ❗️❗️❗️
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_AUTH_DOMAIN",
+    projectId: "SEU_PROJECT_ID",
+    storageBucket: "SEU_STORAGE_BUCKET",
+    messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+    appId: "SEU_APP_ID"
 };
-
 
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
@@ -190,9 +189,12 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const GLOSSARY_DATA = {
         markup: {nome: "Markup Divisor", formula: "((Faturamento - CV) / CV) * 100", significado: "Índice que mostra a relação do lucro bruto sobre o custo variável.", exemplo: "Custo de R$50 e venda por R$120 resulta em Markup de 140%.", dica: "Ajuste o markup para garantir a cobertura de todos os custos e a margem de lucro desejada."},
-        lucroLiquido: {nome: "Lucro Líquido", formula: "Receitas Totais - Despesas Totais - Impostos", significado: "O resultado final da empresa após todas as deduções.", exemplo: "Faturamento de R$10.000 com custos totais de R$7.500 resulta em Lucro Líquido de R$2.500.", dica: "O objetivo final de toda empresa é maximizar o lucro líquido de forma sustentável."},
-        fluxoCaixaLivre: {nome: "Fluxo de Caixa Livre (FCL)", formula: "FCO + FCI + FCF", significado: "A variação total de caixa no período. A métrica mais importante para a saúde financeira.", exemplo: "Se entrou mais caixa do que saiu, o FCL é positivo.", dica: "Mantenha o FCL positivo para garantir a liquidez e a capacidade de investimento da empresa."},
-        // Adicione outras definições do glossário aqui para completá-lo
+        lucroLiquido: {nome: "Lucro Líquido", formula: "Receitas Totais - Custos Totais - Impostos", significado: "O resultado final da empresa após todas as deduções.", exemplo: "Faturamento de R$10.000 com custos totais de R$7.500 resulta em Lucro Líquido de R$2.500.", dica: "O objetivo final de toda empresa é maximizar o lucro líquido de forma sustentável."},
+        margemLiquida: {nome: "Margem Líquida (%)", formula: "(Lucro Líquido / Faturamento) * 100", significado: "A porcentagem de cada real de faturamento que se transforma em lucro líquido.", exemplo: "Lucro de R$2.500 em um faturamento de R$10.000 resulta em uma margem de 25%.", dica: "Compare sua margem líquida com a média do seu setor para avaliar a competitividade."},
+        fluxoCaixaOperacional: {nome: "Fluxo de Caixa Operacional (FCO)", formula: "Lucro Líquido + Depreciação", significado: "Mede o caixa gerado pelas operações principais do negócio.", exemplo: "Lucro de R$8.500 + Depreciação de R$1.000 = FCO de R$9.500.", dica: "Um FCO positivo e crescente indica uma operação saudável."},
+        fluxoCaixaInvestimentos: {nome: "Fluxo de Caixa de Investimentos (FCI)", formula: "(-) Aquisição de Ativos", significado: "Mostra o caixa utilizado na compra (CAPEX) de ativos de longo prazo.", exemplo: "A compra de uma máquina por R$20.000 gera um FCI de -R$20.000.", dica: "Um FCI negativo indica que a empresa está investindo em seu crescimento."},
+        fluxoCaixaFinanciamentos: {nome: "Fluxo de Caixa de Financiamentos (FCF)", formula: "Novos Empréstimos - Pagamento de Dívidas", significado: "Reflete as transações de caixa com proprietários e credores.", exemplo: "Pegou R$30.000 de empréstimo e pagou R$5.000 de uma dívida = FCF de +R$25.000.", dica: "Ajuda a entender como a empresa financia suas operações e crescimento."},
+        fluxoCaixaLivre: {nome: "Fluxo de Caixa Livre (FCL)", formula: "FCO + FCI + FCF", significado: "A variação total de caixa no período. A métrica mais importante para a saúde financeira.", exemplo: "Se entrou mais caixa do que saiu, o FCL é positivo.", dica: "Mantenha o FCL positivo para garantir a liquidez e a capacidade de investimento da empresa."}
     };
 
     auth.onAuthStateChanged(async user => {
@@ -384,13 +386,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('annual-indicators-content');
         container.innerHTML = '';
         const yearData = financialData[currentYear] || {};
-        let annualTotals = {};
-        INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
+        let annualTotals = {}; INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
         for(let i=0; i<12; i++) { if(yearData[i]) INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0); }
         const annualIndicators = calculateIndicators(annualTotals);
         const categories = {
             "Rentabilidade e Lucro": ['lucroLiquido', 'margemLiquida', 'markup'],
-            "Fluxo de Caixa": ['fluxoCaixaLivre']
+            "Fluxo de Caixa": ['fluxoCaixaLivre', 'fluxoCaixaOperacional', 'fluxoCaixaInvestimentos', 'fluxoCaixaFinanciamentos']
         };
         for (const categoryName in categories) {
             const categoryDiv = document.createElement('div');
@@ -399,10 +400,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const gridDiv = document.createElement('div');
             gridDiv.className = 'indicators-grid';
             categories[categoryName].forEach(key => {
-                const indicatorInfo = GLOSSARY_DATA[key] || {nome: `Indicador ${key}`};
+                const indicatorInfo = GLOSSARY_DATA[key];
+                if (!indicatorInfo) return;
                 const value = annualIndicators[key];
                 let formattedValue = key.includes('margem') || key.includes('markup') ? formatPercent(value) : formatCurrency(value);
-                gridDiv.innerHTML += `<div class="card"><h3>${indicatorInfo.nome}</h3><div class="value ${value >= 0 ? 'positive' : 'negative'}">${formattedValue}</div></div>`;
+                gridDiv.innerHTML += `<div class="card"><h3>${indicatorInfo.nome}</h3><div class="value ${value >= 0 ? 'positive' : 'negative'}">${formattedValue}</div><p>${indicatorInfo.significado}</p></div>`;
             });
             categoryDiv.appendChild(gridDiv);
             container.appendChild(categoryDiv);
@@ -423,7 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
             chartData.fluxoCaixaLivre.push(indicators.fluxoCaixaLivre);
         }
         const chartConfigs = {
-            monthlyEvolutionChart: { type: 'line', data: { labels, datasets: [ { label: 'Faturamento', data: chartData.faturamento, borderColor: '#0a9396', fill: false }, { label: 'Custos Totais', data: chartData.custosTotais, borderColor: '#e76f51', fill: false }, { label: 'Lucro Líquido', data: chartData.lucroLiquido, borderColor: '#2a9d8f', fill: false } ]}},
+            monthlyEvolutionChart: { type: 'line', data: { labels, datasets: [ { label: 'Faturamento', data: chartData.faturamento, borderColor: '#0a9396', fill: false, tension: 0.1 }, { label: 'Custos Totais', data: chartData.custosTotais, borderColor: '#e76f51', fill: false, tension: 0.1 }, { label: 'Lucro Líquido', data: chartData.lucroLiquido, borderColor: '#2a9d8f', fill: false, tension: 0.1 } ]}},
             cashFlowChart: { type: 'bar', data: { labels, datasets: [ { label: 'Fluxo de Caixa Livre', data: chartData.fluxoCaixaLivre, backgroundColor: (ctx) => (ctx.raw >= 0 ? '#2a9d8f' : '#e76f51') } ]}}
         };
         for (const id in chartConfigs) {
@@ -436,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderGlossary() {
         const container = document.getElementById('glossary-container');
         container.innerHTML = '';
-        Object.keys(GLOSSARY_DATA).forEach(key => {
+        Object.keys(GLOSSARY_DATA).sort((a,b) => GLOSSARY_DATA[a].nome.localeCompare(GLOSSARY_DATA[b].nome)).forEach(key => {
             const item = GLOSSARY_DATA[key];
             const div = document.createElement('div');
             div.className = 'glossary-item';
@@ -466,6 +468,5 @@ document.addEventListener('DOMContentLoaded', () => {
     const formatPercent = (v) => (v || 0).toFixed(2).replace('.', ',') + '%';
 });
 </script>
-
 </body>
 </html>
