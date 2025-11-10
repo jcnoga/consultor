@@ -189,24 +189,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const INPUT_FIELDS = ['faturamento','custosVariaveis','custosFixos','despesasOperacionais','outrasReceitasDespesas','numeroDeVendas','impostos','depreciacao','investimentos','financiamentosEntradas','amortizacaoDividas','aporteSocios','distribuicaoLucros'];
     
     const GLOSSARY_DATA = {
-        markup: {nome: "Markup Divisor", formula: "((Faturamento - CV) / CV) * 100", significado: "Índice que mostra a relação do lucro bruto sobre o custo variável.", exemplo: "Custo de R$50 e venda por R$120 resulta em Markup de 140%.", dica: "Ajuste o markup para garantir a cobertura de todos os custos e a margem de lucro desejada."},
-        lucroLiquido: {nome: "Lucro Líquido", formula: "Receitas Totais - Custos Totais - Impostos", significado: "O resultado final da empresa após todas as deduções.", exemplo: "Faturamento de R$10.000 com custos totais de R$7.500 resulta em Lucro Líquido de R$2.500.", dica: "O objetivo final de toda empresa é maximizar o lucro líquido de forma sustentável."},
-        margemLiquida: {nome: "Margem Líquida (%)", formula: "(Lucro Líquido / Faturamento) * 100", significado: "A porcentagem de cada real de faturamento que se transforma em lucro líquido.", exemplo: "Lucro de R$2.500 em um faturamento de R$10.000 resulta em uma margem de 25%.", dica: "Compare sua margem líquida com a média do seu setor para avaliar a competitividade."},
-        fluxoCaixaOperacional: {nome: "Fluxo de Caixa Operacional (FCO)", formula: "Lucro Líquido + Depreciação", significado: "Mede o caixa gerado pelas operações principais do negócio.", exemplo: "Lucro de R$8.500 + Depreciação de R$1.000 = FCO de R$9.500.", dica: "Um FCO positivo e crescente indica uma operação saudável."},
-        fluxoCaixaInvestimentos: {nome: "Fluxo de Caixa de Investimentos (FCI)", formula: "(-) Aquisição de Ativos", significado: "Mostra o caixa utilizado na compra (CAPEX) de ativos de longo prazo.", exemplo: "A compra de uma máquina por R$20.000 gera um FCI de -R$20.000.", dica: "Um FCI negativo indica que a empresa está investindo em seu crescimento."},
-        fluxoCaixaFinanciamentos: {nome: "Fluxo de Caixa de Financiamentos (FCF)", formula: "Novos Empréstimos - Pagamento de Dívidas", significado: "Reflete as transações de caixa com proprietários e credores.", exemplo: "Pegou R$30.000 de empréstimo e pagou R$5.000 de uma dívida = FCF de +R$25.000.", dica: "Ajuda a entender como a empresa financia suas operações e crescimento."},
-        fluxoCaixaLivre: {nome: "Fluxo de Caixa Livre (FCL)", formula: "FCO + FCI + FCF", significado: "A variação total de caixa no período. A métrica mais importante para a saúde financeira.", exemplo: "Se entrou mais caixa do que saiu, o FCL é positivo.", dica: "Mantenha o FCL positivo para garantir a liquidez e a capacidade de investimento da empresa."}
+        faturamento: {nome: "Faturamento", formula: "Preço de Venda × Quantidade Vendida", significado: "Valor total das vendas de produtos ou serviços em um período, antes de qualquer dedução.", exemplo: "Vender 100 produtos a R$50 cada gera um faturamento de R$5.000.", dica: "Aumente o faturamento com estratégias de marketing, diversificação de produtos ou ajuste de preços."},
+        custosVariaveis: {nome: "Custos Variáveis (CV)", formula: "Custo por Unidade × Quantidade Vendida", significado: "Custos que variam diretamente com o volume de produção ou vendas, como matéria-prima e comissões.", exemplo: "Se o custo da matéria-prima de um produto é R$10, e você vende 100, seu CV é de R$1.000.", dica: "Negocie com fornecedores e otimize a produção para reduzir os custos variáveis por unidade."},
+        custosFixos: {nome: "Custos Fixos (CF)", formula: "Soma dos custos que não variam com a produção", significado: "Custos que a empresa tem todo mês, independentemente de vender muito ou pouco, como aluguel e salários fixos.", exemplo: "Aluguel do escritório de R$2.000 e folha de pagamento de R$8.000 somam R$10.000 de custos fixos.", dica: "Revise periodicamente seus custos fixos para identificar oportunidades de redução sem impactar a operação."},
+        lucroBruto: {nome: "Lucro Bruto", formula: "Faturamento - Custos Variáveis", significado: "Dinheiro que sobra das vendas após subtrair os custos diretos para produzir ou adquirir o que foi vendido.", exemplo: "Faturamento de R$10.000 e CV de R$4.000 resultam em Lucro Bruto de R$6.000.", dica: "É o primeiro indicador de rentabilidade do seu produto ou serviço."},
+        margemBruta: {nome: "Margem Bruta (%)", formula: "(Lucro Bruto / Faturamento) × 100", significado: "Percentual do faturamento que se transforma em lucro bruto. Mede a rentabilidade do seu produto.", exemplo: "Lucro Bruto de R$6.000 com Faturamento de R$10.000 resulta em uma Margem Bruta de 60%.", dica: "Uma margem bruta alta indica boa saúde financeira e poder de precificação."},
+        markup: {nome: "Markup Divisor", formula: "((Faturamento - CV) / CV) × 100", significado: "Índice que mostra o quanto seu preço de venda está acima do custo variável do produto.", exemplo: "Custo de R$50 e venda por R$120 resulta em Markup de 140%.", dica: "Use o markup como base para sua estratégia de precificação, garantindo que ele cubra todos os custos e o lucro."},
+        lucroOperacional: {nome: "Lucro Operacional", formula: "Lucro Bruto - Custos Fixos - Despesas Operacionais", significado: "Lucro gerado exclusivamente pela operação principal da empresa, antes de impostos e juros.", exemplo: "Lucro Bruto de R$6.000, com CF de R$3.000, resulta em Lucro Operacional de R$3.000.", dica: "Um lucro operacional positivo mostra que a atividade principal da sua empresa é rentável."},
+        lucroLiquido: {nome: "Lucro Líquido", formula: "Lucro Operacional +/- Outras Receitas/Despesas - Impostos", significado: "O resultado final da empresa após todas as deduções. É o que realmente sobra para os sócios.", exemplo: "Lucro Operacional de R$3.000 menos R$500 de impostos resulta em Lucro Líquido de R$2.500.", dica: "É a métrica final de sucesso financeiro do negócio em um período."},
+        margemLiquida: {nome: "Margem Líquida (%)", formula: "(Lucro Líquido / Faturamento) × 100", significado: "A porcentagem de cada real de faturamento que se transforma em lucro líquido.", exemplo: "Lucro de R$2.500 em um faturamento de R$10.000 resulta em uma margem de 25%.", dica: "Compare sua margem líquida com a média do seu setor para avaliar a competitividade."},
+        pontoEquilibrio: {nome: "Ponto de Equilíbrio", formula: "Custos Fixos Totais / Índice da Margem de Contribuição", significado: "O valor mínimo de faturamento necessário para cobrir todos os custos, onde o lucro é zero.", exemplo: "Se seus custos fixos são R$5.000 e sua margem de contribuição é 40%, seu Ponto de Equilíbrio é R$12.500.", dica: "Conhecer seu ponto de equilíbrio é vital para definir metas de vendas realistas e garantir a sobrevivência do negócio."},
+        ticketMedio: {nome: "Ticket Médio", formula: "Faturamento Total / Número de Vendas", significado: "Valor médio que cada cliente gasta por compra.", exemplo: "Faturamento de R$10.000 com 100 vendas resulta em um Ticket Médio de R$100.", dica: "Crie combos, ofereça produtos complementares (cross-sell) e versões melhores (upsell) para aumentar o ticket médio."},
+        depreciacao: {nome: "Depreciação", formula: "(Custo do Ativo - Valor Residual) / Vida Útil", significado: "É a perda de valor de um ativo (máquina, veículo) ao longo do tempo. É uma despesa que não representa saída de caixa.", exemplo: "Uma máquina de R$50.000 com vida útil de 5 anos deprecia R$10.000 por ano.", dica: "A depreciação reduz o lucro tributável, gerando economia de impostos, e é somada de volta no cálculo do fluxo de caixa."},
+        fluxoCaixaOperacional: {nome: "Fluxo de Caixa Operacional (FCO)", formula: "Lucro Líquido + Depreciação", significado: "Mede o caixa efetivamente gerado pelas operações principais do negócio. É o coração financeiro da empresa.", exemplo: "Lucro de R$8.500 + Depreciação de R$1.000 = FCO de R$9.500.", dica: "Um FCO consistentemente positivo e crescente indica uma operação saudável e eficiente."},
+        fluxoCaixaInvestimentos: {nome: "Fluxo de Caixa de Investimentos (FCI)", formula: "(-) Aquisição de Ativos (+) Venda de Ativos", significado: "Mostra o caixa utilizado na compra (CAPEX) ou gerado na venda de ativos de longo prazo, como máquinas e imóveis.", exemplo: "A compra de uma máquina por R$20.000 gera um FCI de -R$20.000.", dica: "Um FCI negativo geralmente indica que a empresa está investindo em seu crescimento futuro."},
+        fluxoCaixaFinanciamentos: {nome: "Fluxo de Caixa de Financiamentos (FCF)", formula: "Novos Empréstimos - Pagamentos de Dívidas + Aportes de Sócios - Distribuição de Lucros", significado: "Reflete as transações de caixa com proprietários (sócios) e credores (bancos).", exemplo: "Pegou R$30.000 de empréstimo e pagou R$5.000 aos sócios = FCF de +R$25.000.", dica: "Ajuda a entender como a empresa está financiando suas operações e seu crescimento."},
+        fluxoCaixaLivre: {nome: "Fluxo de Caixa Livre (FCL)", formula: "FCO + FCI + FCF", significado: "A variação total de caixa no período. É a métrica mais importante para a saúde financeira de curto prazo.", exemplo: "FCO de R$9.500 + FCI de -R$20.000 + FCF de R$25.000 = FCL de +R$14.500.", dica: "Um FCL positivo significa que a empresa gerou mais caixa do que gastou, aumentando sua reserva financeira."}
     };
 
     auth.onAuthStateChanged(async user => {
-        if (user) {
-            currentUser = user;
-            financialData = await loadDataFromFirestore(user.uid);
-            showApp();
-        } else {
-            currentUser = null;
-            showLogin();
-        }
+        if (user) { currentUser = user; financialData = await loadDataFromFirestore(user.uid); showApp(); } 
+        else { currentUser = null; showLogin(); }
     });
 
     loginForm.addEventListener('submit', (e) => {
@@ -215,9 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const pass = document.getElementById('login-password').value;
         const errorEl = document.getElementById('login-error');
         errorEl.textContent = '';
-        auth.signInWithEmailAndPassword(email, pass).catch(error => {
-            errorEl.textContent = "Email ou senha inválidos.";
-        });
+        auth.signInWithEmailAndPassword(email, pass).catch(error => { errorEl.textContent = "Email ou senha inválidos."; });
     });
 
     registerForm.addEventListener('submit', (e) => {
@@ -227,13 +228,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const errorEl = document.getElementById('register-error');
         errorEl.textContent = '';
         auth.createUserWithEmailAndPassword(email, pass)
-            .then(userCredential => db.collection('users').doc(userCredential.user.uid).set({
-                email: userCredential.user.email, company: DEFAULT_COMPANY_NAME, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            }))
-            .then(() => {
-                alert('Cadastro realizado com sucesso! Faça o login.');
-                toggleForms();
-            })
+            .then(userCredential => db.collection('users').doc(userCredential.user.uid).set({ email: userCredential.user.email, company: DEFAULT_COMPANY_NAME, createdAt: firebase.firestore.FieldValue.serverTimestamp() }))
+            .then(() => { alert('Cadastro realizado com sucesso! Faça o login.'); toggleForms(); })
             .catch(error => {
                 switch (error.code) {
                     case 'auth/email-already-in-use': errorEl.textContent = "Este email já está cadastrado."; break;
@@ -255,10 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await db.collection('users').doc(currentUser.uid).delete();
             await currentUser.delete();
             alert("Conta e dados excluídos com sucesso.");
-        } catch (error) {
-            console.error("Erro ao excluir conta:", error);
-            alert("Erro ao excluir conta. Pode ser necessário fazer login novamente por segurança.");
-        }
+        } catch (error) { console.error("Erro ao excluir conta:", error); alert("Erro ao excluir conta. Pode ser necessário fazer login novamente por segurança."); }
     }
     deleteAccountBtn.addEventListener('click', deleteAccountAndData);
 
@@ -278,9 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderGlossary();
     }
     
-    function showLogin() {
-        loginSection.style.display = 'flex'; app.style.display = 'none';
-    }
+    function showLogin() { loginSection.style.display = 'flex'; app.style.display = 'none'; }
 
     async function loadDataFromFirestore(userId) {
         try { const doc = await db.collection('financialData').doc(userId).get(); return doc.exists ? doc.data() : {};
@@ -300,10 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!financialData[currentYear][month]) financialData[currentYear][month] = {};
             financialData[currentYear][month][field] = value;
         });
-        try {
-            await saveDataToFirestore(currentUser.uid, financialData);
-            alert('Dados salvos na nuvem com sucesso!');
-            updateAllCalculations();
+        try { await saveDataToFirestore(currentUser.uid, financialData); alert('Dados salvos na nuvem com sucesso!'); updateAllCalculations();
         } catch (e) {}
     }
     saveDataBtn.addEventListener('click', saveMonthlyData);
@@ -328,11 +316,7 @@ document.addEventListener('DOMContentLoaded', () => {
             yearSelector.appendChild(option);
         }
     }
-    yearSelector.addEventListener('change', (e) => {
-        currentYear = parseInt(e.target.value);
-        loadYearData(currentYear);
-        updateAllCalculations();
-    });
+    yearSelector.addEventListener('change', (e) => { currentYear = parseInt(e.target.value); loadYearData(currentYear); updateAllCalculations(); });
 
     function loadYearData(year) {
         const tableBody = document.querySelector('#monthly-inputs tbody');
@@ -405,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!indicatorInfo) return;
                 const value = annualIndicators[key];
                 let formattedValue = key.includes('margem') || key.includes('markup') ? formatPercent(value) : formatCurrency(value);
-                gridDiv.innerHTML += `<div class="card"><h3>${indicatorInfo.nome}</h3><div class="value ${value >= 0 ? 'positive' : 'negative'}">${formattedValue}</div><p>${indicatorInfo.significado}</p></div>`;
+                gridDiv.innerHTML += `<div class="card"><h3>${indicatorInfo.nome}</h3><div class="value ${value >= 0 ? 'positive' : 'negative'}">${formattedValue}</div><p class="explanation">${indicatorInfo.significado}</p></div>`;
             });
             categoryDiv.appendChild(gridDiv);
             container.appendChild(categoryDiv);
@@ -455,11 +439,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         doc.text(`Indicadores Mensais - ${currentYear}`, 14, 15);
-        doc.autoTable({ html: '#monthly-indicators-table', startY: 20 });
+        doc.autoTable({ html: '#monthly-indicators-table', startY: 20, theme: 'grid', headStyles: { fillColor: [0, 95, 115] } });
         doc.save(`Indicadores_${currentYear}.pdf`);
     }
     function exportMonthlyToExcel() {
-        const wb = XLSX.utils.table_to_book(document.getElementById('monthly-indicators-table'));
+        const wb = XLSX.utils.table_to_book(document.getElementById('monthly-indicators-table'), {sheet: 'Indicadores Mensais'});
         XLSX.writeFile(wb, `Indicadores_${currentYear}.xlsx`);
     }
     exportPdfMonthlyBtn.addEventListener('click', exportMonthlyToPDF);
