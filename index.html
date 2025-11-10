@@ -123,25 +123,18 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-// Remova todo o seu script antigo e substitua por este
-
-// =================================== INÍCIO DA CONFIGURAÇÃO DO FIREBASE ===================================
 const firebaseConfig = {
-  apiKey: "AIzaSyB30QPE40atu__s4z3WlDBXHaryIE6asfE",
-  authDomain: "consultor-3016e.firebaseapp.com",
-  projectId: "consultor-3016e",
-  storageBucket: "consultor-3016e.firebasestorage.app",
-  messagingSenderId: "819781871365",
-  appId: "1:819781871365:web:a13d6930c8738a69af396c",
-  measurementId: "G-C86JBXTK16"
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_AUTH_DOMAIN",
+    projectId: "SEU_PROJECT_ID",
+    storageBucket: "SEU_STORAGE_BUCKET",
+    messagingSenderId: "SEU_MESSAGING_SENDER_ID",
+    appId: "SEU_APP_ID"
 };
 
-
-// Inicializa o Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-// =================================== FIM DA CONFIGURAÇÃO DO FIREBASE ===================================
 
 // --- REFERÊNCIAS GLOBAIS ---
 const app = document.getElementById('app');
@@ -150,9 +143,7 @@ const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 const resetPasswordForm = document.getElementById('reset-password-form');
 const forgotPasswordLink = document.querySelector('.forgot-password');
-const backToLoginLink = document.querySelector('.back-to-login');
 const toggleFormsLinks = document.querySelectorAll('.toggle-form');
-
 const companyNameEl = document.getElementById('company-name');
 const logoutBtn = document.getElementById('logoutBtn');
 const saveDataBtn = document.getElementById('save-data');
@@ -192,9 +183,8 @@ const GLOSSARY_DATA = {
     fluxoCaixaLivre: {nome: "Fluxo de Caixa Livre (FCL)", formula: "FCO + FCI + FCF", significado: "A variação total de caixa no período. É a métrica mais importante para a saúde financeira de curto prazo.", exemplo: "FCO de R$9.500 + FCI de -R$20.000 + FCF de R$25.000 = FCL de +R$14.500.", dica: "Um FCL positivo significa que a empresa gerou mais caixa do que gastou, aumentando sua reserva financeira."}
 };
 
-// --- FUNÇÕES DE LÓGICA E CONTROLE ---
+// --- FUNÇÕES DE LÓGICA ---
 
-// CORREÇÃO APLICADA AQUI
 auth.onAuthStateChanged(async (user) => {
     try {
         if (user) {
@@ -212,50 +202,287 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-function handleLogin(e) { e.preventDefault(); /* ... */ }
-function handleRegister(e) { e.preventDefault(); /* ... */ }
-function handlePasswordReset(e) { e.preventDefault(); /* ... */ }
-async function deleteAccountAndData() { /* ... */ }
-function toggleResetForm(showReset = false) { /* ... */ }
-function toggleForms() { /* ... */ }
-function showApp() { /* ... */ }
-function showLogin() { /* ... */ }
+function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('login-user').value;
+    const pass = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
+    errorEl.textContent = '';
+    auth.signInWithEmailAndPassword(email, pass).catch(error => {
+        errorEl.textContent = "Email ou senha inválidos.";
+    });
+}
 
-// FUNÇÃO loadDataFromFirestore CORRIGIDA
-async function loadDataFromFirestore(userId) {
-    if (!userId) {
-        console.error("ID do usuário inválido.");
-        return {};
+function handleRegister(e) {
+    e.preventDefault();
+    const email = document.getElementById('register-user').value;
+    const pass = document.getElementById('register-password').value;
+    const errorEl = document.getElementById('register-error');
+    errorEl.textContent = '';
+    auth.createUserWithEmailAndPassword(email, pass)
+        .then(userCredential => db.collection('users').doc(userCredential.user.uid).set({
+            email: userCredential.user.email,
+            company: DEFAULT_COMPANY_NAME,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }))
+        .then(() => {
+            alert('Cadastro realizado com sucesso! Faça o login.');
+            toggleForms('login');
+        })
+        .catch(error => {
+            switch (error.code) {
+                case 'auth/email-already-in-use': errorEl.textContent = "Este email já está cadastrado."; break;
+                case 'auth/weak-password': errorEl.textContent = "A senha deve ter no mínimo 6 caracteres."; break;
+                case 'auth/invalid-email': errorEl.textContent = "O formato do email é inválido."; break;
+                default: errorEl.textContent = "Erro no cadastro. Verifique a config do Firebase."; console.error("Erro:", error); break;
+            }
+        });
+}
+
+function handlePasswordReset(e) {
+    e.preventDefault();
+    const email = document.getElementById('reset-email').value;
+    const messageEl = document.getElementById('reset-message');
+    messageEl.textContent = 'Enviando...';
+    messageEl.className = '';
+    auth.sendPasswordResetEmail(email)
+        .then(() => {
+            messageEl.textContent = "Email de recuperação enviado! Verifique sua caixa de entrada e spam.";
+            messageEl.className = 'success-message';
+        })
+        .catch((error) => {
+            messageEl.className = 'error-message';
+            if (error.code === 'auth/user-not-found') messageEl.textContent = "Este email não está cadastrado.";
+            else if (error.code === 'auth/invalid-email') messageEl.textContent = "O formato do email é inválido.";
+            else messageEl.textContent = "Ocorreu um erro. Tente novamente.";
+        });
+}
+
+async function deleteAccountAndData() {
+    if (!currentUser) return;
+    const confirmation = prompt("Atenção: Ação irreversível. Para excluir sua conta e todos os dados, digite 'EXCLUIR'.");
+    if (confirmation !== 'EXCLUIR') {
+        alert("Ação cancelada.");
+        return;
     }
+    try {
+        await db.collection('financialData').doc(currentUser.uid).delete();
+        await db.collection('users').doc(currentUser.uid).delete();
+        await currentUser.delete();
+        alert("Conta e dados excluídos com sucesso.");
+    } catch (error) {
+        console.error("Erro ao excluir conta:", error);
+        alert("Erro ao excluir conta. Pode ser necessário fazer login novamente por segurança.");
+    }
+}
+
+function toggleForms(formToShow) {
+    loginForm.style.display = formToShow === 'login' ? 'block' : 'none';
+    registerForm.style.display = formToShow === 'register' ? 'block' : 'none';
+    resetPasswordForm.style.display = formToShow === 'reset' ? 'block' : 'none';
+    document.getElementById('login-error').textContent = '';
+    document.getElementById('register-error').textContent = '';
+    document.getElementById('reset-message').textContent = '';
+}
+
+function showApp() {
+    loginSection.style.display = 'none';
+    app.style.display = 'block';
+    companyNameEl.textContent = DEFAULT_COMPANY_NAME;
+    setupYearSelector();
+    loadYearData(currentYear);
+    updateAllCalculations();
+    renderGlossary();
+}
+
+function showLogin() {
+    loginSection.style.display = 'flex';
+    app.style.display = 'none';
+}
+
+async function loadDataFromFirestore(userId) {
+    if (!userId) { return {}; }
     try {
         const docRef = db.collection('financialData').doc(userId);
         const doc = await docRef.get();
-        if (doc.exists) {
-            return doc.data();
-        } else {
-            // Se não existe, retorna um objeto vazio. Não é um erro.
-            return {}; 
-        }
+        return doc.exists ? doc.data() : {};
     } catch (error) {
         console.error("Erro ao carregar dados do Firestore:", error);
-        // Em caso de erro de rede, etc., retorna um objeto vazio para não quebrar a aplicação.
         return {};
     }
 }
 
-async function saveDataToFirestore(userId, data) { /* ... */ }
-async function saveMonthlyData() { /* ... */ }
-function setupYearSelector() { /* ... */ }
-function loadYearData(year) { /* ... */ }
-function calculateIndicators(data = {}) { /* ... */ }
-function updateAllCalculations() { /* ... */ }
-function renderMonthlyIndicators() { /* ... */ }
-function renderAnnualIndicators() { /* ... */ }
+async function saveDataToFirestore(userId, data) {
+    try {
+        await db.collection('financialData').doc(userId).set(data, { merge: true });
+    } catch (error) {
+        console.error("Erro ao salvar dados:", error);
+        alert('Falha ao salvar. Verifique sua conexão.');
+        throw error;
+    }
+}
+
+async function saveMonthlyData() {
+    if (!currentUser) return;
+    if (!financialData[currentYear]) financialData[currentYear] = {};
+    document.querySelectorAll('#monthly-inputs input').forEach(input => {
+        const month = parseInt(input.dataset.month),
+            field = input.dataset.field,
+            value = parseFloat(input.value) || 0;
+        if (!financialData[currentYear][month]) financialData[currentYear][month] = {};
+        financialData[currentYear][month][field] = value;
+    });
+    try {
+        await saveDataToFirestore(currentUser.uid, financialData);
+        alert('Dados salvos na nuvem com sucesso!');
+        updateAllCalculations();
+    } catch (e) {}
+}
+
+function setupYearSelector() {
+    const current = new Date().getFullYear();
+    yearSelector.innerHTML = '';
+    for (let i = current + 1; i >= current - 5; i--) {
+        const option = document.createElement('option');
+        option.value = i;
+        option.textContent = i;
+        option.selected = (i === currentYear);
+        yearSelector.appendChild(option);
+    }
+}
+
+function loadYearData(year) {
+    const tableBody = document.querySelector('#monthly-inputs tbody');
+    tableBody.innerHTML = '';
+    const yearData = financialData[year] || {};
+    MONTHS.forEach((month, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${month}</td>`;
+        const monthData = yearData[index] || {};
+        INPUT_FIELDS.forEach(field => {
+            const td = document.createElement('td');
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.dataset.month = index;
+            input.dataset.field = field;
+            input.value = monthData[field] || '';
+            input.placeholder = "0.00";
+            td.appendChild(input);
+            row.appendChild(td);
+        });
+        tableBody.appendChild(row);
+    });
+}
+
+function calculateIndicators(data = {}) {
+    const inputs = {}; INPUT_FIELDS.forEach(field => inputs[field] = data[field] || 0);
+    const {faturamento, custosVariaveis, custosFixos, despesasOperacionais, outrasReceitasDespesas, impostos, depreciacao, investimentos, financiamentosEntradas, amortizacaoDividas, aporteSocios, distribuicaoLucros} = inputs;
+    const lucroBruto = faturamento - custosVariaveis;
+    const lucroOperacional = lucroBruto - custosFixos - despesasOperacionais;
+    const lucroAntesImpostos = lucroOperacional + outrasReceitasDespesas;
+    const lucroLiquido = lucroAntesImpostos - impostos;
+    const margemLiquida = faturamento > 0 ? (lucroLiquido / faturamento) * 100 : 0;
+    const markup = custosVariaveis > 0 ? ((faturamento - custosVariaveis) / custosVariaveis) * 100 : 0;
+    const fluxoCaixaOperacional = lucroLiquido + depreciacao;
+    const fluxoCaixaInvestimentos = -investimentos;
+    const fluxoCaixaFinanciamentos = financiamentosEntradas - amortizacaoDividas + aporteSocios - distribuicaoLucros;
+    const fluxoCaixaLivre = fluxoCaixaOperacional + fluxoCaixaInvestimentos + fluxoCaixaFinanciamentos;
+    return { lucroLiquido, margemLiquida, markup, fluxoCaixaOperacional, fluxoCaixaInvestimentos, fluxoCaixaFinanciamentos, fluxoCaixaLivre, faturamento, custosTotais: custosFixos + custosVariaveis + despesasOperacionais};
+}
+    
+function updateAllCalculations() { renderMonthlyIndicators(); renderAnnualIndicators(); }
+    
+function renderMonthlyIndicators() {
+    const tableBody = document.querySelector('#monthly-indicators-table tbody');
+    tableBody.innerHTML = '';
+    const yearData = financialData[currentYear] || {};
+    MONTHS.forEach((month, index) => {
+        const indicators = calculateIndicators(yearData[index]);
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${month}</td><td class="${indicators.lucroLiquido >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.lucroLiquido)}</td><td class="${indicators.margemLiquida >= 0 ? 'positive' : 'negative'}">${formatPercent(indicators.margemLiquida)}</td><td class="${indicators.markup >= 0 ? 'positive' : 'negative'}">${formatPercent(indicators.markup)}</td><td class="${indicators.fluxoCaixaOperacional >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaOperacional)}</td><td class="${indicators.fluxoCaixaInvestimentos >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaInvestimentos)}</td><td class="${indicators.fluxoCaixaFinanciamentos >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaFinanciamentos)}</td><td class="${indicators.fluxoCaixaLivre >= 0 ? 'positive' : 'negative'}"><strong>${formatCurrency(indicators.fluxoCaixaLivre)}</strong></td>`;
+        tableBody.appendChild(row);
+    });
+}
+
+function renderAnnualIndicators() {
+    const container = document.getElementById('annual-indicators-content');
+    container.innerHTML = '';
+    const yearData = financialData[currentYear] || {};
+    let annualTotals = {}; INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
+    for(let i=0; i<12; i++) { if(yearData[i]) INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0); }
+    const annualIndicators = calculateIndicators(annualTotals);
+    const categories = {
+        "Rentabilidade e Lucro": ['lucroLiquido', 'margemLiquida', 'markup'],
+        "Fluxo de Caixa": ['fluxoCaixaLivre', 'fluxoCaixaOperacional', 'fluxoCaixaInvestimentos', 'fluxoCaixaFinanciamentos']
+    };
+    for (const categoryName in categories) {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'card-category';
+        categoryDiv.innerHTML = `<h2>${categoryName}</h2>`;
+        const gridDiv = document.createElement('div');
+        gridDiv.className = 'indicators-grid';
+        categories[categoryName].forEach(key => {
+            const indicatorInfo = GLOSSARY_DATA[key];
+            if (!indicatorInfo) return;
+            const value = annualIndicators[key];
+            let formattedValue = key.includes('margem') || key.includes('markup') ? formatPercent(value) : formatCurrency(value);
+            gridDiv.innerHTML += `<div class="card"><h3>${indicatorInfo.nome}</h3><div class="value ${value >= 0 ? 'positive' : 'negative'}">${formattedValue}</div><p class="explanation">${indicatorInfo.significado}</p></div>`;
+        });
+        categoryDiv.appendChild(gridDiv);
+        container.appendChild(categoryDiv);
+    }
+}
+    
 let chartInstances = {};
-function renderAllCharts() { /* ... */ }
-function renderGlossary() { /* ... */ }
-function exportMonthlyToPDF() { /* ... */ }
-function exportMonthlyToExcel() { /* ... */ }
+function renderAllCharts() {
+    const yearData = financialData[currentYear] || {};
+    const labels = MONTHS;
+    const chartData = { faturamento: [], custosTotais: [], lucroLiquido: [], fluxoCaixaLivre: [] };
+    for(let i=0; i<12; i++) {
+        const indicators = calculateIndicators(yearData[i]);
+        chartData.faturamento.push(indicators.faturamento);
+        chartData.custosTotais.push(indicators.custosTotais);
+        chartData.lucroLiquido.push(indicators.lucroLiquido);
+        chartData.fluxoCaixaLivre.push(indicators.fluxoCaixaLivre);
+    }
+    const chartConfigs = {
+        monthlyEvolutionChart: { type: 'line', data: { labels, datasets: [ { label: 'Faturamento', data: chartData.faturamento, borderColor: '#0a9396', fill: false, tension: 0.1 }, { label: 'Custos Totais', data: chartData.custosTotais, borderColor: '#e76f51', fill: false, tension: 0.1 }, { label: 'Lucro Líquido', data: chartData.lucroLiquido, borderColor: '#2a9d8f', fill: false, tension: 0.1 } ]}},
+        cashFlowChart: { type: 'bar', data: { labels, datasets: [ { label: 'Fluxo de Caixa Livre', data: chartData.fluxoCaixaLivre, backgroundColor: (ctx) => (ctx.raw >= 0 ? '#2a9d8f' : '#e76f51') } ]}}
+    };
+    for (const id in chartConfigs) {
+        if(chartInstances[id]) chartInstances[id].destroy();
+        const canvas = document.getElementById(id);
+        if(canvas) chartInstances[id] = new Chart(canvas.getContext('2d'), chartConfigs[id]);
+    }
+}
+
+function renderGlossary() {
+    const container = document.getElementById('glossary-container');
+    container.innerHTML = '';
+    Object.keys(GLOSSARY_DATA).sort((a,b) => GLOSSARY_DATA[a].nome.localeCompare(GLOSSARY_DATA[b].nome)).forEach(key => {
+        const item = GLOSSARY_DATA[key];
+        const div = document.createElement('div');
+        div.className = 'glossary-item';
+        div.innerHTML = `<div class="glossary-header">${item.nome}</div><div class="glossary-content"><div><p><strong>Fórmula:</strong> ${item.formula}</p><p><strong>Significado:</strong> ${item.significado}</p><p><strong>Exemplo:</strong> ${item.exemplo}</p><p><strong>Dica:</strong> ${item.dica}</p></div></div>`;
+        container.appendChild(div);
+    });
+    container.querySelectorAll('.glossary-header').forEach(header => {
+        header.addEventListener('click', () => header.parentElement.classList.toggle('active'));
+    });
+}
+    
+function exportMonthlyToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text(`Indicadores Mensais - ${currentYear}`, 14, 15);
+    doc.autoTable({ html: '#monthly-indicators-table', startY: 20, theme: 'grid', headStyles: { fillColor: [0, 95, 115] } });
+    doc.save(`Indicadores_${currentYear}.pdf`);
+}
+function exportMonthlyToExcel() {
+    const wb = XLSX.utils.table_to_book(document.getElementById('monthly-indicators-table'), {sheet: 'Indicadores Mensais'});
+    XLSX.writeFile(wb, `Indicadores_${currentYear}.xlsx`);
+}
+
 const formatCurrency = (v) => (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const formatPercent = (v) => (v || 0).toFixed(2).replace('.', ',') + '%';
 
@@ -263,12 +490,9 @@ const formatPercent = (v) => (v || 0).toFixed(2).replace('.', ',') + '%';
 loginForm.addEventListener('submit', handleLogin);
 registerForm.addEventListener('submit', handleRegister);
 resetPasswordForm.addEventListener('submit', handlePasswordReset);
-forgotPasswordLink.addEventListener('click', () => toggleResetForm(true));
-backToLoginLink.addEventListener('click', () => toggleResetForm(false));
+forgotPasswordLink.addEventListener('click', () => toggleForms('reset'));
 toggleFormsLinks.forEach(link => {
-    if(!link.classList.contains('back-to-login')) {
-        link.addEventListener('click', toggleForms);
-    }
+    link.addEventListener('click', (e) => toggleForms(e.target.dataset.form));
 });
 logoutBtn.addEventListener('click', () => auth.signOut());
 deleteAccountBtn.addEventListener('click', deleteAccountAndData);
@@ -291,3 +515,7 @@ yearSelector.addEventListener('change', (e) => {
 recalculateAnnualBtn.addEventListener('click', renderAnnualIndicators);
 exportPdfMonthlyBtn.addEventListener('click', exportMonthlyToPDF);
 exportExcelMonthlyBtn.addEventListener('click', exportMonthlyToExcel);
+</script>
+
+</body>
+</html>
