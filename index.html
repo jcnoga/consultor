@@ -191,7 +191,7 @@ const GLOSSARY_DATA = {
     fluxoCaixaLivre: {nome: "Fluxo de Caixa Livre (FCL)", formula: "FCO + FCI + FCF", significado: "A variação total de caixa no período. É a métrica mais importante para a saúde financeira de curto prazo.", exemplo: "FCO de R$9.500 + FCI de -R$20.000 + FCF de R$25.000 = FCL de +R$14.500.", dica: "Um FCL positivo significa que a empresa gerou mais caixa do que gastou, aumentando sua reserva financeira."}
 };
 
-// --- FUNÇÕES ---
+// --- FUNÇÕES DE LÓGICA ---
 
 auth.onAuthStateChanged(async (user) => {
     try {
@@ -213,16 +213,7 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-function handleLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById('login-user').value;
-    const pass = document.getElementById('login-password').value;
-    const errorEl = document.getElementById('login-error');
-    errorEl.textContent = '';
-    auth.signInWithEmailAndPassword(email, pass).catch(error => {
-        errorEl.textContent = "Email ou senha inválidos.";
-    });
-}
+function handleLogin(e) { e.preventDefault(); const email = document.getElementById('login-user').value; const pass = document.getElementById('login-password').value; const errorEl = document.getElementById('login-error'); errorEl.textContent = ''; auth.signInWithEmailAndPassword(email, pass).catch(error => { errorEl.textContent = "Email ou senha inválidos."; }); }
 
 function handleRegister(e) {
     e.preventDefault();
@@ -231,15 +222,8 @@ function handleRegister(e) {
     const errorEl = document.getElementById('register-error');
     errorEl.textContent = '';
     auth.createUserWithEmailAndPassword(email, pass)
-        .then(userCredential => db.collection('users').doc(userCredential.user.uid).set({
-            email: userCredential.user.email,
-            company: DEFAULT_COMPANY_NAME,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }))
-        .then(() => {
-            alert('Cadastro realizado com sucesso! Faça o login.');
-            toggleForms('login');
-        })
+        .then(userCredential => db.collection('users').doc(userCredential.user.uid).set({ email: userCredential.user.email, company: DEFAULT_COMPANY_NAME, createdAt: firebase.firestore.FieldValue.serverTimestamp() }))
+        .then(() => { alert('Cadastro realizado com sucesso! Faça o login.'); toggleForms('login'); })
         .catch(error => {
             switch (error.code) {
                 case 'auth/email-already-in-use': errorEl.textContent = "Este email já está cadastrado."; break;
@@ -257,10 +241,7 @@ function handlePasswordReset(e) {
     messageEl.textContent = 'Enviando...';
     messageEl.className = '';
     auth.sendPasswordResetEmail(email)
-        .then(() => {
-            messageEl.textContent = "Email de recuperação enviado! Verifique sua caixa de entrada e spam.";
-            messageEl.className = 'success-message';
-        })
+        .then(() => { messageEl.textContent = "Email de recuperação enviado! Verifique sua caixa de entrada e spam."; messageEl.className = 'success-message'; })
         .catch((error) => {
             messageEl.className = 'error-message';
             if (error.code === 'auth/user-not-found') messageEl.textContent = "Este email não está cadastrado.";
@@ -272,10 +253,7 @@ function handlePasswordReset(e) {
 async function deleteAccountAndData() {
     if (!currentUser) return;
     const confirmation = prompt("Atenção: Ação irreversível. Para excluir sua conta e todos os dados, digite 'EXCLUIR'.");
-    if (confirmation !== 'EXCLUIR') {
-        alert("Ação cancelada.");
-        return;
-    }
+    if (confirmation !== 'EXCLUIR') { alert("Ação cancelada."); return; }
     try {
         await db.collection('financialData').doc(currentUser.uid).delete();
         await db.collection('userSettings').doc(currentUser.uid).delete();
@@ -301,13 +279,10 @@ function showApp() {
     loginSection.style.display = 'none';
     app.style.display = 'block';
     companyNameEl.textContent = DEFAULT_COMPANY_NAME;
-    
-    // Preenche os campos de configurações com os dados salvos
     document.getElementById('business-type').value = userSettings.businessType || 'varejo';
     document.getElementById('benchmark-margem').value = userSettings.benchmarkMargem || '';
     document.getElementById('benchmark-custos').value = userSettings.benchmarkCustos || '';
     document.getElementById('benchmark-markup').value = userSettings.benchmarkMarkup || '';
-    
     setupYearSelector();
     loadYearData(currentYear);
     updateAllCalculations();
@@ -320,41 +295,28 @@ function showLogin() {
 }
 
 async function loadDataFromFirestore(userId, collection) {
-    if (!userId || !collection) { return {}; }
+    if (!userId || !collection) return {};
     try {
         const docRef = db.collection(collection).doc(userId);
         const doc = await docRef.get();
         return doc.exists ? doc.data() : {};
-    } catch (error) {
-        console.error(`Erro ao carregar dados da coleção ${collection}:`, error);
-        return {};
-    }
+    } catch (error) { console.error(`Erro ao carregar dados da coleção ${collection}:`, error); return {}; }
 }
 
 async function saveDataToFirestore(userId, data, collection) {
-    try {
-        await db.collection(collection).doc(userId).set(data);
-    } catch (error) {
-        console.error(`Erro ao salvar dados na coleção ${collection}:`, error);
-        alert('Falha ao salvar. Verifique sua conexão.');
-        throw error;
-    }
+    try { await db.collection(collection).doc(userId).set(data);
+    } catch (error) { console.error(`Erro ao salvar dados na coleção ${collection}:`, error); alert('Falha ao salvar. Verifique sua conexão.'); throw error; }
 }
 
 async function saveMonthlyData() {
     if (!currentUser) return;
     if (!financialData[currentYear]) financialData[currentYear] = {};
     document.querySelectorAll('#monthly-inputs input').forEach(input => {
-        const month = parseInt(input.dataset.month),
-            field = input.dataset.field,
-            value = parseFloat(input.value) || 0;
+        const month = parseInt(input.dataset.month), field = input.dataset.field, value = parseFloat(input.value) || 0;
         if (!financialData[currentYear][month]) financialData[currentYear][month] = {};
         financialData[currentYear][month][field] = value;
     });
-    try {
-        await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
-        alert('Dados salvos na nuvem com sucesso!');
-        updateAllCalculations();
+    try { await saveDataToFirestore(currentUser.uid, financialData, 'financialData'); alert('Dados salvos na nuvem com sucesso!'); updateAllCalculations();
     } catch (e) {}
 }
 
@@ -366,50 +328,185 @@ async function saveBusinessSettings() {
         benchmarkCustos: parseFloat(document.getElementById('benchmark-custos').value) || 0,
         benchmarkMarkup: parseFloat(document.getElementById('benchmark-markup').value) || 0,
     };
-    try {
-        await saveDataToFirestore(currentUser.uid, settings, 'userSettings');
-        userSettings = settings; // Atualiza o estado local
-        alert('Configurações salvas com sucesso!');
+    try { await saveDataToFirestore(currentUser.uid, settings, 'userSettings'); userSettings = settings; alert('Configurações salvas com sucesso!');
     } catch (error) {}
 }
 
 function generateBusinessAdvice(indicators, settings) {
     const adviceList = [];
-    const { benchmarkMargem, benchmarkCustos, benchmarkMarkup, businessType } = settings;
-
+    const { benchmarkMargem = 0, benchmarkCustos = 0, benchmarkMarkup = 0, businessType } = settings;
     if (benchmarkMargem > 0 && indicators.margemLiquida < benchmarkMargem) {
         let conselho = { titulo: "Margem Líquida Abaixo da Meta", texto: `Sua margem líquida (${formatPercent(indicators.margemLiquida)}) está abaixo da sua meta de ${formatPercent(benchmarkMargem)}. Isso significa que os custos e despesas estão consumindo uma fatia muito grande do seu faturamento.`};
         if (businessType === 'varejo' || businessType === 'ecommerce') conselho.acao = "Crie um programa de fidelidade para aumentar a recorrência. Uma <strong>landing page</strong> para capturar emails e uma estratégia de email marketing podem ajudar a aumentar as vendas para a mesma base de clientes.";
         else conselho.acao = "Revise sua precificação. Utilize suas <strong>redes sociais</strong> para comunicar o valor agregado do seu serviço, justificando um preço maior.";
         adviceList.push(conselho);
     }
-    
     if (benchmarkMarkup > 0 && indicators.markup < benchmarkMarkup) {
         adviceList.push({ titulo: "Markup Abaixo da Meta", texto: `Seu markup médio (${formatPercent(indicators.markup)}) está abaixo do mínimo desejado de ${formatPercent(benchmarkMarkup)}. Isso impacta diretamente sua capacidade de gerar lucro bruto.`, acao: "Otimize sua precificação. Se vender online, utilize um <strong>e-commerce</strong> que permita testes A/B de preços. Considere também vender em <strong>marketplaces</strong> para alcançar um público maior." });
     }
-    
-    const custoVariavelPercent = indicators.faturamento > 0 ? (indicators.custosVariaveis / indicators.faturamento) * 100 : 0;
+    const custoVariavelPercent = indicators.faturamento > 0 ? (indicators.custosTotais / indicators.faturamento) * 100 : 0;
     if (benchmarkCustos > 0 && custoVariavelPercent > benchmarkCustos) {
-         adviceList.push({ titulo: "Custos Variáveis Elevados", texto: `Seus custos variáveis representam ${formatPercent(custoVariavelPercent)} do faturamento, acima da sua meta de ${formatPercent(benchmarkCustos)}.`, acao: "Busque renegociar com seus fornecedores. Para uma loja física, otimizar o estoque é crucial. Considere um sistema de gestão (ERP) simples para controlar melhor as compras. A criação de um <strong>site institucional</strong> pode atrair novos fornecedores." });
+         adviceList.push({ titulo: "Custos Totais Elevados", texto: `Seus custos totais representam ${formatPercent(custoVariavelPercent)} do faturamento, acima da sua meta de ${formatPercent(benchmarkCustos)}.`, acao: "Busque renegociar com seus fornecedores e revise suas despesas fixas. Considere um sistema de gestão (ERP) simples para controlar melhor as compras. A criação de um <strong>site institucional</strong> pode atrair novos fornecedores." });
     }
-    
     if (adviceList.length === 0) {
         adviceList.push({ titulo: "Parabéns, seus indicadores estão ótimos!", texto: "Todos os seus principais indicadores estão dentro das metas que você definiu. Continue monitorando para manter o bom desempenho.", acao: "O próximo passo pode ser a expansão. Use o tráfego pago nas <strong>redes sociais</strong> para testar novos públicos ou explore a venda em novos canais, como um <strong>e-commerce</strong> próprio." });
     }
     return adviceList;
 }
 
-function setupYearSelector() { /* ... */ }
-function loadYearData(year) { /* ... */ }
-function calculateIndicators(data = {}) { /* ... */ }
-function updateAllCalculations() { /* ... */ }
-function renderMonthlyIndicators() { /* ... */ }
-async function renderAnnualIndicators() { /* ... */ }
+function setupYearSelector() {
+    const current = new Date().getFullYear();
+    yearSelector.innerHTML = '';
+    for (let i = current + 1; i >= current - 5; i--) {
+        const option = document.createElement('option');
+        option.value = i; option.textContent = i; option.selected = (i === currentYear);
+        yearSelector.appendChild(option);
+    }
+}
+
+function loadYearData(year) {
+    const tableBody = document.querySelector('#monthly-inputs tbody');
+    tableBody.innerHTML = '';
+    const yearData = financialData[year] || {};
+    MONTHS.forEach((month, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${month}</td>`;
+        const monthData = yearData[index] || {};
+        INPUT_FIELDS.forEach(field => {
+            const td = document.createElement('td');
+            const input = document.createElement('input');
+            input.type = 'number'; input.dataset.month = index; input.dataset.field = field;
+            input.value = monthData[field] || ''; input.placeholder = "0.00";
+            td.appendChild(input); row.appendChild(td);
+        });
+        tableBody.appendChild(row);
+    });
+}
+
+function calculateIndicators(data = {}) {
+    const inputs = {}; INPUT_FIELDS.forEach(field => inputs[field] = data[field] || 0);
+    const {faturamento, custosVariaveis, custosFixos, despesasOperacionais, outrasReceitasDespesas, impostos, depreciacao, investimentos, financiamentosEntradas, amortizacaoDividas, aporteSocios, distribuicaoLucros} = inputs;
+    const lucroBruto = faturamento - custosVariaveis;
+    const lucroOperacional = lucroBruto - custosFixos - despesasOperacionais;
+    const lucroAntesImpostos = lucroOperacional + outrasReceitasDespesas;
+    const lucroLiquido = lucroAntesImpostos - impostos;
+    const margemLiquida = faturamento > 0 ? (lucroLiquido / faturamento) * 100 : 0;
+    const markup = custosVariaveis > 0 ? ((faturamento - custosVariaveis) / custosVariaveis) * 100 : 0;
+    const fluxoCaixaOperacional = lucroLiquido + depreciacao;
+    const fluxoCaixaInvestimentos = -investimentos;
+    const fluxoCaixaFinanciamentos = financiamentosEntradas - amortizacaoDividas + aporteSocios - distribuicaoLucros;
+    const fluxoCaixaLivre = fluxoCaixaOperacional + fluxoCaixaInvestimentos + fluxoCaixaFinanciamentos;
+    return { lucroLiquido, margemLiquida, markup, fluxoCaixaOperacional, fluxoCaixaInvestimentos, fluxoCaixaFinanciamentos, fluxoCaixaLivre, faturamento, custosTotais: custosFixos + custosVariaveis + despesasOperacionais};
+}
+    
+function updateAllCalculations() { renderMonthlyIndicators(); renderAnnualIndicators(); }
+    
+function renderMonthlyIndicators() {
+    const tableBody = document.querySelector('#monthly-indicators-table tbody');
+    tableBody.innerHTML = '';
+    const yearData = financialData[currentYear] || {};
+    MONTHS.forEach((month, index) => {
+        const indicators = calculateIndicators(yearData[index]);
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${month}</td><td class="${indicators.lucroLiquido >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.lucroLiquido)}</td><td class="${indicators.margemLiquida >= 0 ? 'positive' : 'negative'}">${formatPercent(indicators.margemLiquida)}</td><td class="${indicators.markup >= 0 ? 'positive' : 'negative'}">${formatPercent(indicators.markup)}</td><td class="${indicators.fluxoCaixaOperacional >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaOperacional)}</td><td class="${indicators.fluxoCaixaInvestimentos >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaInvestimentos)}</td><td class="${indicators.fluxoCaixaFinanciamentos >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaFinanciamentos)}</td><td class="${indicators.fluxoCaixaLivre >= 0 ? 'positive' : 'negative'}"><strong>${formatCurrency(indicators.fluxoCaixaLivre)}</strong></td>`;
+        tableBody.appendChild(row);
+    });
+}
+
+async function renderAnnualIndicators() {
+    const container = document.getElementById('annual-indicators-content');
+    container.innerHTML = '';
+    const yearData = financialData[currentYear] || {};
+    let annualTotals = {}; INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
+    for(let i=0; i<12; i++) { if(yearData[i]) INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0); }
+    const annualIndicators = calculateIndicators(annualTotals);
+    const categories = {
+        "Rentabilidade e Lucro": ['lucroLiquido', 'margemLiquida', 'markup'],
+        "Fluxo de Caixa": ['fluxoCaixaLivre', 'fluxoCaixaOperacional', 'fluxoCaixaInvestimentos', 'fluxoCaixaFinanciamentos']
+    };
+    for (const categoryName in categories) {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'card-category';
+        categoryDiv.innerHTML = `<h2>${categoryName}</h2>`;
+        const gridDiv = document.createElement('div');
+        gridDiv.className = 'indicators-grid';
+        categories[categoryName].forEach(key => {
+            const indicatorInfo = GLOSSARY_DATA[key];
+            if (!indicatorInfo) return;
+            const value = annualIndicators[key];
+            let formattedValue = key.includes('margem') || key.includes('markup') ? formatPercent(value) : formatCurrency(value);
+            gridDiv.innerHTML += `<div class="card"><h3>${indicatorInfo.nome}</h3><div class="value ${value >= 0 ? 'positive' : 'negative'}">${formattedValue}</div><p class="explanation">${indicatorInfo.significado}</p></div>`;
+        });
+        categoryDiv.appendChild(gridDiv);
+        container.appendChild(categoryDiv);
+    }
+    
+    // Gera e exibe os conselhos
+    const adviceContainer = document.getElementById('advice-container');
+    if(userSettings && userSettings.businessType){
+        const adviceList = generateBusinessAdvice(annualIndicators, userSettings);
+        adviceContainer.innerHTML = '';
+        adviceList.forEach(advice => {
+            const adviceCard = document.createElement('div');
+            adviceCard.className = 'card';
+            adviceCard.innerHTML = `<h3>${advice.titulo}</h3><p>${advice.texto}</p><hr style="margin: 10px 0;"><p><strong>Ação Sugerida:</strong> ${advice.acao}</p>`;
+            adviceContainer.appendChild(adviceCard);
+        });
+    } else {
+        adviceContainer.innerHTML = `<p>Preencha suas metas na aba 'Configurações' para receber conselhos personalizados.</p>`;
+    }
+}
+    
 let chartInstances = {};
-function renderAllCharts() { /* ... */ }
-function renderGlossary() { /* ... */ }
-function exportMonthlyToPDF() { /* ... */ }
-function exportMonthlyToExcel() { /* ... */ }
+function renderAllCharts() {
+    const yearData = financialData[currentYear] || {};
+    const labels = MONTHS;
+    const chartData = { faturamento: [], custosTotais: [], lucroLiquido: [], fluxoCaixaLivre: [] };
+    for(let i=0; i<12; i++) {
+        const indicators = calculateIndicators(yearData[i]);
+        chartData.faturamento.push(indicators.faturamento);
+        chartData.custosTotais.push(indicators.custosTotais);
+        chartData.lucroLiquido.push(indicators.lucroLiquido);
+        chartData.fluxoCaixaLivre.push(indicators.fluxoCaixaLivre);
+    }
+    const chartConfigs = {
+        monthlyEvolutionChart: { type: 'line', data: { labels, datasets: [ { label: 'Faturamento', data: chartData.faturamento, borderColor: '#0a9396', fill: false, tension: 0.1 }, { label: 'Custos Totais', data: chartData.custosTotais, borderColor: '#e76f51', fill: false, tension: 0.1 }, { label: 'Lucro Líquido', data: chartData.lucroLiquido, borderColor: '#2a9d8f', fill: false, tension: 0.1 } ]}},
+        cashFlowChart: { type: 'bar', data: { labels, datasets: [ { label: 'Fluxo de Caixa Livre', data: chartData.fluxoCaixaLivre, backgroundColor: (ctx) => (ctx.raw >= 0 ? '#2a9d8f' : '#e76f51') } ]}}
+    };
+    for (const id in chartConfigs) {
+        if(chartInstances[id]) chartInstances[id].destroy();
+        const canvas = document.getElementById(id);
+        if(canvas) chartInstances[id] = new Chart(canvas.getContext('2d'), chartConfigs[id]);
+    }
+}
+
+function renderGlossary() {
+    const container = document.getElementById('glossary-container');
+    container.innerHTML = '';
+    Object.keys(GLOSSARY_DATA).sort((a,b) => GLOSSARY_DATA[a].nome.localeCompare(GLOSSARY_DATA[b].nome)).forEach(key => {
+        const item = GLOSSARY_DATA[key];
+        const div = document.createElement('div');
+        div.className = 'glossary-item';
+        div.innerHTML = `<div class="glossary-header">${item.nome}</div><div class="glossary-content"><div><p><strong>Fórmula:</strong> ${item.formula}</p><p><strong>Significado:</strong> ${item.significado}</p><p><strong>Exemplo:</strong> ${item.exemplo}</p><p><strong>Dica:</strong> ${item.dica}</p></div></div>`;
+        container.appendChild(div);
+    });
+    container.querySelectorAll('.glossary-header').forEach(header => {
+        header.addEventListener('click', () => header.parentElement.classList.toggle('active'));
+    });
+}
+    
+function exportMonthlyToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text(`Indicadores Mensais - ${currentYear}`, 14, 15);
+    doc.autoTable({ html: '#monthly-indicators-table', startY: 20, theme: 'grid', headStyles: { fillColor: [0, 95, 115] } });
+    doc.save(`Indicadores_${currentYear}.pdf`);
+}
+function exportMonthlyToExcel() {
+    const wb = XLSX.utils.table_to_book(document.getElementById('monthly-indicators-table'), {sheet: 'Indicadores Mensais'});
+    XLSX.writeFile(wb, `Indicadores_${currentYear}.xlsx`);
+}
+
 const formatCurrency = (v) => (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 const formatPercent = (v) => (v || 0).toFixed(2).replace('.', ',') + '%';
 
@@ -433,7 +530,7 @@ mainNav.addEventListener('click', (e) => {
         e.target.classList.add('active');
         tabContents.forEach(content => content.classList.toggle('active', content.id === tabId));
         if (tabId === 'evolucao') renderAllCharts();
-        if (tabId === 'indicadores-anuais') renderAnnualIndicators(); // Recalcula conselhos ao abrir
+        if (tabId === 'indicadores-anuais') renderAnnualIndicators();
     }
 });
 yearSelector.addEventListener('change', (e) => {
@@ -444,6 +541,8 @@ yearSelector.addEventListener('change', (e) => {
 recalculateAnnualBtn.addEventListener('click', renderAnnualIndicators);
 exportPdfMonthlyBtn.addEventListener('click', exportMonthlyToPDF);
 exportExcelMonthlyBtn.addEventListener('click', exportMonthlyToExcel);
+
 </script>
+
 </body>
 </html>
