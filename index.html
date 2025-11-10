@@ -59,7 +59,8 @@
         .glossary-header::after{content:'+';font-size:1.5rem;transition:transform 0.3s;}
         .glossary-item.active .glossary-header::after{transform:rotate(45deg);}
         .glossary-content{max-height:0;overflow:hidden;padding:0 20px;transition:max-height 0.4s ease-out;border-top:1px solid var(--light-gray);}
-        .glossary-item.active .glossary-content{max-height:500px;}
+        .glossary-item.active .glossary-content{max-height:500px; padding: 0 20px;}
+        .glossary-content div {padding: 20px 0;}
     </style>
 </head>
 <body>
@@ -84,12 +85,8 @@
             </form>
         </div>
     </div>
-
     <div id="app" class="container">
-        <header>
-            <h1 id="company-name">Painel Financeiro</h1>
-            <button id="logoutBtn">Sair</button>
-        </header>
+        <header><h1 id="company-name">Painel Financeiro</h1><button id="logoutBtn">Sair</button></header>
         <nav id="main-nav">
             <button class="tab-link active" data-tab="entradas-mensais">Entradas Mensais</button>
             <button class="tab-link" data-tab="indicadores-mensais">Indicadores Mensais</button>
@@ -101,33 +98,11 @@
             <section id="entradas-mensais" class="tab-content active">
                 <div class="section-header">
                     <h2>Lançamentos Mensais</h2>
-                    <div class="controls">
-                        <label for="year-selector">Ano:</label>
-                        <select id="year-selector"></select>
-                        <button id="save-data" class="primary">💾 Salvar na Nuvem</button>
-                        <button id="recalculate-all">🔄 Recalcular</button>
-                    </div>
+                    <div class="controls"><label for="year-selector">Ano:</label><select id="year-selector"></select><button id="save-data" class="primary">💾 Salvar na Nuvem</button><button id="recalculate-all">🔄 Recalcular</button></div>
                 </div>
                 <div class="table-container">
                     <table id="monthly-inputs">
-                        <thead>
-                             <tr>
-                                <th>Mês</th>
-                                <th>Faturamento (R$)</th>
-                                <th>Custos Variáveis (R$)</th>
-                                <th>Custos Fixos (R$)</th>
-                                <th>Despesas Operacionais (R$)</th>
-                                <th>Outras Receitas/Despesas (R$)</th>
-                                <th>Número de Vendas</th>
-                                <th>Impostos (R$)</th>
-                                <th>Depreciação (R$)</th>
-                                <th>Investimentos (CAPEX) (R$)</th>
-                                <th>Financiamentos (Entradas) (R$)</th>
-                                <th>Amortização de Dívidas (Saídas) (R$)</th>
-                                <th>Aporte de Sócios (R$)</th>
-                                <th>Distribuição de Lucros (R$)</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Mês</th><th>Faturamento (R$)</th><th>Custos Variáveis (R$)</th><th>Custos Fixos (R$)</th><th>Despesas Operacionais (R$)</th><th>Outras Receitas/Despesas (R$)</th><th>Número de Vendas</th><th>Impostos (R$)</th><th>Depreciação (R$)</th><th>Investimentos (CAPEX) (R$)</th><th>Financiamentos (Entradas) (R$)</th><th>Amortização de Dívidas (Saídas) (R$)</th><th>Aporte de Sócios (R$)</th><th>Distribuição de Lucros (R$)</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
@@ -135,25 +110,11 @@
             <section id="indicadores-mensais" class="tab-content">
                  <div class="section-header">
                      <h2>Indicadores Financeiros Mensais</h2>
-                     <div class="controls">
-                        <button id="export-pdf-monthly">📄 Baixar PDF</button>
-                        <button id="export-excel-monthly">📊 Baixar Excel</button>
-                     </div>
+                     <div class="controls"><button id="export-pdf-monthly">📄 Baixar PDF</button><button id="export-excel-monthly">📊 Baixar Excel</button></div>
                  </div>
                  <div class="table-container">
                      <table id="monthly-indicators-table">
-                         <thead>
-                            <tr>
-                                <th>Mês</th>
-                                <th>Lucro Líquido</th>
-                                <th>Margem Líquida (%)</th>
-                                <th>Markup (%)</th>
-                                <th>Fluxo de Caixa Operacional</th>
-                                <th>Fluxo de Caixa de Investimento</th>
-                                <th>Fluxo de Caixa de Financiamento</th>
-                                <th>Fluxo de Caixa Livre</th>
-                            </tr>
-                         </thead>
+                         <thead><tr><th>Mês</th><th>Lucro Líquido</th><th>Margem Líquida (%)</th><th>Markup (%)</th><th>Fluxo de Caixa Operacional</th><th>Fluxo de Caixa de Investimento</th><th>Fluxo de Caixa de Financiamento</th><th>Fluxo de Caixa Livre</th></tr></thead>
                          <tbody></tbody>
                      </table>
                  </div>
@@ -161,30 +122,20 @@
             <section id="indicadores-anuais" class="tab-content">
                 <div class="section-header">
                     <h2>Indicadores Anuais e Gestão da Conta</h2>
-                     <div class="controls">
-                        <button id="recalculate-annual">🔄 Recalcular Indicadores</button>
-                        <button id="delete-account-btn" class="danger">🗑️ Excluir Conta e Dados</button>
-                    </div>
+                     <div class="controls"><button id="recalculate-annual">🔄 Recalcular Indicadores</button><button id="delete-account-btn" class="danger">🗑️ Excluir Conta e Dados</button></div>
                 </div>
                 <div id="annual-indicators-content"></div>
             </section>
             <section id="evolucao" class="tab-content">
                  <div class="section-header"><h2>Evolução do Negócio</h2></div>
                 <div class="charts-container">
-                    <div class="chart-wrapper">
-                        <h3>Evolução Mensal (Faturamento, Custos e Lucro)</h3>
-                        <canvas id="monthlyEvolutionChart"></canvas>
-                    </div>
-                    <div class="chart-wrapper">
-                        <h3>Evolução do Fluxo de Caixa Livre</h3>
-                        <canvas id="cashFlowChart"></canvas>
-                    </div>
+                    <div class="chart-wrapper"><h3>Evolução Mensal (Faturamento, Custos e Lucro)</h3><canvas id="monthlyEvolutionChart"></canvas></div>
+                    <div class="chart-wrapper"><h3>Evolução do Fluxo de Caixa Livre</h3><canvas id="cashFlowChart"></canvas></div>
                 </div>
             </section>
             <section id="glossario" class="tab-content">
                 <div class="section-header"><h2>Glossário de Termos Financeiros</h2></div>
-                <input type="text" id="glossary-search" placeholder="Busque por um indicador (ex: Lucro, ROI...)">
-                <div id="glossary-container"></div>
+                <input type="text" id="glossary-search" placeholder="Busque por um indicador (ex: Lucro, ROI...)"><div id="glossary-container"></div>
             </section>
         </main>
     </div>
@@ -235,12 +186,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let financialData = {};
     const DEFAULT_COMPANY_NAME = 'Grupo Noga';
     const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-    const INPUT_FIELDS = [
-        'faturamento', 'custosVariaveis', 'custosFixos', 'despesasOperacionais', 'outrasReceitasDespesas', 
-        'numeroDeVendas', 'impostos', 'depreciacao', 'investimentos', 'financiamentosEntradas', 
-        'amortizacaoDividas', 'aporteSocios', 'distribuicaoLucros'
-    ];
-    const GLOSSARY_DATA = { /* Coloque o objeto glossário completo aqui */ };
+    const INPUT_FIELDS = ['faturamento','custosVariaveis','custosFixos','despesasOperacionais','outrasReceitasDespesas','numeroDeVendas','impostos','depreciacao','investimentos','financiamentosEntradas','amortizacaoDividas','aporteSocios','distribuicaoLucros'];
+    
+    const GLOSSARY_DATA = {
+        markup: {nome: "Markup Divisor", formula: "((Faturamento - CV) / CV) * 100", significado: "Índice que mostra a relação do lucro bruto sobre o custo variável.", exemplo: "Custo de R$50 e venda por R$120 resulta em Markup de 140%.", dica: "Ajuste o markup para garantir a cobertura de todos os custos e a margem de lucro desejada."},
+        lucroLiquido: {nome: "Lucro Líquido", formula: "Receitas Totais - Despesas Totais - Impostos", significado: "O resultado final da empresa após todas as deduções.", exemplo: "Faturamento de R$10.000 com custos totais de R$7.500 resulta em Lucro Líquido de R$2.500.", dica: "O objetivo final de toda empresa é maximizar o lucro líquido de forma sustentável."},
+        fluxoCaixaLivre: {nome: "Fluxo de Caixa Livre (FCL)", formula: "FCO + FCI + FCF", significado: "A variação total de caixa no período. A métrica mais importante para a saúde financeira.", exemplo: "Se entrou mais caixa do que saiu, o FCL é positivo.", dica: "Mantenha o FCL positivo para garantir a liquidez e a capacidade de investimento da empresa."},
+        // Adicione outras definições do glossário aqui para completá-lo
+    };
 
     auth.onAuthStateChanged(async user => {
         if (user) {
@@ -271,13 +224,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const errorEl = document.getElementById('register-error');
         errorEl.textContent = '';
         auth.createUserWithEmailAndPassword(email, pass)
-            .then(userCredential => {
-                return db.collection('users').doc(userCredential.user.uid).set({
-                    email: userCredential.user.email,
-                    company: DEFAULT_COMPANY_NAME,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            })
+            .then(userCredential => db.collection('users').doc(userCredential.user.uid).set({
+                email: userCredential.user.email, company: DEFAULT_COMPANY_NAME, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            }))
             .then(() => {
                 alert('Cadastro realizado com sucesso! Faça o login.');
                 toggleForms();
@@ -297,10 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function deleteAccountAndData() {
         if (!currentUser) return;
         const confirmation = prompt("Atenção: Ação irreversível. Para excluir sua conta e todos os dados, digite 'EXCLUIR'.");
-        if (confirmation !== 'EXCLUIR') {
-            alert("Ação cancelada.");
-            return;
-        }
+        if (confirmation !== 'EXCLUIR') { alert("Ação cancelada."); return; }
         try {
             await db.collection('financialData').doc(currentUser.uid).delete();
             await db.collection('users').doc(currentUser.uid).delete();
@@ -321,8 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function showApp() {
-        loginSection.style.display = 'none';
-        app.style.display = 'block';
+        loginSection.style.display = 'none'; app.style.display = 'block';
         companyNameEl.textContent = DEFAULT_COMPANY_NAME;
         setupYearSelector();
         loadYearData(currentYear);
@@ -331,24 +276,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function showLogin() {
-        loginSection.style.display = 'flex';
-        app.style.display = 'none';
+        loginSection.style.display = 'flex'; app.style.display = 'none';
     }
 
     async function loadDataFromFirestore(userId) {
-        try {
-            const doc = await db.collection('financialData').doc(userId).get();
-            return doc.exists ? doc.data() : {};
+        try { const doc = await db.collection('financialData').doc(userId).get(); return doc.exists ? doc.data() : {};
         } catch (error) { console.error("Erro ao carregar dados:", error); return {}; }
     }
 
     async function saveDataToFirestore(userId, data) {
         try { await db.collection('financialData').doc(userId).set(data, { merge: true });
-        } catch (error) {
-            console.error("Erro ao salvar dados:", error);
-            alert('Falha ao salvar. Verifique sua conexão.');
-            throw error;
-        }
+        } catch (error) { console.error("Erro ao salvar dados:", error); alert('Falha ao salvar. Verifique sua conexão.'); throw error; }
     }
     
     async function saveMonthlyData() {
@@ -406,30 +344,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 const input = document.createElement('input');
                 input.type = 'number'; input.dataset.month = index; input.dataset.field = field;
                 input.value = monthData[field] || ''; input.placeholder = "0.00";
-                td.appendChild(input);
-                row.appendChild(td);
+                td.appendChild(input); row.appendChild(td);
             });
             tableBody.appendChild(row);
         });
     }
 
     function calculateIndicators(data = {}) {
-        const inputs = {};
-        INPUT_FIELDS.forEach(field => inputs[field] = data[field] || 0);
-        const lucroBruto = inputs.faturamento - inputs.custosVariaveis;
-        const lucroOperacional = lucroBruto - inputs.custosFixos - inputs.despesasOperacionais;
-        const lucroAntesImpostos = lucroOperacional + inputs.outrasReceitasDespesas;
-        const lucroLiquido = lucroAntesImpostos - inputs.impostos;
-        const margemLiquida = inputs.faturamento > 0 ? (lucroLiquido / inputs.faturamento) * 100 : 0;
-        const markup = inputs.custosVariaveis > 0 ? ((inputs.faturamento - inputs.custosVariaveis) / inputs.custosVariaveis) * 100 : 0;
-        const fluxoCaixaOperacional = lucroLiquido + inputs.depreciacao;
-        const fluxoCaixaInvestimentos = -inputs.investimentos;
-        const fluxoCaixaFinanciamentos = inputs.financiamentosEntradas - inputs.amortizacaoDividas + inputs.aporteSocios - inputs.distribuicaoLucros;
+        const inputs = {}; INPUT_FIELDS.forEach(field => inputs[field] = data[field] || 0);
+        const {faturamento, custosVariaveis, custosFixos, despesasOperacionais, outrasReceitasDespesas, impostos, depreciacao, investimentos, financiamentosEntradas, amortizacaoDividas, aporteSocios, distribuicaoLucros} = inputs;
+        const lucroBruto = faturamento - custosVariaveis;
+        const lucroOperacional = lucroBruto - custosFixos - despesasOperacionais;
+        const lucroAntesImpostos = lucroOperacional + outrasReceitasDespesas;
+        const lucroLiquido = lucroAntesImpostos - impostos;
+        const margemLiquida = faturamento > 0 ? (lucroLiquido / faturamento) * 100 : 0;
+        const markup = custosVariaveis > 0 ? ((faturamento - custosVariaveis) / custosVariaveis) * 100 : 0;
+        const fluxoCaixaOperacional = lucroLiquido + depreciacao;
+        const fluxoCaixaInvestimentos = -investimentos;
+        const fluxoCaixaFinanciamentos = financiamentosEntradas - amortizacaoDividas + aporteSocios - distribuicaoLucros;
         const fluxoCaixaLivre = fluxoCaixaOperacional + fluxoCaixaInvestimentos + fluxoCaixaFinanciamentos;
-        return {
-            lucroLiquido, margemLiquida, markup, fluxoCaixaOperacional, fluxoCaixaInvestimentos, fluxoCaixaFinanciamentos,
-            fluxoCaixaLivre, faturamento: inputs.faturamento, custosTotais: inputs.custosFixos + inputs.custosVariaveis + inputs.despesasOperacionais
-        };
+        return { lucroLiquido, margemLiquida, markup, fluxoCaixaOperacional, fluxoCaixaInvestimentos, fluxoCaixaFinanciamentos, fluxoCaixaLivre, faturamento, custosTotais: custosFixos + custosVariaveis + despesasOperacionais};
     }
     
     function updateAllCalculations() { renderMonthlyIndicators(); renderAnnualIndicators(); }
@@ -446,16 +380,85 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function renderAnnualIndicators() { /* Coloque a lógica de renderização dos cards anuais aqui */ }
+    function renderAnnualIndicators() {
+        const container = document.getElementById('annual-indicators-content');
+        container.innerHTML = '';
+        const yearData = financialData[currentYear] || {};
+        let annualTotals = {};
+        INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
+        for(let i=0; i<12; i++) { if(yearData[i]) INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0); }
+        const annualIndicators = calculateIndicators(annualTotals);
+        const categories = {
+            "Rentabilidade e Lucro": ['lucroLiquido', 'margemLiquida', 'markup'],
+            "Fluxo de Caixa": ['fluxoCaixaLivre']
+        };
+        for (const categoryName in categories) {
+            const categoryDiv = document.createElement('div');
+            categoryDiv.className = 'card-category';
+            categoryDiv.innerHTML = `<h2>${categoryName}</h2>`;
+            const gridDiv = document.createElement('div');
+            gridDiv.className = 'indicators-grid';
+            categories[categoryName].forEach(key => {
+                const indicatorInfo = GLOSSARY_DATA[key] || {nome: `Indicador ${key}`};
+                const value = annualIndicators[key];
+                let formattedValue = key.includes('margem') || key.includes('markup') ? formatPercent(value) : formatCurrency(value);
+                gridDiv.innerHTML += `<div class="card"><h3>${indicatorInfo.nome}</h3><div class="value ${value >= 0 ? 'positive' : 'negative'}">${formattedValue}</div></div>`;
+            });
+            categoryDiv.appendChild(gridDiv);
+            container.appendChild(categoryDiv);
+        }
+    }
     recalculateAnnualBtn.addEventListener('click', renderAnnualIndicators);
     
     let chartInstances = {};
-    function renderAllCharts() { /* Coloque a lógica de renderização dos gráficos aqui */ }
+    function renderAllCharts() {
+        const yearData = financialData[currentYear] || {};
+        const labels = MONTHS;
+        const chartData = { faturamento: [], custosTotais: [], lucroLiquido: [], fluxoCaixaLivre: [] };
+        for(let i=0; i<12; i++) {
+            const indicators = calculateIndicators(yearData[i]);
+            chartData.faturamento.push(indicators.faturamento);
+            chartData.custosTotais.push(indicators.custosTotais);
+            chartData.lucroLiquido.push(indicators.lucroLiquido);
+            chartData.fluxoCaixaLivre.push(indicators.fluxoCaixaLivre);
+        }
+        const chartConfigs = {
+            monthlyEvolutionChart: { type: 'line', data: { labels, datasets: [ { label: 'Faturamento', data: chartData.faturamento, borderColor: '#0a9396', fill: false }, { label: 'Custos Totais', data: chartData.custosTotais, borderColor: '#e76f51', fill: false }, { label: 'Lucro Líquido', data: chartData.lucroLiquido, borderColor: '#2a9d8f', fill: false } ]}},
+            cashFlowChart: { type: 'bar', data: { labels, datasets: [ { label: 'Fluxo de Caixa Livre', data: chartData.fluxoCaixaLivre, backgroundColor: (ctx) => (ctx.raw >= 0 ? '#2a9d8f' : '#e76f51') } ]}}
+        };
+        for (const id in chartConfigs) {
+            if(chartInstances[id]) chartInstances[id].destroy();
+            const canvas = document.getElementById(id);
+            if(canvas) chartInstances[id] = new Chart(canvas.getContext('2d'), chartConfigs[id]);
+        }
+    }
 
-    function renderGlossary() { /* Coloque a lógica de renderização do glossário aqui */ }
+    function renderGlossary() {
+        const container = document.getElementById('glossary-container');
+        container.innerHTML = '';
+        Object.keys(GLOSSARY_DATA).forEach(key => {
+            const item = GLOSSARY_DATA[key];
+            const div = document.createElement('div');
+            div.className = 'glossary-item';
+            div.innerHTML = `<div class="glossary-header">${item.nome}</div><div class="glossary-content"><div><p><strong>Fórmula:</strong> ${item.formula}</p><p><strong>Significado:</strong> ${item.significado}</p><p><strong>Exemplo:</strong> ${item.exemplo}</p><p><strong>Dica:</strong> ${item.dica}</p></div></div>`;
+            container.appendChild(div);
+        });
+        container.querySelectorAll('.glossary-header').forEach(header => {
+            header.addEventListener('click', () => header.parentElement.classList.toggle('active'));
+        });
+    }
     
-    function exportMonthlyToPDF() { /* Coloque a lógica de exportação PDF aqui */ }
-    function exportMonthlyToExcel() { /* Coloque a lógica de exportação Excel aqui */ }
+    function exportMonthlyToPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.text(`Indicadores Mensais - ${currentYear}`, 14, 15);
+        doc.autoTable({ html: '#monthly-indicators-table', startY: 20 });
+        doc.save(`Indicadores_${currentYear}.pdf`);
+    }
+    function exportMonthlyToExcel() {
+        const wb = XLSX.utils.table_to_book(document.getElementById('monthly-indicators-table'));
+        XLSX.writeFile(wb, `Indicadores_${currentYear}.xlsx`);
+    }
     exportPdfMonthlyBtn.addEventListener('click', exportMonthlyToPDF);
     exportExcelMonthlyBtn.addEventListener('click', exportMonthlyToExcel);
     
