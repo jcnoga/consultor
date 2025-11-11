@@ -122,7 +122,7 @@ const firebaseConfig = {
     apiKey: "AIzaSyB30QPE40atu__s4z3WlDBXHaryIE6asfE",
     authDomain: "consultor-3016e.firebaseapp.com",
     projectId: "consultor-3016e",
-    storageBucket: "consultor-3016e.firebasestorage.app",
+    storageBucket: "consultor-3016e.appspot.com",
     messagingSenderId: "819781871365",
     appId: "1:819781871365:web:a13d6930c8738a69af396c",
     measurementId: "G-C86JBXTK16"
@@ -318,20 +318,9 @@ async function loadDataFromFirestore(userId, collection) {
     } catch (error) { console.error(`Erro ao carregar dados da coleção ${collection}:`, error); return {}; }
 }
 
-async function saveDataToFirestore_v8(userId, data, collection) {
-  if (!db) throw new Error('Firestore não inicializado (db está undefined).');
-  if (!collection || typeof collection !== 'string') throw new Error('collection inválida.');
-  if (!userId) throw new Error('userId inválido.');
-
-  try {
-    console.info('Salvando em', collection, 'doc:', userId, 'data:', data);
-    await db.collection(collection).doc(userId).set(data);
-    return { success: true };
-  } catch (error) {
-    console.error(`Erro ao salvar dados na coleção ${collection}:`, error);
-    alert('Falha ao salvar. Verifique sua conexão e permissões.');
-    return { success: false, error };
-  }
+async function saveDataToFirestore(userId, data, collection) {
+    try { await db.collection(collection).doc(userId).set(data);
+    } catch (error) { console.error(`Erro ao salvar dados na coleção ${collection}:`, error); alert('Falha ao salvar. Verifique sua conexão.'); throw error; }
 }
 
 async function saveMonthlyData() {
