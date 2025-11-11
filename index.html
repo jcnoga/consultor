@@ -157,14 +157,15 @@ const recalculateAllBtn = document.getElementById('recalculate-all');
 const saveSettingsBtn = document.getElementById('save-settings');
 
 // --- SENHA MESTRA DE ACESSO ---
-const AUTHORIZATION_PASSWORD = "SUA_SENHA_MESTRA_AQUI"; // ❗️❗️❗️ DEFINA SUA SENHA AQUI ❗️❗️❗️
+const AUTHORIZATION_PASSWORD = "noga"; // ❗️❗️❗️ DEFINA SUA SENHA AQUI ❗️❗️❗️
 
 // --- ESTADO DA APLICAÇÃO ---
 let currentUser = null;
 let currentYear = new Date().getFullYear();
 let financialData = {};
 let userSettings = {};
-const DEFAULT_COMPANY_NAME = 'Grupo Noga';
+const DEFAULT_COMPANY_NAME = 'Grupo Noga'; // ❗️❗️❗️ DEFINA NOME DA EMPRESA ❗️❗️❗️
+
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const INPUT_FIELDS = ['faturamento','custosVariaveis','custosFixos','despesasOperacionais','outrasReceitasDespesas','numeroDeVendas','impostos','depreciacao','investimentos','financiamentosEntradas','amortizacaoDividas','aporteSocios','distribuicaoLucros'];
 const GLOSSARY_DATA = {
