@@ -189,12 +189,6 @@ const GLOSSARY_DATA = {
 // --- FUNÇÕES DE LÓGICA ---
 
 function initialize() {
-// carregar configurações locais (se houver)
-const savedLocalSettings = localStorage.getItem('userSettings');
-if (savedLocalSettings) {
-    try { userSettings = JSON.parse(savedLocalSettings); } catch(e){ console.warn('userSettings local inválido', e); }
-}
-
     if (sessionStorage.getItem('isAuthorized') === 'true') {
         authorizationSection.style.display = 'none';
         auth.onAuthStateChanged(handleAuthStateChange);
@@ -342,41 +336,19 @@ async function saveMonthlyData() {
 }
 
 async function saveBusinessSettings() {
-    // coleta dos valores do formulário
+    if (!currentUser) return;
     const settings = {
         businessType: document.getElementById('business-type').value,
         benchmarkMargem: parseFloat(document.getElementById('benchmark-margem').value) || 0,
         benchmarkCustos: parseFloat(document.getElementById('benchmark-custos').value) || 0,
         benchmarkMarkup: parseFloat(document.getElementById('benchmark-markup').value) || 0,
     };
-
-    // atualiza estado local imediatamente (para refletir na UI)
-    userSettings = settings;
-
-    // tenta salvar na nuvem se o usuário estiver logado
-    if (currentUser && currentUser.uid) {
-        try {
-            await saveDataToFirestore(currentUser.uid, settings, 'userSettings');
-            alert('Configurações salvas com sucesso na nuvem!');
-        } catch (error) {
-            console.error('Erro ao salvar configurações na nuvem:', error);
-            // fallback local se falhar
-            localStorage.setItem('userSettings', JSON.stringify(settings));
-            alert('Falha ao salvar na nuvem. Configurações foram salvas localmente e serão sincronizadas quando você fizer login novamente.');
-        }
-    } else {
-        // usuário não logado: salvar localmente e avisar
-        localStorage.setItem('userSettings', JSON.stringify(settings));
-        alert('Você não está logado. Configurações salvas localmente no navegador. Faça login para sincronizar com a nuvem.');
-    }
-
-    // atualiza campos do formulário (caso precise)
-    document.getElementById('business-type').value = userSettings.businessType || 'varejo';
-    document.getElementById('benchmark-margem').value = userSettings.benchmarkMargem || '';
-    document.getElementById('benchmark-custos').value = userSettings.benchmarkCustos || '';
-    document.getElementById('benchmark-markup').value = userSettings.benchmarkMarkup || '';
+    try { 
+        await saveDataToFirestore(currentUser.uid, settings, 'userSettings'); 
+        userSettings = settings; 
+        alert('Configurações salvas com sucesso!');
+    } catch (error) {}
 }
-
 
 function generateBusinessAdvice(indicators, settings) {
     const adviceList = [];
@@ -586,13 +558,132 @@ yearSelector.addEventListener('change', (e) => {
 });
 recalculateAnnualBtn.addEventListener('click', renderAnnualIndicators);
 exportPdfMonthlyBtn.addEventListener('click', exportMonthlyToPDF);
-//exportExcelMonthlyBtn.addEventListener('click', exportExcelMonthlyBtn);
-exportExcelMonthlyBtn.addEventListener('click', exportMonthlyToExcel);
-
+exportExcelMonthlyBtn.addEventListener('click', exportExcelMonthlyBtn);
 
 // --- INICIALIZAÇÃO ---
 initialize();
 </script>
 
+
+
+<!-- INJETADO: saveBusinessSettings e sincronização local/cloud -->
+<script>
+// Versão melhorada de saveBusinessSettings + sincronização local <-> Firestore
+// Esta rotina:
+// - salva localmente (localStorage) se não houver usuário ou se salvar na nuvem falhar
+// - tenta salvar na nuvem chamando saveDataToFirestore(uid, settings, collection) se existir
+// - sincroniza automaticamente local -> nuvem quando um usuário faz login (se Firebase Auth estiver disponível)
+
+async function saveBusinessSettings() {
+  // coletar valores do formulário (ajuste ids conforme seu HTML)
+  const get = id => document.getElementById(id) && document.getElementById(id).value;
+
+  const settings = {
+    businessType: get('business-type') || '',
+    benchmarkMargem: parseFloat(get('benchmark-margem')) || 0,
+    benchmarkCustos: parseFloat(get('benchmark-custos')) || 0,
+    benchmarkMarkup: parseFloat(get('benchmark-markup')) || 0,
+  };
+
+  // atualiza estado local imediato
+  try { window.userSettings = settings; } catch(e){ console.warn('Não foi possível atribuir userSettings global:', e); }
+
+  // tenta salvar na nuvem se função saveDataToFirestore existir e currentUser disponível
+  const hasSaveFn = (typeof window.saveDataToFirestore === 'function');
+  const uid = (window.currentUser && window.currentUser.uid) || null;
+
+  if (hasSaveFn && uid) {
+    try {
+      await saveDataToFirestore(uid, settings, 'userSettings');
+      localStorage.setItem('userSettings', JSON.stringify(settings)); // manter cópia local
+      showUserMessage('Configurações salvas com sucesso na nuvem.');
+      return { success: true };
+    } catch (error) {
+      console.error('Erro ao salvar na nuvem, fallback para localStorage:', error);
+      localStorage.setItem('userSettings', JSON.stringify(settings));
+      showUserMessage('Falha ao salvar na nuvem. Configurações salvas localmente.');
+      return { success: false, error };
+    }
+  } else {
+    // sem função de salvamento remoto ou sem usuário: salva localmente
+    try {
+      localStorage.setItem('userSettings', JSON.stringify(settings));
+      showUserMessage(uid ? 'Função de salvamento remoto não encontrada. Configurações salvas localmente.' : 'Você não está logado. Configurações salvas localmente. Faça login para sincronizar.');
+      return { success: true };
+    } catch (e) {
+      console.error('Erro ao salvar localmente:', e);
+      showUserMessage('Falha ao salvar. Verifique a conexão ou a permissão do navegador para usar localStorage.');
+      return { success: false, error: e };
+    }
+  }
+}
+
+// Mensagem amigável ao usuário — substitua por sua própria UX se necessário
+function showUserMessage(msg) {
+  try {
+    // se existir um elemento de status, use-o; senão, use alert como fallback
+    const statusEl = document.getElementById('save-status');
+    if (statusEl) { statusEl.innerText = msg; } else { alert(msg); }
+  } catch(e){ console.warn('Erro ao exibir mensagem ao usuário:', e); alert(msg); }
+}
+
+// Carrega configurações do localStorage para userSettings e popula campos do formulário
+function loadLocalSettingsToUI() {
+  try {
+    const raw = localStorage.getItem('userSettings');
+    if (!raw) return null;
+    const settings = JSON.parse(raw);
+    window.userSettings = settings;
+    if (settings) {
+      if (document.getElementById('business-type')) document.getElementById('business-type').value = settings.businessType || '';
+      if (document.getElementById('benchmark-margem')) document.getElementById('benchmark-margem').value = settings.benchmarkMargem || '';
+      if (document.getElementById('benchmark-custos')) document.getElementById('benchmark-custos').value = settings.benchmarkCustos || '';
+      if (document.getElementById('benchmark-markup')) document.getElementById('benchmark-markup').value = settings.benchmarkMarkup || '';
+    }
+    return settings;
+  } catch(e){ console.warn('Erro ao carregar settings locais:', e); return null; }
+}
+
+// Quando disponível, tenta sincronizar localStorage -> Firestore (merge) para não sobrescrever acidentalmente dados remotos
+async function syncLocalSettingsToFirestoreOnLogin(uid) {
+  if (!uid) return;
+  if (typeof window.saveDataToFirestore !== 'function') return;
+
+  const raw = localStorage.getItem('userSettings');
+  if (!raw) return;
+
+  try {
+    const local = JSON.parse(raw);
+    if (!local) return;
+    // aqui fazemos um set (você pode adaptar para merge se preferir)
+    await saveDataToFirestore(uid, local, 'userSettings');
+    console.info('Sincronizado localSettings -> Firestore para uid', uid);
+  } catch(e){ console.warn('Falha ao sincronizar settings locais para a nuvem:', e); }
+}
+
+// Auto-attach ao Firebase Auth se disponível
+(function attachAuthSync() {
+  try {
+    loadLocalSettingsToUI();
+    if (typeof firebase !== 'undefined' && firebase.auth && typeof firebase.auth === 'function') {
+      // SDK namespaced (v8 compat)
+      firebase.auth().onAuthStateChanged(function(user) {
+        window.currentUser = user || null;
+        if (user && user.uid) { syncLocalSettingsToFirestoreOnLogin(user.uid); }
+      });
+    } else if (typeof getAuth === 'function' && typeof onAuthStateChanged === 'function') {
+      // SDK modular-ish presence (best-effort detection)
+      try {
+        const auth = getAuth();
+        onAuthStateChanged(auth, (user) => { window.currentUser = user || null; if (user && user.uid) syncLocalSettingsToFirestoreOnLogin(user.uid); });
+      } catch(e){ console.warn('Tentativa de attach modular falhou:', e); }
+    } else {
+      console.info('Firebase Auth não detectado; apenas comportamento local habilitado.');
+    }
+  } catch(e){ console.warn('attachAuthSync erro:', e); }
+})();
+
+</script>
+<!-- Fim da injeção -->
 </body>
 </html>
