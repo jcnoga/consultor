@@ -9,7 +9,7 @@
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:var(--font-family);background-color:var(--background-color);color:var(--text-color);line-height:1.6;}
         .container{max-width:1600px;margin:0 auto;padding:20px;}
-        #app, #login-section{display:none;} /* Ambos começam escondidos */
+        #app, #login-section{display:none;}
         header{background-color:var(--primary-color);color:white;padding:1rem;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--box-shadow);}
         header h1{font-size:1.5rem;}
         #logoutBtn{background:var(--danger-color);color:white;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;font-weight:bold;}
@@ -100,7 +100,32 @@
             <button class="tab-link" data-tab="configuracoes">⚙️ Configurações</button>
         </nav>
         <main>
-            <section id="entradas-mensais" class="tab-content active"><div class="section-header"><h2>Lançamentos Mensais</h2><div class="controls"><label for="year-selector">Ano:</label><select id="year-selector"></select><button id="save-data" class="primary">💾 Salvar na Nuvem</button><button id="recalculate-all">🔄 Recalcular</button></div></div><div class="table-container"><table id="monthly-inputs"><thead><tr><th>Mês</th><th>Faturamento (R$)</th><th>Custos Variáveis (R$)</th><th>Custos Fixos (R$)</th><th>Despesas Operacionais (R$)</th><th>Outras Receitas/Despesas (R$)</th><th>Número de Vendas</th><th>Impostos (R$)</th><th>Depreciação (R$)</th><th>Investimentos (CAPEX) (R$)</th><th>Financiamentos (Entradas) (R$)</th><th>Amortização de Dívidas (Saídas) (R$)</th><th>Aporte de Sócios (R$)</th><th>Distribuição de Lucros (R$)</th></tr></thead><tbody></tbody></table></div></section>
+            <section id="entradas-mensais" class="tab-content active">
+                <div class="section-header"><h2>Lançamentos Mensais</h2><div class="controls"><label for="year-selector">Ano:</label><select id="year-selector"></select><button id="save-data" class="primary">💾 Salvar na Nuvem</button><button id="recalculate-all">🔄 Recalcular</button></div></div>
+                <div class="table-container">
+                    <table id="monthly-inputs">
+                        <thead>
+                            <tr>
+                                <th>Mês</th>
+                                <th>Faturamento (R$)</th>
+                                <th>Custos Variáveis (R$)</th>
+                                <th>Custos Fixos (R$)</th>
+                                <th>Despesas Operacionais (R$)</th>
+                                <th>Outras Receitas/Despesas (R$)</th>
+                                <th>Número de Vendas</th>
+                                <th>Impostos (R$)</th>
+                                <th>Depreciação (R$)</th>
+                                <th>Investimentos (CAPEX) (R$)</th>
+                                <th>Financiamentos (Entradas) (R$)</th>
+                                <th>Amortização de Dívidas (Saídas) (R$)</th>
+                                <th>Aporte de Sócios (R$)</th>
+                                <th>Distribuição de Lucros (R$)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
             <section id="indicadores-mensais" class="tab-content"><div class="section-header"><h2>Indicadores Financeiros Mensais</h2><div class="controls"><button id="export-pdf-monthly">📄 Baixar PDF</button><button id="export-excel-monthly">📊 Baixar Excel</button></div></div><div class="table-container"><table id="monthly-indicators-table"><thead><tr><th>Mês</th><th>Lucro Líquido</th><th>Margem Líquida (%)</th><th>Markup (%)</th><th>Fluxo de Caixa Operacional</th><th>Fluxo de Caixa de Investimento</th><th>Fluxo de Caixa de Financiamento</th><th>Fluxo de Caixa Livre</th></tr></thead><tbody></tbody></table></div></section>
             <section id="indicadores-anuais" class="tab-content"><div class="section-header"><h2>Indicadores Anuais e Gestão da Conta</h2><div class="controls"><button id="recalculate-annual">🔄 Recalcular Indicadores</button><button id="delete-account-btn" class="danger">🗑️ Excluir Conta e Dados</button></div></div><div id="annual-indicators-content"></div><div class="advice-section"><h2>💡 Plano de Ação Personalizado</h2><div id="advice-container"><p>Preencha suas metas na aba 'Configurações' para receber conselhos.</p></div></div></section>
             <section id="evolucao" class="tab-content"><div class="section-header"><h2>Evolução do Negócio</h2></div><div class="charts-container"><div class="chart-wrapper"><h3>Evolução Mensal (Faturamento, Custos e Lucro)</h3><canvas id="monthlyEvolutionChart"></canvas></div><div class="chart-wrapper"><h3>Evolução do Fluxo de Caixa Livre</h3><canvas id="cashFlowChart"></canvas></div></div></section>
@@ -157,7 +182,7 @@ const recalculateAllBtn = document.getElementById('recalculate-all');
 const saveSettingsBtn = document.getElementById('save-settings');
 
 // --- SENHA MESTRA DE ACESSO ---
-const AUTHORIZATION_PASSWORD = "noga"; // ❗️❗️❗️ SENHA MESTRA AQUI ❗️❗️❗️
+const AUTHORIZATION_PASSWORD = "noga";
 
 // --- ESTADO DA APLICAÇÃO ---
 let currentUser = null;
@@ -558,7 +583,7 @@ yearSelector.addEventListener('change', (e) => {
 });
 recalculateAnnualBtn.addEventListener('click', renderAnnualIndicators);
 exportPdfMonthlyBtn.addEventListener('click', exportMonthlyToPDF);
-exportExcelMonthlyBtn.addEventListener('click', exportMonthlyToExcel);
+exportExcelMonthlyBtn.addEventListener('click', exportExcelMonthlyBtn);
 
 // --- INICIALIZAÇÃO ---
 initialize();
