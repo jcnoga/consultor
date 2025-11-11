@@ -320,7 +320,7 @@ async function loadDataFromFirestore(userId, collection) {
 
 async function saveDataToFirestore(userId, data, collection) {
     try { await db.collection(collection).doc(userId).set(data);
-    } catch (error) { console.error(`Erro ao salvar dados na coleção ${collection}:`, error); alert('Falha ao salvar. Verifique sua conexão.'); throw error; }
+    } catch (error) { console.error(`Erro ao salvar dados na coleção ${collection}:`, error); console.error('Falha ao salvar. Verifique sua conexão.'); throw error; }
 }
 
 async function saveMonthlyData() {
