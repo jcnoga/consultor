@@ -336,19 +336,41 @@ async function saveMonthlyData() {
 }
 
 async function saveBusinessSettings() {
-    if (!currentUser) return;
+    // coleta dos valores do formulário
     const settings = {
         businessType: document.getElementById('business-type').value,
         benchmarkMargem: parseFloat(document.getElementById('benchmark-margem').value) || 0,
         benchmarkCustos: parseFloat(document.getElementById('benchmark-custos').value) || 0,
         benchmarkMarkup: parseFloat(document.getElementById('benchmark-markup').value) || 0,
     };
-    try { 
-        await saveDataToFirestore(currentUser.uid, settings, 'userSettings'); 
-        userSettings = settings; 
-        alert('Configurações salvas com sucesso!');
-    } catch (error) {}
+
+    // atualiza estado local imediatamente (para refletir na UI)
+    userSettings = settings;
+
+    // tenta salvar na nuvem se o usuário estiver logado
+    if (currentUser && currentUser.uid) {
+        try {
+            await saveDataToFirestore(currentUser.uid, settings, 'userSettings');
+            alert('Configurações salvas com sucesso na nuvem!');
+        } catch (error) {
+            console.error('Erro ao salvar configurações na nuvem:', error);
+            // fallback local se falhar
+            localStorage.setItem('userSettings', JSON.stringify(settings));
+            alert('Falha ao salvar na nuvem. Configurações foram salvas localmente e serão sincronizadas quando você fizer login novamente.');
+        }
+    } else {
+        // usuário não logado: salvar localmente e avisar
+        localStorage.setItem('userSettings', JSON.stringify(settings));
+        alert('Você não está logado. Configurações salvas localmente no navegador. Faça login para sincronizar com a nuvem.');
+    }
+
+    // atualiza campos do formulário (caso precise)
+    document.getElementById('business-type').value = userSettings.businessType || 'varejo';
+    document.getElementById('benchmark-margem').value = userSettings.benchmarkMargem || '';
+    document.getElementById('benchmark-custos').value = userSettings.benchmarkCustos || '';
+    document.getElementById('benchmark-markup').value = userSettings.benchmarkMarkup || '';
 }
+
 
 function generateBusinessAdvice(indicators, settings) {
     const adviceList = [];
