@@ -189,6 +189,12 @@ const GLOSSARY_DATA = {
 // --- FUNÇÕES DE LÓGICA ---
 
 function initialize() {
+// carregar configurações locais (se houver)
+const savedLocalSettings = localStorage.getItem('userSettings');
+if (savedLocalSettings) {
+    try { userSettings = JSON.parse(savedLocalSettings); } catch(e){ console.warn('userSettings local inválido', e); }
+}
+
     if (sessionStorage.getItem('isAuthorized') === 'true') {
         authorizationSection.style.display = 'none';
         auth.onAuthStateChanged(handleAuthStateChange);
@@ -580,7 +586,9 @@ yearSelector.addEventListener('change', (e) => {
 });
 recalculateAnnualBtn.addEventListener('click', renderAnnualIndicators);
 exportPdfMonthlyBtn.addEventListener('click', exportMonthlyToPDF);
-exportExcelMonthlyBtn.addEventListener('click', exportExcelMonthlyBtn);
+//exportExcelMonthlyBtn.addEventListener('click', exportExcelMonthlyBtn);
+exportExcelMonthlyBtn.addEventListener('click', exportMonthlyToExcel);
+
 
 // --- INICIALIZAÇÃO ---
 initialize();
