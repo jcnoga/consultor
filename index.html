@@ -343,7 +343,10 @@ async function saveBusinessSettings() {
         benchmarkCustos: parseFloat(document.getElementById('benchmark-custos').value) || 0,
         benchmarkMarkup: parseFloat(document.getElementById('benchmark-markup').value) || 0,
     };
-    try { await saveDataToFirestore(currentUser.uid, settings, 'userSettings'); userSettings = settings; alert('Configurações salvas com sucesso!');
+    try { 
+        await saveDataToFirestore(currentUser.uid, settings, 'userSettings'); 
+        userSettings = settings; 
+        alert('Configurações salvas com sucesso!');
     } catch (error) {}
 }
 
