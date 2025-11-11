@@ -318,9 +318,20 @@ async function loadDataFromFirestore(userId, collection) {
     } catch (error) { console.error(`Erro ao carregar dados da coleção ${collection}:`, error); return {}; }
 }
 
-async function saveDataToFirestore(userId, data, collection) {
-    try { await db.collection(collection).doc(userId).set(data);
-    } catch (error) { console.error(`Erro ao salvar dados na coleção ${collection}:`, error); alert('Falha ao salvar. Verifique sua conexão.'); throw error; }
+async function saveDataToFirestore_v8(userId, data, collection) {
+  if (!db) throw new Error('Firestore não inicializado (db está undefined).');
+  if (!collection || typeof collection !== 'string') throw new Error('collection inválida.');
+  if (!userId) throw new Error('userId inválido.');
+
+  try {
+    console.info('Salvando em', collection, 'doc:', userId, 'data:', data);
+    await db.collection(collection).doc(userId).set(data);
+    return { success: true };
+  } catch (error) {
+    console.error(`Erro ao salvar dados na coleção ${collection}:`, error);
+    alert('Falha ao salvar. Verifique sua conexão e permissões.');
+    return { success: false, error };
+  }
 }
 
 async function saveMonthlyData() {
