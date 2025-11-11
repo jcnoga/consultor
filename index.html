@@ -412,18 +412,19 @@ function loadYearData(year) {
 
 function calculateIndicators(data = {}) {
     const inputs = {}; INPUT_FIELDS.forEach(field => inputs[field] = data[field] || 0);
-    const {faturamento, custosVariaveis, custosFixos, despesasOperacionais, outrasReceitasDespesas, impostos, depreciacao, investimentos, financiamentosEntradas, amortizacaoDividas, aporteSocios, distribuicaoLucros} = inputs;
+    const {faturamento, custosVariaveis, custosFixos, despesasOperacionais, outrasReceitasDespesas, numeroDeVendas, impostos, depreciacao, investimentos, financiamentosEntradas, amortizacaoDividas, aporteSocios, distribuicaoLucros} = inputs;
     const lucroBruto = faturamento - custosVariaveis;
     const lucroOperacional = lucroBruto - custosFixos - despesasOperacionais;
     const lucroAntesImpostos = lucroOperacional + outrasReceitasDespesas;
     const lucroLiquido = lucroAntesImpostos - impostos;
     const margemLiquida = faturamento > 0 ? (lucroLiquido / faturamento) * 100 : 0;
     const markup = custosVariaveis > 0 ? ((faturamento - custosVariaveis) / custosVariaveis) * 100 : 0;
+    const ticketMedio = numeroDeVendas > 0 ? faturamento / numeroDeVendas : 0;
     const fluxoCaixaOperacional = lucroLiquido + depreciacao;
     const fluxoCaixaInvestimentos = -investimentos;
     const fluxoCaixaFinanciamentos = financiamentosEntradas - amortizacaoDividas + aporteSocios - distribuicaoLucros;
     const fluxoCaixaLivre = fluxoCaixaOperacional + fluxoCaixaInvestimentos + fluxoCaixaFinanciamentos;
-    return { lucroLiquido, margemLiquida, markup, fluxoCaixaOperacional, fluxoCaixaInvestimentos, fluxoCaixaFinanciamentos, fluxoCaixaLivre, faturamento, custosTotais: custosFixos + custosVariaveis + despesasOperacionais};
+    return { lucroLiquido, margemLiquida, markup, ticketMedio, fluxoCaixaOperacional, fluxoCaixaInvestimentos, fluxoCaixaFinanciamentos, fluxoCaixaLivre, faturamento, custosTotais: custosFixos + custosVariaveis + despesasOperacionais};
 }
     
 function updateAllCalculations() { renderMonthlyIndicators(); renderAnnualIndicators(); }
@@ -449,6 +450,7 @@ async function renderAnnualIndicators() {
     const annualIndicators = calculateIndicators(annualTotals);
     const categories = {
         "Rentabilidade e Lucro": ['lucroLiquido', 'margemLiquida', 'markup'],
+        "Indicadores de Vendas": ['ticketMedio'],
         "Fluxo de Caixa": ['fluxoCaixaLivre', 'fluxoCaixaOperacional', 'fluxoCaixaInvestimentos', 'fluxoCaixaFinanciamentos']
     };
     for (const categoryName in categories) {
