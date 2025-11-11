@@ -9,7 +9,7 @@
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:var(--font-family);background-color:var(--background-color);color:var(--text-color);line-height:1.6;}
         .container{max-width:1600px;margin:0 auto;padding:20px;}
-        #app{display:none;}
+        #app, #login-section{display:none;} /* Ambos começam escondidos */
         header{background-color:var(--primary-color);color:white;padding:1rem;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--box-shadow);}
         header h1{font-size:1.5rem;}
         #logoutBtn{background:var(--danger-color);color:white;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;font-weight:bold;}
@@ -19,7 +19,7 @@
         main .tab-content{display:none;padding:20px;background-color:var(--card-background);margin-top:20px;border-radius:8px;box-shadow:var(--box-shadow);animation:fadeIn 0.5s;}
         main .tab-content.active{display:block;}
         @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-        #login-section{display:flex;justify-content:center;align-items:center;height:100vh;}
+        #login-section, #authorization-section{display:flex;justify-content:center;align-items:center;height:100vh;}
         .login-container{background:var(--card-background);padding:40px;border-radius:8px;box-shadow:var(--box-shadow);width:100%;max-width:400px;text-align:center;}
         .login-container h2{margin-bottom:20px;color:var(--primary-color);}
         .toggle-form, .forgot-password{color:var(--secondary-color);cursor:pointer;margin-top:15px;display:inline-block;}
@@ -71,32 +71,22 @@
 </head>
 <body>
 
+    <div id="authorization-section">
+        <div class="login-container">
+            <form id="authorization-form">
+                <h2>Autorização de Acesso</h2>
+                <div class="input-group"><label for="auth-password">Senha de Autorização</label><input type="password" id="auth-password" required></div>
+                <button type="submit" class="btn">Liberar Acesso</button>
+                <p id="auth-error" class="error-message"></p>
+            </form>
+        </div>
+    </div>
+
     <div id="login-section">
         <div class="login-container">
-            <form id="login-form">
-                <h2>Login</h2>
-                <div class="input-group"><label for="login-user">Email</label><input type="email" id="login-user" required></div>
-                <div class="input-group"><label for="login-password">Senha</label><input type="password" id="login-password" required></div>
-                <button type="submit" class="btn">Entrar</button>
-                <p id="login-error" class="error-message"></p>
-                <p class="forgot-password">Esqueci minha senha</p>
-                <p class="toggle-form" data-form="register">Não tem conta? Cadastre-se</p>
-            </form>
-            <form id="register-form" style="display: none;">
-                <h2>Cadastro</h2>
-                <div class="input-group"><label for="register-user">Email</label><input type="email" id="register-user" required></div>
-                <div class="input-group"><label for="register-password">Senha (mínimo 6 caracteres)</label><input type="password" id="register-password" minlength="6" required></div>
-                <button type="submit" class="btn">Cadastrar</button>
-                <p id="register-error" class="error-message"></p>
-                <p class="toggle-form" data-form="login">Já tem conta? Faça login</p>
-            </form>
-            <form id="reset-password-form" style="display: none;">
-                <h2>Recuperar Senha</h2>
-                <div class="input-group"><label for="reset-email">Email</label><input type="email" id="reset-email" required></div>
-                <button type="submit" class="btn">Enviar email de recuperação</button>
-                <p id="reset-message" class=""></p>
-                <p class="toggle-form" data-form="login">Voltar para o Login</p>
-            </form>
+            <form id="login-form"><h2>Login</h2><div class="input-group"><label for="login-user">Email</label><input type="email" id="login-user" required></div><div class="input-group"><label for="login-password">Senha</label><input type="password" id="login-password" required></div><button type="submit" class="btn">Entrar</button><p id="login-error" class="error-message"></p><p class="forgot-password">Esqueci minha senha</p><p class="toggle-form" data-form="register">Não tem conta? Cadastre-se</p></form>
+            <form id="register-form" style="display: none;"><h2>Cadastro</h2><div class="input-group"><label for="register-user">Email</label><input type="email" id="register-user" required></div><div class="input-group"><label for="register-password">Senha (mínimo 6 caracteres)</label><input type="password" id="register-password" minlength="6" required></div><button type="submit" class="btn">Cadastrar</button><p id="register-error" class="error-message"></p><p class="toggle-form" data-form="login">Já tem conta? Faça login</p></form>
+            <form id="reset-password-form" style="display: none;"><h2>Recuperar Senha</h2><div class="input-group"><label for="reset-email">Email</label><input type="email" id="reset-email" required></div><button type="submit" class="btn">Enviar email de recuperação</button><p id="reset-message" class=""></p><p class="toggle-form" data-form="login">Voltar para o Login</p></form>
         </div>
     </div>
     <div id="app" class="container">
@@ -129,13 +119,13 @@
 
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyB30QPE40atu__s4z3WlDBXHaryIE6asfE",
-  authDomain: "consultor-3016e.firebaseapp.com",
-  projectId: "consultor-3016e",
-  storageBucket: "consultor-3016e.firebasestorage.app",
-  messagingSenderId: "819781871365",
-  appId: "1:819781871365:web:a13d6930c8738a69af396c",
-  measurementId: "G-C86JBXTK16"
+    apiKey: "AIzaSyB30QPE40atu__s4z3WlDBXHaryIE6asfE",
+    authDomain: "consultor-3016e.firebaseapp.com",
+    projectId: "consultor-3016e",
+    storageBucket: "consultor-3016e.appspot.com",
+    messagingSenderId: "819781871365",
+    appId: "1:819781871365:web:a13d6930c8738a69af396c",
+    measurementId: "G-C86JBXTK16"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -146,6 +136,8 @@ const db = firebase.firestore();
 
 const app = document.getElementById('app');
 const loginSection = document.getElementById('login-section');
+const authorizationSection = document.getElementById('authorization-section');
+const authorizationForm = document.getElementById('authorization-form');
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 const resetPasswordForm = document.getElementById('reset-password-form');
@@ -163,6 +155,9 @@ const exportPdfMonthlyBtn = document.getElementById('export-pdf-monthly');
 const exportExcelMonthlyBtn = document.getElementById('export-excel-monthly');
 const recalculateAllBtn = document.getElementById('recalculate-all');
 const saveSettingsBtn = document.getElementById('save-settings');
+
+// --- SENHA MESTRA DE ACESSO ---
+const AUTHORIZATION_PASSWORD = "SUA_SENHA_MESTRA_AQUI"; // ❗️❗️❗️ DEFINA SUA SENHA AQUI ❗️❗️❗️
 
 // --- ESTADO DA APLICAÇÃO ---
 let currentUser = null;
@@ -193,7 +188,29 @@ const GLOSSARY_DATA = {
 
 // --- FUNÇÕES DE LÓGICA ---
 
-auth.onAuthStateChanged(async (user) => {
+function initialize() {
+    if (sessionStorage.getItem('isAuthorized') === 'true') {
+        authorizationSection.style.display = 'none';
+        auth.onAuthStateChanged(handleAuthStateChange);
+    } else {
+        authorizationSection.style.display = 'flex';
+    }
+}
+
+function handleAuthorization(e) {
+    e.preventDefault();
+    const passwordInput = document.getElementById('auth-password');
+    const errorEl = document.getElementById('auth-error');
+    if (passwordInput.value === AUTHORIZATION_PASSWORD) {
+        sessionStorage.setItem('isAuthorized', 'true');
+        authorizationSection.style.display = 'none';
+        auth.onAuthStateChanged(handleAuthStateChange);
+    } else {
+        errorEl.textContent = "Senha de autorização inválida.";
+    }
+}
+
+async function handleAuthStateChange(user) {
     try {
         if (user) {
             currentUser = user;
@@ -206,12 +223,8 @@ auth.onAuthStateChanged(async (user) => {
             currentUser = null;
             showLogin();
         }
-    } catch (error) {
-        console.error("Erro crítico no onAuthStateChanged:", error);
-        alert("Ocorreu um erro ao carregar os dados. Por favor, tente recarregar a página.");
-        showLogin();
-    }
-});
+    } catch (error) { console.error("Erro crítico:", error); showLogin(); }
+}
 
 function handleLogin(e) { e.preventDefault(); const email = document.getElementById('login-user').value; const pass = document.getElementById('login-password').value; const errorEl = document.getElementById('login-error'); errorEl.textContent = ''; auth.signInWithEmailAndPassword(email, pass).catch(error => { errorEl.textContent = "Email ou senha inválidos."; }); }
 
@@ -276,6 +289,7 @@ function toggleForms(formToShow) {
 }
 
 function showApp() {
+    authorizationSection.style.display = 'none';
     loginSection.style.display = 'none';
     app.style.display = 'block';
     companyNameEl.textContent = DEFAULT_COMPANY_NAME;
@@ -290,8 +304,9 @@ function showApp() {
 }
 
 function showLogin() {
-    loginSection.style.display = 'flex';
+    authorizationSection.style.display = 'none';
     app.style.display = 'none';
+    loginSection.style.display = 'flex';
 }
 
 async function loadDataFromFirestore(userId, collection) {
@@ -441,7 +456,6 @@ async function renderAnnualIndicators() {
         container.appendChild(categoryDiv);
     }
     
-    // Gera e exibe os conselhos
     const adviceContainer = document.getElementById('advice-container');
     if(userSettings && userSettings.businessType){
         const adviceList = generateBusinessAdvice(annualIndicators, userSettings);
@@ -511,6 +525,7 @@ const formatCurrency = (v) => (v || 0).toLocaleString('pt-BR', { style: 'currenc
 const formatPercent = (v) => (v || 0).toFixed(2).replace('.', ',') + '%';
 
 // --- ATRIBUIÇÃO DE EVENTOS ---
+authorizationForm.addEventListener('submit', handleAuthorization);
 loginForm.addEventListener('submit', handleLogin);
 registerForm.addEventListener('submit', handleRegister);
 resetPasswordForm.addEventListener('submit', handlePasswordReset);
@@ -542,6 +557,8 @@ recalculateAnnualBtn.addEventListener('click', renderAnnualIndicators);
 exportPdfMonthlyBtn.addEventListener('click', exportMonthlyToPDF);
 exportExcelMonthlyBtn.addEventListener('click', exportMonthlyToExcel);
 
+// --- INICIALIZAÇÃO ---
+initialize();
 </script>
 
 </body>
