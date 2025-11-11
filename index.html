@@ -105,7 +105,16 @@
             <section id="indicadores-anuais" class="tab-content"><div class="section-header"><h2>Indicadores Anuais e Gestão da Conta</h2><div class="controls"><button id="recalculate-annual">🔄 Recalcular Indicadores</button><button id="delete-account-btn" class="danger">🗑️ Excluir Conta e Dados</button></div></div><div id="annual-indicators-content"></div><div class="advice-section"><h2>💡 Plano de Ação Personalizado</h2><div id="advice-container"><p>Preencha suas metas na aba 'Configurações' para receber conselhos.</p></div></div></section>
             <section id="evolucao" class="tab-content"><div class="section-header"><h2>Evolução do Negócio</h2></div><div class="charts-container"><div class="chart-wrapper"><h3>Evolução Mensal (Faturamento, Custos e Lucro)</h3><canvas id="monthlyEvolutionChart"></canvas></div><div class="chart-wrapper"><h3>Evolução do Fluxo de Caixa Livre</h3><canvas id="cashFlowChart"></canvas></div></div></section>
             <section id="glossario" class="tab-content"><div class="section-header"><h2>Glossário de Termos Financeiros</h2></div><input type="text" id="glossary-search" placeholder="Busque por um indicador (ex: Lucro, ROI...)"><div id="glossary-container"></div></section>
-            <section id="configuracoes" class="tab-content"><div class="section-header"><h2>Configurações do Negócio</h2><div class="controls"><button id="save-settings" class="primary">💾 Salvar Configurações</button></div></div><h3>Perfil do seu Negócio</h3><p>Preencha para receber conselhos personalizados. Os valores de média são sugestões e podem ser ajustados.</p><div class="settings-grid"><div class="input-group"><label for="business-type">Qual o seu tipo de negócio?</label><select id="business-type"><option value="varejo">Varejo (Loja Física)</option><option value="servicos">Serviços (Agência, Consultoria)</option><option value="ecommerce">E-commerce (Loja Online)</option><option value="restaurante">Restaurante / Alimentação</option></select></div><div class="input-group"><label for="benchmark-margem">Meta de Margem Líquida (%)</label><input type="number" id="benchmark-margem" placeholder="Ex: 15"></div><div class="input-group"><label for="benchmark-custos">Custo Variável Máximo (% do Faturamento)</label><input type="number" id="benchmark-custos" placeholder="Ex: 40"></div><div class="input-group"><label for="benchmark-markup">Meta de Markup Mínimo (%)</label><input type="number" id="benchmark-markup" placeholder="Ex: 120"></div></div></section>
+            <section id="configuracoes" class="tab-content"><div class="section-header"><h2>Configurações do Negócio</h2><div class="controls"><button id="save-settings" class="primary">💾 Salvar Configurações</button>
+
+<!-- Botão para gerar orientações -->
+<div style="margin-top:15px;">
+  <button id="generate-advice-btn" class="btn btn-primary">
+    Gerar Orientações do Negócio
+  </button>
+  <div id="business-advice-result" style="margin-top:10px; font-weight:500;"></div>
+</div>
+</div></div><h3>Perfil do seu Negócio</h3><p>Preencha para receber conselhos personalizados. Os valores de média são sugestões e podem ser ajustados.</p><div class="settings-grid"><div class="input-group"><label for="business-type">Qual o seu tipo de negócio?</label><select id="business-type"><option value="varejo">Varejo (Loja Física)</option><option value="servicos">Serviços (Agência, Consultoria)</option><option value="ecommerce">E-commerce (Loja Online)</option><option value="restaurante">Restaurante / Alimentação</option></select></div><div class="input-group"><label for="benchmark-margem">Meta de Margem Líquida (%)</label><input type="number" id="benchmark-margem" placeholder="Ex: 15"></div><div class="input-group"><label for="benchmark-custos">Custo Variável Máximo (% do Faturamento)</label><input type="number" id="benchmark-custos" placeholder="Ex: 40"></div><div class="input-group"><label for="benchmark-markup">Meta de Markup Mínimo (%)</label><input type="number" id="benchmark-markup" placeholder="Ex: 120"></div></div></section>
         </main>
     </div>
 
@@ -320,7 +329,7 @@ async function loadDataFromFirestore(userId, collection) {
 
 async function saveDataToFirestore(userId, data, collection) {
     try { await db.collection(collection).doc(userId).set(data);
-    } catch (error) { console.error(`Erro ao salvar dados na coleção ${collection}:`, error); console.error('Falha ao salvar. Verifique sua conexão.'); throw error; }
+    } catch (error) { console.error(`Erro ao salvar dados na coleção ${collection}:`, error); alert('Falha ao salvar. Verifique sua conexão.'); throw error; }
 }
 
 async function saveMonthlyData() {
@@ -565,125 +574,32 @@ initialize();
 </script>
 
 
-
-<!-- INJETADO: saveBusinessSettings e sincronização local/cloud -->
+<!-- Script: Ação do botão de orientações -->
 <script>
-// Versão melhorada de saveBusinessSettings + sincronização local <-> Firestore
-// Esta rotina:
-// - salva localmente (localStorage) se não houver usuário ou se salvar na nuvem falhar
-// - tenta salvar na nuvem chamando saveDataToFirestore(uid, settings, collection) se existir
-// - sincroniza automaticamente local -> nuvem quando um usuário faz login (se Firebase Auth estiver disponível)
-
-async function saveBusinessSettings() {
-  // coletar valores do formulário (ajuste ids conforme seu HTML)
-  const get = id => document.getElementById(id) && document.getElementById(id).value;
-
-  const settings = {
-    businessType: get('business-type') || '',
-    benchmarkMargem: parseFloat(get('benchmark-margem')) || 0,
-    benchmarkCustos: parseFloat(get('benchmark-custos')) || 0,
-    benchmarkMarkup: parseFloat(get('benchmark-markup')) || 0,
-  };
-
-  // atualiza estado local imediato
-  try { window.userSettings = settings; } catch(e){ console.warn('Não foi possível atribuir userSettings global:', e); }
-
-  // tenta salvar na nuvem se função saveDataToFirestore existir e currentUser disponível
-  const hasSaveFn = (typeof window.saveDataToFirestore === 'function');
-  const uid = (window.currentUser && window.currentUser.uid) || null;
-
-  if (hasSaveFn && uid) {
-    try {
-      await saveDataToFirestore(uid, settings, 'userSettings');
-      localStorage.setItem('userSettings', JSON.stringify(settings)); // manter cópia local
-      showUserMessage('Configurações salvas com sucesso na nuvem.');
-      return { success: true };
-    } catch (error) {
-      console.error('Erro ao salvar na nuvem, fallback para localStorage:', error);
-      localStorage.setItem('userSettings', JSON.stringify(settings));
-      showUserMessage('Falha ao salvar na nuvem. Configurações salvas localmente.');
-      return { success: false, error };
-    }
-  } else {
-    // sem função de salvamento remoto ou sem usuário: salva localmente
-    try {
-      localStorage.setItem('userSettings', JSON.stringify(settings));
-      showUserMessage(uid ? 'Função de salvamento remoto não encontrada. Configurações salvas localmente.' : 'Você não está logado. Configurações salvas localmente. Faça login para sincronizar.');
-      return { success: true };
-    } catch (e) {
-      console.error('Erro ao salvar localmente:', e);
-      showUserMessage('Falha ao salvar. Verifique a conexão ou a permissão do navegador para usar localStorage.');
-      return { success: false, error: e };
-    }
-  }
-}
-
-// Mensagem amigável ao usuário — substitua por sua própria UX se necessário
-function showUserMessage(msg) {
-  try {
-    // se existir um elemento de status, use-o; senão, use alert como fallback
-    const statusEl = document.getElementById('save-status');
-    if (statusEl) { statusEl.innerText = msg; } else { alert(msg); }
-  } catch(e){ console.warn('Erro ao exibir mensagem ao usuário:', e); alert(msg); }
-}
-
-// Carrega configurações do localStorage para userSettings e popula campos do formulário
-function loadLocalSettingsToUI() {
-  try {
-    const raw = localStorage.getItem('userSettings');
-    if (!raw) return null;
-    const settings = JSON.parse(raw);
-    window.userSettings = settings;
-    if (settings) {
-      if (document.getElementById('business-type')) document.getElementById('business-type').value = settings.businessType || '';
-      if (document.getElementById('benchmark-margem')) document.getElementById('benchmark-margem').value = settings.benchmarkMargem || '';
-      if (document.getElementById('benchmark-custos')) document.getElementById('benchmark-custos').value = settings.benchmarkCustos || '';
-      if (document.getElementById('benchmark-markup')) document.getElementById('benchmark-markup').value = settings.benchmarkMarkup || '';
-    }
-    return settings;
-  } catch(e){ console.warn('Erro ao carregar settings locais:', e); return null; }
-}
-
-// Quando disponível, tenta sincronizar localStorage -> Firestore (merge) para não sobrescrever acidentalmente dados remotos
-async function syncLocalSettingsToFirestoreOnLogin(uid) {
-  if (!uid) return;
-  if (typeof window.saveDataToFirestore !== 'function') return;
-
-  const raw = localStorage.getItem('userSettings');
-  if (!raw) return;
-
-  try {
-    const local = JSON.parse(raw);
-    if (!local) return;
-    // aqui fazemos um set (você pode adaptar para merge se preferir)
-    await saveDataToFirestore(uid, local, 'userSettings');
-    console.info('Sincronizado localSettings -> Firestore para uid', uid);
-  } catch(e){ console.warn('Falha ao sincronizar settings locais para a nuvem:', e); }
-}
-
-// Auto-attach ao Firebase Auth se disponível
-(function attachAuthSync() {
-  try {
-    loadLocalSettingsToUI();
-    if (typeof firebase !== 'undefined' && firebase.auth && typeof firebase.auth === 'function') {
-      // SDK namespaced (v8 compat)
-      firebase.auth().onAuthStateChanged(function(user) {
-        window.currentUser = user || null;
-        if (user && user.uid) { syncLocalSettingsToFirestoreOnLogin(user.uid); }
-      });
-    } else if (typeof getAuth === 'function' && typeof onAuthStateChanged === 'function') {
-      // SDK modular-ish presence (best-effort detection)
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('generate-advice-btn');
+    if (!btn) return;
+    btn.addEventListener('click', async () => {
       try {
-        const auth = getAuth();
-        onAuthStateChanged(auth, (user) => { window.currentUser = user || null; if (user && user.uid) syncLocalSettingsToFirestoreOnLogin(user.uid); });
-      } catch(e){ console.warn('Tentativa de attach modular falhou:', e); }
-    } else {
-      console.info('Firebase Auth não detectado; apenas comportamento local habilitado.');
-    }
-  } catch(e){ console.warn('attachAuthSync erro:', e); }
-})();
-
+        console.log('Botão Gerar Orientações acionado');
+        if (typeof generateBusinessAdvice !== 'function') {
+          alert('Função generateBusinessAdvice não encontrada.');
+          return;
+        }
+        const advice = await generateBusinessAdvice();
+        const resultEl = document.getElementById('business-advice-result');
+        if (advice) {
+          resultEl.innerText = advice;
+        } else {
+          resultEl.innerText = 'Nenhuma recomendação gerada. Verifique os dados financeiros.';
+        }
+      } catch (error) {
+        console.error('Erro ao gerar orientações:', error);
+        alert('Falha ao gerar orientações. Verifique os dados e tente novamente.');
+      }
+    });
+  });
 </script>
-<!-- Fim da injeção -->
+
 </body>
 </html>
