@@ -97,31 +97,15 @@
             <button class="tab-link" data-tab="indicadores-anuais">Indicadores Anuais</button>
             <button class="tab-link" data-tab="evolucao">Evolução do Negócio</button>
             <button class="tab-link" data-tab="glossario">Glossário de Ajuda</button>
-            </nav>
+            <button class="tab-link" data-tab="configuracoes">⚙️ Configurações</button>
+        </nav>
         <main>
-            <section id="entradas-mensais" class="tab-content active"><div class="section-header"><h2>Lançamentos Mensais</h2><div class="controls"><label for="year-selector">Ano:</label><select id="year-selector"></select><button id="save-data" class="primary">💾 Salvar na Nuvem</button><button id="recalculate-all">🔄 Recalcular</button></div>
-        <div class="settings-inline" style="display:flex;gap:10px;align-items:center;margin-left:10px;">
-            <label style="font-weight:600;">Varejo (Loja Física)
-              <select id="business-type" style="padding:6px;border-radius:4px;border:1px solid var(--border-color);">
-                <option value="varejo">Varejo (Loja Física)</option><option value="servicos">Serviços (Agência, Consultoria)</option><option value="ecommerce">E-commerce (Loja Online)</option><option value="restaurante">Restaurante / Alimentação</option>
-              </select>
-            </label>
-            <label style="font-weight:600;">Meta de Margem Líquida (%)
-              <input id="benchmark-margem" type="number" step="0.01" placeholder="Ex: 15" style="width:110px;padding:6px;border-radius:4px;border:1px solid var(--border-color);">
-            </label>
-            <label style="font-weight:600;">Custo Variável Máx. (%)
-              <input id="benchmark-custos" type="number" step="0.01" placeholder="Ex: 40" style="width:110px;padding:6px;border-radius:4px;border:1px solid var(--border-color);">
-            </label>
-            <label style="font-weight:600;">Meta Markup (%)
-              <input id="benchmark-markup" type="number" step="0.01" placeholder="Ex: 120" style="width:110px;padding:6px;border-radius:4px;border:1px solid var(--border-color);">
-            </label>
-        </div>
-</div><div class="table-container"><table id="monthly-inputs"><thead><tr><th>Mês</th><th>Faturamento (R$)</th><th>Custos Variáveis (R$)</th><th>Custos Fixos (R$)</th><th>Despesas Operacionais (R$)</th><th>Outras Receitas/Despesas (R$)</th><th>Número de Vendas</th><th>Impostos (R$)</th><th>Depreciação (R$)</th><th>Investimentos (CAPEX) (R$)</th><th>Financiamentos (Entradas) (R$)</th><th>Amortização de Dívidas (Saídas) (R$)</th><th>Aporte de Sócios (R$)</th><th>Distribuição de Lucros (R$)</th></tr></thead><tbody></tbody></table></div></section>
+            <section id="entradas-mensais" class="tab-content active"><div class="section-header"><h2>Lançamentos Mensais</h2><div class="controls"><label for="year-selector">Ano:</label><select id="year-selector"></select><button id="save-data" class="primary">💾 Salvar na Nuvem</button><button id="recalculate-all">🔄 Recalcular</button></div></div><div class="table-container"><table id="monthly-inputs"><thead><tr><th>Mês</th><th>Faturamento (R$)</th><th>Custos Variáveis (R$)</th><th>Custos Fixos (R$)</th><th>Despesas Operacionais (R$)</th><th>Outras Receitas/Despesas (R$)</th><th>Número de Vendas</th><th>Impostos (R$)</th><th>Depreciação (R$)</th><th>Investimentos (CAPEX) (R$)</th><th>Financiamentos (Entradas) (R$)</th><th>Amortização de Dívidas (Saídas) (R$)</th><th>Aporte de Sócios (R$)</th><th>Distribuição de Lucros (R$)</th></tr></thead><tbody></tbody></table></div></section>
             <section id="indicadores-mensais" class="tab-content"><div class="section-header"><h2>Indicadores Financeiros Mensais</h2><div class="controls"><button id="export-pdf-monthly">📄 Baixar PDF</button><button id="export-excel-monthly">📊 Baixar Excel</button></div></div><div class="table-container"><table id="monthly-indicators-table"><thead><tr><th>Mês</th><th>Lucro Líquido</th><th>Margem Líquida (%)</th><th>Markup (%)</th><th>Fluxo de Caixa Operacional</th><th>Fluxo de Caixa de Investimento</th><th>Fluxo de Caixa de Financiamento</th><th>Fluxo de Caixa Livre</th></tr></thead><tbody></tbody></table></div></section>
             <section id="indicadores-anuais" class="tab-content"><div class="section-header"><h2>Indicadores Anuais e Gestão da Conta</h2><div class="controls"><button id="recalculate-annual">🔄 Recalcular Indicadores</button><button id="delete-account-btn" class="danger">🗑️ Excluir Conta e Dados</button></div></div><div id="annual-indicators-content"></div><div class="advice-section"><h2>💡 Plano de Ação Personalizado</h2><div id="advice-container"><p>Preencha suas metas na aba 'Configurações' para receber conselhos.</p></div></div></section>
             <section id="evolucao" class="tab-content"><div class="section-header"><h2>Evolução do Negócio</h2></div><div class="charts-container"><div class="chart-wrapper"><h3>Evolução Mensal (Faturamento, Custos e Lucro)</h3><canvas id="monthlyEvolutionChart"></canvas></div><div class="chart-wrapper"><h3>Evolução do Fluxo de Caixa Livre</h3><canvas id="cashFlowChart"></canvas></div></div></section>
             <section id="glossario" class="tab-content"><div class="section-header"><h2>Glossário de Termos Financeiros</h2></div><input type="text" id="glossary-search" placeholder="Busque por um indicador (ex: Lucro, ROI...)"><div id="glossary-container"></div></section>
-            
+            <section id="configuracoes" class="tab-content"><div class="section-header"><h2>Configurações do Negócio</h2><div class="controls"><button id="save-settings" class="primary">💾 Salvar Configurações</button></div></div><h3>Perfil do seu Negócio</h3><p>Preencha para receber conselhos personalizados. Os valores de média são sugestões e podem ser ajustados.</p><div class="settings-grid"><div class="input-group"><label for="business-type">Qual o seu tipo de negócio?</label><select id="business-type"><option value="varejo">Varejo (Loja Física)</option><option value="servicos">Serviços (Agência, Consultoria)</option><option value="ecommerce">E-commerce (Loja Online)</option><option value="restaurante">Restaurante / Alimentação</option></select></div><div class="input-group"><label for="benchmark-margem">Meta de Margem Líquida (%)</label><input type="number" id="benchmark-margem" placeholder="Ex: 15"></div><div class="input-group"><label for="benchmark-custos">Custo Variável Máximo (% do Faturamento)</label><input type="number" id="benchmark-custos" placeholder="Ex: 40"></div><div class="input-group"><label for="benchmark-markup">Meta de Markup Mínimo (%)</label><input type="number" id="benchmark-markup" placeholder="Ex: 120"></div></div></section>
         </main>
     </div>
 
@@ -306,20 +290,24 @@ function toggleForms(formToShow) {
 }
 
 function showApp() {
-    authorizationSection.style.display = 'none';
-    loginSection.style.display = 'none';
-    app.style.display = 'block';
-    companyNameEl.textContent = DEFAULT_COMPANY_NAME;
-    document.getElementById('business-type').value = userSettings.businessType || 'varejo';
-    document.getElementById('benchmark-margem').value = userSettings.benchmarkMargem || '';
-    document.getElementById('benchmark-custos').value = userSettings.benchmarkCustos || '';
-    document.getElementById('benchmark-markup').value = userSettings.benchmarkMarkup || '';
-    setupYearSelector();
-    loadYearData(currentYear);
-    updateAllCalculations();
-    renderGlossary();
-}
+        authorizationSection.style.display = 'none';
+        loginSection.style.display = 'none';
+        app.style.display = 'block';
+        companyNameEl.textContent = DEFAULT_COMPANY_NAME;
+        document.getElementById('business-type').value = userSettings.businessType || 'varejo';
+        
+        // --- INÍCIO DA CORREÇÃO ---
+        // Usamos (userSettings.X != null) para garantir que o valor '0' seja exibido corretamente
+        document.getElementById('benchmark-margem').value = (userSettings.benchmarkMargem != null) ? userSettings.benchmarkMargem : '';
+        document.getElementById('benchmark-custos').value = (userSettings.benchmarkCustos != null) ? userSettings.benchmarkCustos : '';
+        document.getElementById('benchmark-markup').value = (userSettings.benchmarkMarkup != null) ? userSettings.benchmarkMarkup : '';
+        // --- FIM DA CORREÇÃO ---
 
+        setupYearSelector();
+        loadYearData(currentYear);
+        updateAllCalculations();
+        renderGlossary();
+    }
 function showLogin() {
     authorizationSection.style.display = 'none';
     app.style.display = 'none';
@@ -336,7 +324,7 @@ async function loadDataFromFirestore(userId, collection) {
 }
 
 async function saveDataToFirestore(userId, data, collection) {
-    try { await db.collection(collection).doc(userId).set(data, { merge: true });
+    try { await db.collection(collection).doc(userId).set(data);
     } catch (error) { console.error(`Erro ao salvar dados na coleção ${collection}:`, error); alert('Falha ao salvar. Verifique sua conexão.'); throw error; }
 }
 
@@ -348,39 +336,28 @@ async function saveMonthlyData() {
         if (!financialData[currentYear][month]) financialData[currentYear][month] = {};
         financialData[currentYear][month][field] = value;
     });
-
-    // gather header settings (these inputs were moved to header)
-    const settings = {
-        businessType: document.getElementById('business-type') ? document.getElementById('business-type').value : (userSettings.businessType || 'varejo'),
-        benchmarkMargem: parseFloat(document.getElementById('benchmark-margem') ? document.getElementById('benchmark-margem').value : (userSettings.benchmarkMargem || 0)) || 0,
-        benchmarkCustos: parseFloat(document.getElementById('benchmark-custos') ? document.getElementById('benchmark-custos').value : (userSettings.benchmarkCustos || 0)) || 0,
-        benchmarkMarkup: parseFloat(document.getElementById('benchmark-markup') ? document.getElementById('benchmark-markup').value : (userSettings.benchmarkMarkup || 0)) || 0,
-    };
-    try {
-        await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
-        await saveDataToFirestore(currentUser.uid, settings, 'userSettings');
-        userSettings = settings;
-        try { localStorage.setItem('userSettings', JSON.stringify(settings)); } catch(e){}
-        alert('Dados e configurações salvos na nuvem com sucesso!');
-        updateAllCalculations();
-    } catch (e) {
-        console.error('Erro ao salvar dados/configurações:', e);
-        try { localStorage.setItem('userSettings', JSON.stringify(settings)); } catch(err){ console.warn('Não foi possível salvar localmente', err); }
-        alert('Falha ao salvar na nuvem. Configurações foram salvas localmente e serão sincronizadas quando você fizer login novamente.');
-    }
+    try { await saveDataToFirestore(currentUser.uid, financialData, 'financialData'); alert('Dados salvos na nuvem com sucesso!'); updateAllCalculations();
+    } catch (e) {}
 }
 
 async function saveBusinessSettings() {
-    if (!currentUser) return;
-    const settings = {
-        businessType: document.getElementById('business-type').value,
-        benchmarkMargem: parseFloat(document.getElementById('benchmark-margem').value) || 0,
-        benchmarkCustos: parseFloat(document.getElementById('benchmark-custos').value) || 0,
-        benchmarkMarkup: parseFloat(document.getElementById('benchmark-markup').value) || 0,
-    };
-    try { await saveDataToFirestore(currentUser.uid, settings, 'userSettings'); userSettings = settings; alert('Configurações salvas com sucesso!');
-    } catch (error) {}
-}
+        if (!currentUser) return;
+        const settings = {
+            businessType: document.getElementById('business-type').value,
+            benchmarkMargem: parseFloat(document.getElementById('benchmark-margem').value) || 0,
+            benchmarkCustos: parseFloat(document.getElementById('benchmark-custos').value) || 0,
+            benchmarkMarkup: parseFloat(document.getElementById('benchmark-markup').value) || 0,
+        };
+        try { 
+            await saveDataToFirestore(currentUser.uid, settings, 'userSettings'); 
+            userSettings = settings; 
+            alert('Configurações salvas com sucesso!');
+        } catch (error) {
+            // A função saveDataToFirestore já exibe um alert de erro.
+            // Apenas registramos o erro no console para depuração.
+            console.error("Falha ao salvar configurações:", error);
+        }
+    }
 
 function generateBusinessAdvice(indicators, settings) {
     const adviceList = [];
@@ -570,7 +547,9 @@ toggleFormsLinks.forEach(link => {
 });
 logoutBtn.addEventListener('click', () => auth.signOut());
 deleteAccountBtn.addEventListener('click', deleteAccountAndData);
-saveDataBtn.addEventListener('click', saveMonthlyData);recalculateAllBtn.addEventListener('click', updateAllCalculations);
+saveDataBtn.addEventListener('click', saveMonthlyData);
+saveSettingsBtn.addEventListener('click', saveBusinessSettings);
+recalculateAllBtn.addEventListener('click', updateAllCalculations);
 mainNav.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
         const tabId = e.target.dataset.tab;
