@@ -566,7 +566,29 @@ function calculateIndicators(data = {}) {
         custosVariaveis, numeroDeVendas
     };
 }
-    
+
+function generateBusinessAdvice(indicators, settings) {
+    const adviceList = [];
+    const { benchmarkMargem = 0, benchmarkCustos = 0, benchmarkMarkup = 0, businessType } = settings;
+    if (benchmarkMargem > 0 && indicators.margemLiquida < benchmarkMargem) {
+        let conselho = { titulo: "Margem Líquida Abaixo da Meta", texto: `Sua margem líquida (${formatPercent(indicators.margemLiquida)}) está abaixo da sua meta de ${formatPercent(benchmarkMargem)}. Isso significa que os custos e despesas estão consumindo uma fatia muito grande do seu faturamento.`};
+        if (businessType === 'varejo' || businessType === 'ecommerce') conselho.acao = "Crie um programa de fidelidade para aumentar a recorrência. Uma <strong>landing page</strong> para capturar emails e uma estratégia de email marketing podem ajudar a aumentar as vendas para a mesma base de clientes.";
+        else conselho.acao = "Revise sua precificação. Utilize suas <strong>redes sociais</strong> para comunicar o valor agregado do seu serviço, justificando um preço maior.";
+        adviceList.push(conselho);
+    }
+    if (benchmarkMarkup > 0 && indicators.markup < benchmarkMarkup) {
+        adviceList.push({ titulo: "Markup Abaixo da Meta", texto: `Seu markup médio (${formatPercent(indicators.markup)}) está abaixo do mínimo desejado de ${formatPercent(benchmarkMarkup)}. Isso impacta diretamente sua capacidade de gerar lucro bruto.`, acao: "Otimize sua precificação. Se vender online, utilize um <strong>e-commerce</strong> que permita testes A/B de preços. Considere também vender em <strong>marketplaces</strong> para alcançar um público maior." });
+    }
+    const custoVariavelPercent = indicators.faturamento > 0 ? (indicators.custosTotais / indicators.faturamento) * 100 : 0;
+    if (benchmarkCustos > 0 && custoVariavelPercent > benchmarkCustos) {
+         adviceList.push({ titulo: "Custos Totais Elevados", texto: `Seus custos totais representam ${formatPercent(custoVariavelPercent)} do faturamento, acima da sua meta de ${formatPercent(benchmarkCustos)}.`, acao: "Busque renegociar com seus fornecedores e revise suas despesas fixas. Considere um sistema de gestão (ERP) simples para controlar melhor as compras. A criação de um <strong>site institucional</strong> pode atrair novos fornecedores." });
+    }
+    if (adviceList.length === 0) {
+        adviceList.push({ titulo: "Parabéns, seus indicadores estão ótimos!", texto: "Todos os seus principais indicadores estão dentro das metas que você definiu. Continue monitorando para manter o bom desempenho.", acao: "O próximo passo pode ser a expansão. Use o tráfego pago nas <strong>redes sociais</strong> para testar novos públicos ou explore a venda em novos canais, como um <strong>e-commerce</strong> próprio." });
+    }
+    return adviceList;
+}
+
 function updateAllCalculations() { 
     if (!allowManualEditCheckbox.checked) {
         aggregateDailyData(currentYear);
