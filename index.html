@@ -482,8 +482,7 @@ function aggregateDailyData(year) {
         if (!monthData) continue;
 
         const hasDailyEntries = monthData.dailyEntries && monthData.dailyEntries.length > 0;
-
-        // Zera os totais antes de recalcular
+        
         let totals = { faturamento: 0, despesasOperacionais: 0, numeroDeVendas: 0, custosVariaveis: 0, outrasReceitasDespesas: 0 };
 
         if (hasDailyEntries) {
@@ -494,10 +493,9 @@ function aggregateDailyData(year) {
                 acc.custosVariaveis += parseFloat(entry.comissao) || 0;
                 acc.outrasReceitasDespesas += parseFloat(entry.outras) || 0;
                 return acc;
-            }, totals);
+            }, { faturamento: 0, despesasOperacionais: 0, numeroDeVendas: 0, custosVariaveis: 0, outrasReceitasDespesas: 0 });
         }
 
-        // Atribui os totais calculados (ou zerados) diretamente
         monthData.faturamento = totals.faturamento;
         monthData.despesasOperacionais = totals.despesasOperacionais;
         monthData.numeroDeVendas = totals.numeroDeVendas;
@@ -641,7 +639,6 @@ async function renderAnnualIndicators() {
         container.appendChild(categoryDiv);
     }
     
-    // --- CÓDIGO RESTAURADO ---
     const adviceContainer = document.getElementById('advice-container');
     if(userSettings && userSettings.businessType){
         const adviceList = generateBusinessAdvice(annualIndicators, userSettings);
