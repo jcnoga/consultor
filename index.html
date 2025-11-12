@@ -382,10 +382,12 @@ function showApp() {
     document.getElementById('benchmark-custos').value = (userSettings.benchmarkCustos != null) ? userSettings.benchmarkCustos : '';
     document.getElementById('benchmark-markup').value = (userSettings.benchmarkMarkup != null) ? userSettings.benchmarkMarkup : '';
 
+    // --- CORREÇÃO: Carrega o estado do checkbox antes de chamar updateAllCalculations ---
+    allowManualEditCheckbox.checked = userSettings.allowManualEdit === true;
+
     setupYearSelector();
     setupDailyMonthSelector();
-    // A inicialização agora só precisa chamar o update, que fará a agregação se necessário
-    updateAllCalculations();
+    updateAllCalculations(); // Agora esta função será executada com o estado correto do checkbox
     renderGlossary();
     renderDailyEntries(currentYear, new Date().getMonth());
 }
@@ -446,6 +448,7 @@ async function saveBusinessSettings() {
         benchmarkMargem: parseFloat(document.getElementById('benchmark-margem').value) || 0,
         benchmarkCustos: parseFloat(document.getElementById('benchmark-custos').value) || 0,
         benchmarkMarkup: parseFloat(document.getElementById('benchmark-markup').value) || 0,
+        allowManualEdit: allowManualEditCheckbox.checked // --- CORREÇÃO: Salva o estado do checkbox ---
     };
     try { 
         await saveDataToFirestore(currentUser.uid, settings, 'userSettings'); 
@@ -485,7 +488,6 @@ function aggregateDailyData(year) {
         
         if (!monthData) continue;
 
-        // Apenas modifica os dados se houver entradas diárias
         if (monthData.dailyEntries && monthData.dailyEntries.length > 0) {
             const totals = monthData.dailyEntries.reduce((acc, entry) => {
                 acc.faturamento += parseFloat(entry.faturamento) || 0;
@@ -501,8 +503,16 @@ function aggregateDailyData(year) {
             monthData.numeroDeVendas = totals.numeroDeVendas;
             monthData.custosVariaveis = totals.custosVariaveis;
             monthData.outrasReceitasDespesas = totals.outrasReceitasDespesas;
+        } else {
+            // --- CORREÇÃO: Zera APENAS se não houver entradas diárias E o modo automático estiver ativo ---
+            // Se não há entradas diárias, e o modo manual está desligado, os campos devem ser zerados.
+            // Se o modo manual estivesse ligado, não chegaria aqui pois aggregateDailyData não seria chamado.
+            monthData.faturamento = 0;
+            monthData.despesasOperacionais = 0;
+            monthData.numeroDeVendas = 0;
+            monthData.custosVariaveis = 0;
+            monthData.outrasReceitasDespesas = 0;
         }
-        // Se não houver entradas diárias, a função NÃO FAZ NADA, preservando os dados manuais.
     }
 }
 
