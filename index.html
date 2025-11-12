@@ -297,7 +297,8 @@ async function handleAuthStateChange(user) {
     try {
         if (user) {
             currentUser = user;
-            // --- CORREÇÃO CRÍTICA APLICADA AQUI ---
+            // --- CORREÇÃO DE PERSISTÊNCIA APLICADA AQUI ---
+            // Remove 'const' para atribuir às variáveis globais, não criar novas.
             [financialData, userSettings] = await Promise.all([
                 loadDataFromFirestore(user.uid, 'financialData'),
                 loadDataFromFirestore(user.uid, 'userSettings')
