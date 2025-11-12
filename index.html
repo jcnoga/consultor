@@ -297,8 +297,6 @@ async function handleAuthStateChange(user) {
     try {
         if (user) {
             currentUser = user;
-            // --- CORREÇÃO DE PERSISTÊNCIA APLICADA AQUI ---
-            // Remove 'const' para atribuir às variáveis globais, não criar novas.
             [financialData, userSettings] = await Promise.all([
                 loadDataFromFirestore(user.uid, 'financialData'),
                 loadDataFromFirestore(user.uid, 'userSettings')
@@ -386,10 +384,12 @@ function showApp() {
 
     setupYearSelector();
     setupDailyMonthSelector();
+    // A inicialização agora só precisa chamar o update, que fará a agregação se necessário
     updateAllCalculations();
     renderGlossary();
     renderDailyEntries(currentYear, new Date().getMonth());
 }
+
 function showLogin() {
     authorizationSection.style.display = 'none';
     app.style.display = 'none';
@@ -414,10 +414,12 @@ async function saveMonthlyData() {
     if (!currentUser) return;
     if (!financialData[currentYear]) financialData[currentYear] = {};
     
+    // Se o modo manual estiver desativado, primeiro garante que os totais refletem os dados diários
     if (!allowManualEditCheckbox.checked) {
         aggregateDailyData(currentYear);
     }
 
+    // Agora, lê os valores diretamente da tabela (que já está correta) para o objeto de dados
     document.querySelectorAll('#monthly-inputs input').forEach(input => {
         const month = parseInt(input.dataset.month);
         const field = input.dataset.field;
@@ -432,7 +434,7 @@ async function saveMonthlyData() {
     try {
         await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
         alert('Dados salvos na nuvem com sucesso!');
-        updateAllCalculations();
+        updateAllCalculations(); // Recarrega para garantir consistência visual
     } catch (e) {}
 }
 
@@ -483,12 +485,9 @@ function aggregateDailyData(year) {
         
         if (!monthData) continue;
 
-        const hasDailyEntries = monthData.dailyEntries && monthData.dailyEntries.length > 0;
-        
-        let totals = { faturamento: 0, despesasOperacionais: 0, numeroDeVendas: 0, custosVariaveis: 0, outrasReceitasDespesas: 0 };
-
-        if (hasDailyEntries) {
-            totals = monthData.dailyEntries.reduce((acc, entry) => {
+        // Apenas modifica os dados se houver entradas diárias
+        if (monthData.dailyEntries && monthData.dailyEntries.length > 0) {
+            const totals = monthData.dailyEntries.reduce((acc, entry) => {
                 acc.faturamento += parseFloat(entry.faturamento) || 0;
                 acc.despesasOperacionais += parseFloat(entry.despesas) || 0;
                 acc.numeroDeVendas += parseInt(entry.vendas) || 0;
@@ -496,13 +495,14 @@ function aggregateDailyData(year) {
                 acc.outrasReceitasDespesas += parseFloat(entry.outras) || 0;
                 return acc;
             }, { faturamento: 0, despesasOperacionais: 0, numeroDeVendas: 0, custosVariaveis: 0, outrasReceitasDespesas: 0 });
+            
+            monthData.faturamento = totals.faturamento;
+            monthData.despesasOperacionais = totals.despesasOperacionais;
+            monthData.numeroDeVendas = totals.numeroDeVendas;
+            monthData.custosVariaveis = totals.custosVariaveis;
+            monthData.outrasReceitasDespesas = totals.outrasReceitasDespesas;
         }
-
-        monthData.faturamento = totals.faturamento;
-        monthData.despesasOperacionais = totals.despesasOperacionais;
-        monthData.numeroDeVendas = totals.numeroDeVendas;
-        monthData.custosVariaveis = totals.custosVariaveis;
-        monthData.outrasReceitasDespesas = totals.outrasReceitasDespesas;
+        // Se não houver entradas diárias, a função NÃO FAZ NADA, preservando os dados manuais.
     }
 }
 
