@@ -75,6 +75,23 @@
         #daily-entries-table .action-btn{padding:5px 10px;font-size:0.8rem;margin-right:5px;border:none;border-radius:4px;color:white;cursor:pointer;}
         #daily-entries-table .edit-btn{background-color:var(--primary-color);}
         #daily-entries-table .delete-btn{background-color:var(--danger-color);}
+        
+        /* Estilo para a área de Backup */
+        .backup-area {
+            background-color: #e0f7fa;
+            border: 1px solid #b2ebf2;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        .backup-area h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        .backup-controls {
+            display: flex;
+            gap: 15px;
+        }
     </style>
 </head>
 <body>
@@ -166,7 +183,40 @@
             <section id="indicadores-anuais" class="tab-content"><div class="section-header"><h2>Indicadores Anuais e Gestão da Conta</h2><div class="controls"><button id="recalculate-annual">🔄 Recalcular Indicadores</button><button id="delete-account-btn" class="danger">🗑️ Excluir Conta e Dados</button></div></div><div id="annual-indicators-content"></div><div class="advice-section"><h2>💡 Plano de Ação Personalizado</h2><div id="advice-container"><p>Preencha suas metas na aba 'Configurações' para receber conselhos.</p></div></div></section>
             <section id="evolucao" class="tab-content"><div class="section-header"><h2>Evolução do Negócio</h2></div><div class="charts-container"><div class="chart-wrapper"><h3>Evolução Mensal (Faturamento, Custos e Lucro)</h3><canvas id="monthlyEvolutionChart"></canvas></div><div class="chart-wrapper"><h3>Evolução do Fluxo de Caixa Livre</h3><canvas id="cashFlowChart"></canvas></div></div></section>
             <section id="glossario" class="tab-content"><div class="section-header"><h2>Glossário de Termos Financeiros</h2></div><input type="text" id="glossary-search" placeholder="Busque por um indicador (ex: Lucro, ROI...)"><div id="glossary-container"></div></section>
-            <section id="configuracoes" class="tab-content"><div class="section-header"><h2>Configurações do Negócio</h2><div class="controls"><button id="save-settings" class="primary">💾 Salvar Configurações</button></div></div><h3>Perfil do seu Negócio</h3><p>Preencha para receber conselhos personalizados. Os valores de média são sugestões e podem ser ajustados.</p><div class="settings-grid"><div class="input-group"><label for="business-type">Qual o seu tipo de negócio?</label><select id="business-type"><option value="varejo">Varejo (Loja Física)</option><option value="servicos">Serviços (Agência, Consultoria)</option><option value="ecommerce">E-commerce (Loja Online)</option><option value="restaurante">Restaurante / Alimentação</option></select></div><div class="input-group"><label for="benchmark-margem">Meta de Margem Líquida (%)</label><input type="number" id="benchmark-margem" placeholder="Ex: 15"></div><div class="input-group"><label for="benchmark-custos">Custo Variável Máximo (% do Faturamento)</label><input type="number" id="benchmark-custos" placeholder="Ex: 40"></div><div class="input-group"><label for="benchmark-markup">Meta de Markup Mínimo (%)</label><input type="number" id="benchmark-markup" placeholder="Ex: 120"></div></div></section>
+            
+            <section id="configuracoes" class="tab-content">
+                <div class="section-header">
+                    <h2>Configurações do Negócio</h2>
+                    <div class="controls"><button id="save-settings" class="primary">💾 Salvar Configurações</button></div>
+                </div>
+                
+                <h3>Perfil do seu Negócio</h3>
+                <p>Preencha para receber conselhos personalizados. Os valores de média são sugestões e podem ser ajustados.</p>
+                <div class="settings-grid">
+                    <div class="input-group">
+                        <label for="business-type">Qual o seu tipo de negócio?</label>
+                        <select id="business-type">
+                            <option value="varejo">Varejo (Loja Física)</option>
+                            <option value="servicos">Serviços (Agência, Consultoria)</option>
+                            <option value="ecommerce">E-commerce (Loja Online)</option>
+                            <option value="restaurante">Restaurante / Alimentação</option>
+                        </select>
+                    </div>
+                    <div class="input-group"><label for="benchmark-margem">Meta de Margem Líquida (%)</label><input type="number" id="benchmark-margem" placeholder="Ex: 15"></div>
+                    <div class="input-group"><label for="benchmark-custos">Custo Variável Máximo (% do Faturamento)</label><input type="number" id="benchmark-custos" placeholder="Ex: 40"></div>
+                    <div class="input-group"><label for="benchmark-markup">Meta de Markup Mínimo (%)</label><input type="number" id="benchmark-markup" placeholder="Ex: 120"></div>
+                </div>
+
+                <div class="backup-area">
+                    <h3>💾 Backup e Restauração de Dados</h3>
+                    <p style="margin-bottom: 15px;">Faça o download de todos os seus dados para o computador ou restaure um arquivo salvo anteriormente.</p>
+                    <div class="backup-controls">
+                        <button id="btn-backup-local" class="btn" style="background-color: #2e86de;">⬇️ Baixar Backup (Local)</button>
+                        <button id="btn-restore-local" class="btn" style="background-color: #27ae60;">⬆️ Restaurar Backup</button>
+                        <input type="file" id="input-restore-file" accept=".json" style="display: none;">
+                    </div>
+                </div>
+            </section>
         </main>
     </div>
 
@@ -215,6 +265,11 @@ const exportExcelMonthlyBtn = document.getElementById('export-excel-monthly');
 const recalculateAllBtn = document.getElementById('recalculate-all');
 const saveSettingsBtn = document.getElementById('save-settings');
 const allowManualEditCheckbox = document.getElementById('allow-manual-edit');
+
+// Botões de Backup
+const btnBackupLocal = document.getElementById('btn-backup-local');
+const btnRestoreLocal = document.getElementById('btn-restore-local');
+const inputRestoreFile = document.getElementById('input-restore-file');
 
 // Elementos da aba Diária
 const dailyEntryForm = document.getElementById('daily-entry-form');
@@ -424,6 +479,77 @@ async function saveBusinessSettings() {
         console.error("Falha ao salvar configurações:", error);
     }
 }
+
+// === FUNÇÕES DE BACKUP E RESTORE ===
+
+function exportLocalBackup() {
+    if (!financialData || Object.keys(financialData).length === 0) {
+        alert("Não há dados para exportar.");
+        return;
+    }
+
+    const backupData = {
+        financialData: financialData,
+        userSettings: userSettings,
+        exportDate: new Date().toISOString(),
+        appVersion: "1.0"
+    };
+
+    const dataStr = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `backup_financeiro_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+function importLocalBackup(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!confirm("ATENÇÃO: Restaurar um backup substituirá TODOS os dados atuais da tela e salvará na nuvem (Firebase). Deseja continuar?")) {
+        e.target.value = ''; // Limpa o input
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async function(event) {
+        try {
+            const parsedData = JSON.parse(event.target.result);
+            
+            // Validação simples
+            if (!parsedData.financialData) {
+                throw new Error("Arquivo de backup inválido ou corrompido.");
+            }
+
+            // Atualiza estado local
+            financialData = parsedData.financialData || {};
+            userSettings = parsedData.userSettings || {};
+
+            // Salva no Firebase para persistir o restore
+            await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
+            await saveDataToFirestore(currentUser.uid, userSettings, 'userSettings');
+
+            alert("Dados restaurados com sucesso!");
+            
+            // Atualiza a UI
+            showApp(); 
+            
+        } catch (error) {
+            console.error("Erro ao restaurar:", error);
+            alert("Erro ao ler o arquivo de backup. Verifique se é um arquivo .json válido.");
+        }
+        e.target.value = ''; // Limpa o input para permitir selecionar o mesmo arquivo novamente se necessário
+    };
+    reader.readAsText(file);
+}
+
+// === FIM DAS FUNÇÕES DE BACKUP ===
 
 function setupYearSelector() {
     const current = new Date().getFullYear();
@@ -757,6 +883,11 @@ deleteAccountBtn.addEventListener('click', deleteAccountAndData);
 saveDataBtn.addEventListener('click', saveMonthlyData);
 saveSettingsBtn.addEventListener('click', saveBusinessSettings);
 recalculateAllBtn.addEventListener('click', updateAllCalculations);
+
+// Eventos de Backup
+btnBackupLocal.addEventListener('click', exportLocalBackup);
+btnRestoreLocal.addEventListener('click', () => inputRestoreFile.click());
+inputRestoreFile.addEventListener('change', importLocalBackup);
 
 mainNav.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
