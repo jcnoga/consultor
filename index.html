@@ -255,7 +255,10 @@ const GLOSSARY_DATA = {
 // --- FUNÇÕES DE LÓGICA ---
 
 function initialize() {
-    auth.onAuthStateChanged(handleAuthStateChange);
+    // Força o logout sempre que a página é carregada/atualizada para exigir senha
+    auth.signOut().then(() => {
+        auth.onAuthStateChanged(handleAuthStateChange);
+    });
 }
 
 async function handleAuthStateChange(user) {
