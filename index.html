@@ -19,7 +19,7 @@
         main .tab-content{display:none;padding:20px;background-color:var(--card-background);margin-top:20px;border-radius:8px;box-shadow:var(--box-shadow);animation:fadeIn 0.5s;}
         main .tab-content.active{display:block;}
         @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-        #login-section, #authorization-section{display:flex;justify-content:center;align-items:center;height:100vh;}
+        #login-section{display:flex;justify-content:center;align-items:center;height:100vh;}
         .login-container{background:var(--card-background);padding:40px;border-radius:8px;box-shadow:var(--box-shadow);width:100%;max-width:400px;text-align:center;}
         .login-container h2{margin-bottom:20px;color:var(--primary-color);}
         .toggle-form, .forgot-password{color:var(--secondary-color);cursor:pointer;margin-top:15px;display:inline-block;}
@@ -78,17 +78,6 @@
     </style>
 </head>
 <body>
-
-    <div id="authorization-section">
-        <div class="login-container">
-            <form id="authorization-form">
-                <h2>Autorização de Acesso</h2>
-                <div class="input-group"><label for="auth-password">Senha de Autorização</label><input type="password" id="auth-password" required></div>
-                <button type="submit" class="btn">Liberar Acesso</button>
-                <p id="auth-error" class="error-message"></p>
-            </form>
-        </div>
-    </div>
 
     <div id="login-section">
         <div class="login-container">
@@ -208,8 +197,6 @@ const db = firebase.firestore();
 
 const app = document.getElementById('app');
 const loginSection = document.getElementById('login-section');
-const authorizationSection = document.getElementById('authorization-section');
-const authorizationForm = document.getElementById('authorization-form');
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 const resetPasswordForm = document.getElementById('reset-password-form');
@@ -235,17 +222,13 @@ const dailyMonthSelector = document.getElementById('daily-month-selector');
 const dailyMessageEl = document.getElementById('daily-message');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
 
-
-// --- SENHA MESTRA DE ACESSO ---
-const AUTHORIZATION_PASSWORD = "noga"; // ❗️❗️❗️ DEFINA SUA SENHA AQUI ❗️❗️❗️
-
 // --- ESTADO DA APLICAÇÃO ---
 let currentUser = null;
 let currentYear = new Date().getFullYear();
 let financialData = {};
 let userSettings = {};
 let currentlyEditingIndex = null;
-const DEFAULT_COMPANY_NAME = 'Grupo Noga'; // ❗️❗️❗️ DEFINA NOME DA EMPRESA ❗️❗️❗️
+const DEFAULT_COMPANY_NAME = 'Grupo Noga'; 
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const INPUT_FIELDS = ['faturamento','custosVariaveis','custosFixos','despesasOperacionais','outrasReceitasDespesas','numeroDeVendas','impostos','depreciacao','investimentos','financiamentosEntradas','amortizacaoDividas','aporteSocios','distribuicaoLucros'];
@@ -272,25 +255,7 @@ const GLOSSARY_DATA = {
 // --- FUNÇÕES DE LÓGICA ---
 
 function initialize() {
-    if (sessionStorage.getItem('isAuthorized') === 'true') {
-        authorizationSection.style.display = 'none';
-        auth.onAuthStateChanged(handleAuthStateChange);
-    } else {
-        authorizationSection.style.display = 'flex';
-    }
-}
-
-function handleAuthorization(e) {
-    e.preventDefault();
-    const passwordInput = document.getElementById('auth-password');
-    const errorEl = document.getElementById('auth-error');
-    if (passwordInput.value === AUTHORIZATION_PASSWORD) {
-        sessionStorage.setItem('isAuthorized', 'true');
-        authorizationSection.style.display = 'none';
-        auth.onAuthStateChanged(handleAuthStateChange);
-    } else {
-        errorEl.textContent = "Senha de autorização inválida.";
-    }
+    auth.onAuthStateChanged(handleAuthStateChange);
 }
 
 async function handleAuthStateChange(user) {
@@ -372,7 +337,6 @@ function toggleForms(formToShow) {
 }
 
 function showApp() {
-    authorizationSection.style.display = 'none';
     loginSection.style.display = 'none';
     app.style.display = 'block';
     companyNameEl.textContent = DEFAULT_COMPANY_NAME;
@@ -393,7 +357,6 @@ function showApp() {
 }
 
 function showLogin() {
-    authorizationSection.style.display = 'none';
     app.style.display = 'none';
     loginSection.style.display = 'flex';
 }
@@ -779,7 +742,6 @@ const formatPercent = (v) => (v || 0).toFixed(2).replace('.', ',') + '%';
 
 
 // --- ATRIBUIÇÃO DE EVENTOS ---
-authorizationForm.addEventListener('submit', handleAuthorization);
 loginForm.addEventListener('submit', handleLogin);
 registerForm.addEventListener('submit', handleRegister);
 resetPasswordForm.addEventListener('submit', handlePasswordReset);
