@@ -91,6 +91,7 @@
         .backup-controls {
             display: flex;
             gap: 15px;
+            flex-wrap: wrap;
         }
     </style>
 </head>
@@ -209,7 +210,7 @@
 
                 <div class="backup-area">
                     <h3>💾 Backup e Restauração de Dados</h3>
-                    <p style="margin-bottom: 15px;">Faça o download de todos os seus dados para o computador ou restaure um arquivo salvo anteriormente.</p>
+                    <p style="margin-bottom: 15px;">Faça o download de todos os seus dados para o computador ou restaure um arquivo salvo anteriormente. <strong>Atenção: A restauração substitui todos os dados atuais.</strong></p>
                     <div class="backup-controls">
                         <button id="btn-backup-local" class="btn" style="background-color: #2e86de;">⬇️ Baixar Backup (Local)</button>
                         <button id="btn-restore-local" class="btn" style="background-color: #27ae60;">⬆️ Restaurar Backup</button>
@@ -480,19 +481,20 @@ async function saveBusinessSettings() {
     }
 }
 
-// === FUNÇÕES DE BACKUP E RESTORE ===
+// === FUNÇÕES DE BACKUP E RESTORE (CORRIGIDAS) ===
 
 function exportLocalBackup() {
+    // Backup profundo de tudo que está na memória
     if (!financialData || Object.keys(financialData).length === 0) {
-        alert("Não há dados para exportar.");
-        return;
+        const confirmBackup = confirm("Parece que não há dados financeiros carregados. Deseja fazer o backup mesmo assim (pode ser um backup vazio ou apenas de configurações)?");
+        if (!confirmBackup) return;
     }
 
     const backupData = {
-        financialData: financialData,
-        userSettings: userSettings,
+        financialData: JSON.parse(JSON.stringify(financialData)), // Deep copy
+        userSettings: JSON.parse(JSON.stringify(userSettings)), // Deep copy
         exportDate: new Date().toISOString(),
-        appVersion: "1.0"
+        appVersion: "1.1"
     };
 
     const dataStr = JSON.stringify(backupData, null, 2);
@@ -522,29 +524,45 @@ function importLocalBackup(e) {
         try {
             const parsedData = JSON.parse(event.target.result);
             
-            // Validação simples
-            if (!parsedData.financialData) {
+            // Validação
+            if (!parsedData.financialData && !parsedData.userSettings) {
                 throw new Error("Arquivo de backup inválido ou corrompido.");
             }
 
-            // Atualiza estado local
+            // 1. Atualiza estado local
             financialData = parsedData.financialData || {};
             userSettings = parsedData.userSettings || {};
 
-            // Salva no Firebase para persistir o restore
-            await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
-            await saveDataToFirestore(currentUser.uid, userSettings, 'userSettings');
+            // 2. SOBRESCREVE no Firebase (SEM MERGE)
+            // Isso apaga o documento antigo e coloca o backup no lugar
+            await db.collection('financialData').doc(currentUser.uid).set(financialData); 
+            await db.collection('userSettings').doc(currentUser.uid).set(userSettings);
 
             alert("Dados restaurados com sucesso!");
             
-            // Atualiza a UI
-            showApp(); 
+            // 3. Atualiza a UI
+            // Ajusta o ano para o ano mais recente presente no backup para o usuário ver os dados
+            const years = Object.keys(financialData).map(Number);
+            if (years.length > 0) {
+                currentYear = Math.max(...years);
+                // Se o ano do backup não estiver no selector, adiciona
+                let yearExists = false;
+                for(let opt of yearSelector.options){ if(parseInt(opt.value) === currentYear) yearExists = true; }
+                if(!yearExists) {
+                    const option = document.createElement('option');
+                    option.value = currentYear; option.textContent = currentYear;
+                    yearSelector.appendChild(option);
+                }
+                yearSelector.value = currentYear;
+            }
+            
+            showApp(); // Recarrega tudo com os novos dados na memória
             
         } catch (error) {
             console.error("Erro ao restaurar:", error);
-            alert("Erro ao ler o arquivo de backup. Verifique se é um arquivo .json válido.");
+            alert("Erro ao ler o arquivo de backup ou salvar no banco. Verifique o console.");
         }
-        e.target.value = ''; // Limpa o input para permitir selecionar o mesmo arquivo novamente se necessário
+        e.target.value = ''; // Limpa o input
     };
     reader.readAsText(file);
 }
@@ -1011,4 +1029,4 @@ initialize();
 </script>
 
 </body>
-</html>
+</html>```
