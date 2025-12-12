@@ -12,7 +12,36 @@
         #app, #login-section{display:none;} /* Ambos começam escondidos */
         
         header{background-color:var(--primary-color);color:white;padding:1rem;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--box-shadow); gap: 10px;}
-        header h1{font-size:1.5rem; flex-grow: 1;}
+        
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+        
+        header h1{
+            font-size:1.5rem; 
+            margin-bottom: 5px;
+        }
+
+        .contact-links {
+            font-size: 0.85rem;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .contact-links a {
+            color: #e0f7fa;
+            text-decoration: none;
+            transition: color 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .contact-links a:hover {
+            color: #ffffff;
+            text-decoration: underline;
+        }
         
         /* Botões do Header */
         .header-btn {
@@ -242,13 +271,30 @@
     <div id="login-section">
         <div class="login-container">
             <form id="login-form"><h2>Login</h2><div class="input-group"><label for="login-user">Email</label><input type="email" id="login-user" required></div><div class="input-group"><label for="login-password">Senha</label><input type="password" id="login-password" required></div><button type="submit" class="btn">Entrar</button><p id="login-error" class="error-message"></p><p class="forgot-password">Esqueci minha senha</p><p class="toggle-form" data-form="register">Não tem conta? Cadastre-se</p></form>
-            <form id="register-form" style="display: none;"><h2>Cadastro</h2><div class="input-group"><label for="register-user">Email</label><input type="email" id="register-user" required></div><div class="input-group"><label for="register-password">Senha (mínimo 6 caracteres)</label><input type="password" id="register-password" minlength="6" required></div><button type="submit" class="btn">Cadastrar</button><p id="register-error" class="error-message"></p><p class="toggle-form" data-form="login">Já tem conta? Faça login</p></form>
+            <!-- FORMULÁRIO DE CADASTRO COM NOVO CAMPO -->
+            <form id="register-form" style="display: none;">
+                <h2>Cadastro</h2>
+                <div class="input-group"><label for="register-user">Email</label><input type="email" id="register-user" required></div>
+                <div class="input-group"><label for="register-company">Nome da Empresa</label><input type="text" id="register-company" required></div>
+                <div class="input-group"><label for="register-password">Senha (mínimo 6 caracteres)</label><input type="password" id="register-password" minlength="6" required></div>
+                <button type="submit" class="btn">Cadastrar</button>
+                <p id="register-error" class="error-message"></p>
+                <p class="toggle-form" data-form="login">Já tem conta? Faça login</p>
+            </form>
             <form id="reset-password-form" style="display: none;"><h2>Recuperar Senha</h2><div class="input-group"><label for="reset-email">Email</label><input type="email" id="reset-email" required></div><button type="submit" class="btn">Enviar email de recuperação</button><p id="reset-message" class=""></p><p class="toggle-form" data-form="login">Voltar para o Login</p></form>
         </div>
     </div>
     <div id="app" class="container">
         <header>
-            <h1 id="company-name">Painel Financeiro</h1>
+            <div class="header-left">
+                <h1 id="company-name">Painel Financeiro</h1>
+                <!-- INFORMAÇÕES DE CONTATO NO CABEÇALHO -->
+                <div class="contact-links">
+                    <a href="mailto:websitelogx@gmail.com">📧 websitelogx@gmail.com</a>
+                    <a href="https://www.websitelog.com.br" target="_blank">🌐 www.websitelog.com.br</a>
+                    <a href="https://wa.me/5534997824990" target="_blank">📱 (34) 99782-4990</a>
+                </div>
+            </div>
             <div style="display: flex; gap: 10px;">
                 <button id="logoutBtn" class="header-btn">Sair</button>
             </div>
@@ -355,7 +401,7 @@
                 </div>
             </section>
 
-            <section id="indicadores-mensais" class="tab-content"><div class="section-header"><h2>Indicadores Financeiros Mensais</h2><div class="controls"><button id="export-pdf-monthly">📄 Baixar PDF</button><button id="export-excel-monthly">📊 Baixar Excel</button></div></div><div class="table-container"><table id="monthly-indicators-table"><thead><tr><th>Mês</th><th>Lucro Líquido</th><th>Margem Líquida (%)</th><th>Markup (%)</th><th>Fluxo de Caixa Operacional</th><th>Fluxo de Caixa de Investimento</th><th>Fluxo de Caixa de Financiamento</th><th>Fluxo de Caixa Livre</th></tr></thead><tbody></tbody></table></div></section>
+            <section id="indicadores-mensais" class="tab-content"><div class="section-header"><h2>Indicadores Financeiros Mensais</h2><div class="controls"><button id="export-pdf-monthly" class="pdf-btn">📄 Baixar PDF</button><button id="export-excel-monthly">📊 Baixar Excel</button></div></div><div class="table-container"><table id="monthly-indicators-table"><thead><tr><th>Mês</th><th>Lucro Líquido</th><th>Margem Líquida (%)</th><th>Markup (%)</th><th>Fluxo de Caixa Operacional</th><th>Fluxo de Caixa de Investimento</th><th>Fluxo de Caixa de Financiamento</th><th>Fluxo de Caixa Livre</th></tr></thead><tbody></tbody></table></div></section>
             
             <section id="indicadores-anuais" class="tab-content">
                 <div class="section-header">
@@ -419,18 +465,23 @@
                 <div class="unlock-section">
                     <h3>🔓 Desbloqueio de Funções Avançadas</h3>
                     <p>Gere um código aleatório e insira a contra-senha para visualizar todas as abas e cálculos. Formato: <strong>CÓDIGO - DIAS</strong></p>
-                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px;">
-                        <button id="btn-generate-unlock-code" class="btn" style="background-color: #d4ac0d; color: black; max-width: 250px;">Gerar Código de Desbloqueio</button>
-                        <span id="generated-code-display"></span>
-                    </div>
                     
                     <div id="access-status-display" class="access-info" style="display:none;">
                         <p><strong>Status:</strong> <span id="status-text"></span></p>
                         <p><strong>Expira em:</strong> <span id="expiration-text"></span></p>
                         <p><strong>Dias Restantes:</strong> <span id="days-left-text"></span></p>
                     </div>
+
+                    <!-- Botões restritos ao ADMIN ou públicos -->
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px;">
+                        <button id="btn-generate-unlock-code" class="btn" style="background-color: #d4ac0d; color: black; max-width: 250px;">Gerar Código de Desbloqueio</button>
+                        <span id="generated-code-display"></span>
+                    </div>
                     
-                    <button id="btn-test-access" class="btn" style="margin-top: 15px; background-color: #6c5ce7; color: white; max-width: 200px;">🧪 Teste (+1 Dia)</button>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button id="btn-test-access" class="btn" style="margin-top: 15px; background-color: #6c5ce7; color: white; max-width: 200px;">🧪 Teste (+1 Dia)</button>
+                        <button id="btn-reset-auth" class="btn" style="margin-top: 15px; background-color: #e17055; color: white; max-width: 200px;">🚫 Zerar Autorização</button>
+                    </div>
                 </div>
 
                 <div class="backup-area"><h3>💾 Backup e Restauração de Dados</h3><p style="margin-bottom: 15px;">Faça o download de todos os seus dados para o computador ou restaure um arquivo salvo anteriormente. <strong>Atenção: A restauração substitui todos os dados atuais.</strong></p><div class="backup-controls"><button id="btn-backup-local" class="btn" style="background-color: #2e86de;">⬇️ Baixar Backup (Local)</button><button id="btn-restore-local" class="btn" style="background-color: #27ae60;">⬆️ Restaurar Backup</button><input type="file" id="input-restore-file" accept=".json" style="display: none;"></div></div>
@@ -516,6 +567,7 @@ const consultantDiagnosisText = document.getElementById('consultant-diagnosis-te
 const btnGenerateUnlockCode = document.getElementById('btn-generate-unlock-code');
 const generatedCodeDisplay = document.getElementById('generated-code-display');
 const btnTestAccess = document.getElementById('btn-test-access');
+const btnResetAuth = document.getElementById('btn-reset-auth');
 const accessStatusDisplay = document.getElementById('access-status-display');
 const statusText = document.getElementById('status-text');
 const expirationText = document.getElementById('expiration-text');
@@ -532,6 +584,7 @@ let financialData = {};
 let userSettings = {};
 let currentlyEditingIndex = null;
 const DEFAULT_COMPANY_NAME = 'Noga Consultoria'; 
+const ADMIN_EMAIL = 'jcnvap@gmail.com'; // Constante de Admin
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -607,24 +660,24 @@ function handleLogin(e) { e.preventDefault(); const email = document.getElementB
 function handleRegister(e) {
     e.preventDefault();
     const email = document.getElementById('register-user').value;
+    const company = document.getElementById('register-company').value;
     const pass = document.getElementById('register-password').value;
     const errorEl = document.getElementById('register-error');
     errorEl.textContent = '';
     
     auth.createUserWithEmailAndPassword(email, pass)
         .then(userCredential => {
-            // Definição de acesso inicial: 30 dias
             const now = new Date();
             const expirationDate = new Date();
             expirationDate.setDate(now.getDate() + 30);
 
             return db.collection('users').doc(userCredential.user.uid).set({ 
                 email: userCredential.user.email, 
-                company: DEFAULT_COMPANY_NAME, 
+                company: company || DEFAULT_COMPANY_NAME, 
                 createdAt: firebase.firestore.FieldValue.serverTimestamp() 
             }).then(() => {
-                // Salva configurações iniciais de acesso
                 return db.collection('userSettings').doc(userCredential.user.uid).set({
+                    corporateName: company || DEFAULT_COMPANY_NAME,
                     accessExpiration: expirationDate.toISOString(),
                     lastAccess: now.toISOString()
                 }, { merge: true });
@@ -686,16 +739,13 @@ async function showApp() {
     loginSection.style.display = 'none';
     app.style.display = 'block';
     
-    // Atualiza nome da empresa no header se existir
     companyNameEl.textContent = userSettings.corporateName || DEFAULT_COMPANY_NAME;
     
-    // Preenche configurações existentes
     document.getElementById('business-type').value = userSettings.businessType || 'varejo';
     document.getElementById('benchmark-margem').value = (userSettings.benchmarkMargem != null) ? userSettings.benchmarkMargem : '';
     document.getElementById('benchmark-custos').value = (userSettings.benchmarkCustos != null) ? userSettings.benchmarkCustos : '';
     document.getElementById('benchmark-markup').value = (userSettings.benchmarkMarkup != null) ? userSettings.benchmarkMarkup : '';
 
-    // Preenche dados do diagnóstico
     document.getElementById('diag-corporate-name').value = userSettings.corporateName || '';
     document.getElementById('diag-cnpj').value = userSettings.cnpj || '';
     document.getElementById('diag-responsible').value = userSettings.responsibleName || '';
@@ -719,7 +769,16 @@ async function showApp() {
 
     allowManualEditCheckbox.checked = userSettings.allowManualEdit === true;
 
-    // --- Verificação de Acesso ---
+    // --- LÓGICA DE VISIBILIDADE DE BOTÕES (ADMIN) ---
+    const isAdmin = currentUser.email === ADMIN_EMAIL;
+    // Alteração: btnGenerateUnlockCode removido da lista restrita
+    const adminButtons = [btnTestAccess, btnResetAuth];
+    adminButtons.forEach(btn => {
+        if(btn) btn.style.display = isAdmin ? 'inline-block' : 'none';
+    });
+    // Garante que o botão de gerar código esteja visível para todos
+    if(btnGenerateUnlockCode) btnGenerateUnlockCode.style.display = 'inline-block';
+
     await checkAccessStatus();
 
     setupYearSelector();
@@ -864,7 +923,7 @@ async function saveConsultantDiagnosis() {
     }
 }
 
-// === VERIFICAÇÃO E CONTROLE DE ACESSO (NOVA LÓGICA) ===
+// === VERIFICAÇÃO E CONTROLE DE ACESSO ===
 
 async function checkAccessStatus() {
     if (!currentUser) return;
@@ -928,23 +987,12 @@ function updateAccessDisplay(status, date, days) {
 // === FUNÇÕES DE DESBLOQUEIO DE ABAS (ATUALIZADA) ===
 
 async function handleUnlockTabs() {
-    // Nova lógica: Solicitar explicitamente o e-mail do usuário
-    const targetEmail = prompt("Por favor, digite o e-mail do usuário para quem o código será gerado:");
-
-    if (!targetEmail) return; // Cancelado
-
-    // Validação de segurança: E-mail deve corresponder ao usuário logado
-    if (targetEmail.trim().toLowerCase() !== currentUser.email.toLowerCase()) {
-        alert("Erro: O e-mail informado não corresponde ao usuário logado atualmente.");
-        return;
-    }
-
     const randomNumber = Math.floor(Math.random() * (999 - 100 + 1)) + 100;
     generatedCodeDisplay.textContent = randomNumber;
     const expectedBaseCode = (randomNumber + 13) * 9 + 1954;
 
     setTimeout(async () => {
-        const userInput = prompt(`Código gerado para ${targetEmail}: ${randomNumber}.\nDigite a contra-senha no formato: CÓDIGO-DIAS (ex: 5000-30).`);
+        const userInput = prompt(`Código gerado: ${randomNumber}.\nDigite a contra-senha no formato: CÓDIGO-DIAS (ex: 5000-30).`);
 
         if (userInput) {
             const parts = userInput.split('-');
@@ -986,21 +1034,37 @@ async function handleUnlockTabs() {
 async function addTestDay() {
     if (!currentUser) return;
 
-    // Nova lógica: Confirmação automática com e-mail do usuário logado
-    const confirmTest = confirm(`Confirmar liberação de 1 dia de teste para a conta: ${currentUser.email}?`);
-    if(!confirmTest) return;
-
-    const currentExp = userSettings.accessExpiration ? new Date(userSettings.accessExpiration) : new Date();
-    const baseDate = currentExp < new Date() ? new Date() : currentExp;
-    baseDate.setDate(baseDate.getDate() + 1);
-    
-    userSettings.accessExpiration = baseDate.toISOString();
-    await saveDataToFirestore(currentUser.uid, { accessExpiration: userSettings.accessExpiration }, 'userSettings');
-    alert("1 Dia de teste adicionado!");
-    checkAccessStatus();
+    // Confirmação simples para testar na conta atual
+    if(confirm("Adicionar 1 dia de teste para a conta atual?")) {
+        const currentExp = userSettings.accessExpiration ? new Date(userSettings.accessExpiration) : new Date();
+        const baseDate = currentExp < new Date() ? new Date() : currentExp;
+        baseDate.setDate(baseDate.getDate() + 1);
+        
+        userSettings.accessExpiration = baseDate.toISOString();
+        await saveDataToFirestore(currentUser.uid, { accessExpiration: userSettings.accessExpiration }, 'userSettings');
+        alert("1 Dia de teste adicionado!");
+        checkAccessStatus();
+    }
 }
 
+async function resetAccess() {
+    if (!currentUser) return;
+    
+    if(confirm("ATENÇÃO: Isso irá zerar o período de autorização e bloquear o sistema imediatamente. Continuar?")) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        
+        userSettings.accessExpiration = yesterday.toISOString();
+        await saveDataToFirestore(currentUser.uid, { accessExpiration: userSettings.accessExpiration }, 'userSettings');
+        
+        alert("Autorização zerada. O sistema foi bloqueado.");
+        checkAccessStatus();
+    }
+}
+
+btnGenerateUnlockCode.addEventListener('click', handleUnlockTabs); // Re-attached event
 btnTestAccess.addEventListener('click', addTestDay);
+btnResetAuth.addEventListener('click', resetAccess);
 
 // === FUNÇÕES DE BACKUP E RESTORE ===
 
@@ -1214,7 +1278,7 @@ function generateEvolutionPDF() {
     const chart1 = document.getElementById('monthlyEvolutionChart');
     if (chart1) {
         const img1 = chart1.toDataURL('image/png');
-        doc.addImage(img1, 'PNG', 14, currentY, 180, 90);
+        doc.addImage(img1, 'PNG', 14, currentY + 10, 180, 90);
         currentY += 100;
     }
 
