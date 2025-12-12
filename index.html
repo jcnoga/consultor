@@ -10,12 +10,31 @@
         body{font-family:var(--font-family);background-color:var(--background-color);color:var(--text-color);line-height:1.6;}
         .container{max-width:1600px;margin:0 auto;padding:20px;}
         #app, #login-section{display:none;} /* Ambos começam escondidos */
-        header{background-color:var(--primary-color);color:white;padding:1rem;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--box-shadow);}
-        header h1{font-size:1.5rem;}
-        #logoutBtn{background:var(--danger-color);color:white;border:none;padding:8px 15px;border-radius:5px;cursor:pointer;font-weight:bold;}
+        
+        header{background-color:var(--primary-color);color:white;padding:1rem;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--box-shadow); gap: 10px;}
+        header h1{font-size:1.5rem; flex-grow: 1;}
+        
+        /* Botões do Header */
+        .header-btn {
+            border:none;
+            padding:8px 15px;
+            border-radius:5px;
+            cursor:pointer;
+            font-weight:bold;
+            font-size: 0.9rem;
+            color: white;
+            transition: opacity 0.3s;
+        }
+        .header-btn:hover { opacity: 0.9; }
+        #logoutBtn{background:var(--danger-color);}
+
         nav{background-color:var(--secondary-color);display:flex;justify-content:center;flex-wrap:wrap;padding:0.5rem 0;box-shadow:0 2px 4px rgba(0,0,0,0.1);}
         nav button{background:none;border:none;color:white;padding:15px 20px;cursor:pointer;font-size:1rem;font-weight:500;transition:background-color 0.3s;}
         nav button.active,nav button:hover{background-color:var(--primary-color);}
+        
+        /* Classe para ocultar abas restritas */
+        nav button.hidden-tab { display: none; }
+
         main .tab-content{display:none;padding:20px;background-color:var(--card-background);margin-top:20px;border-radius:8px;box-shadow:var(--box-shadow);animation:fadeIn 0.5s;}
         main .tab-content.active{display:block;}
         @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
@@ -26,7 +45,52 @@
         .toggle-form:hover, .forgot-password:hover{text-decoration:underline;}
         .input-group{margin-bottom:20px;text-align:left;}
         .input-group label{display:block;margin-bottom:5px;font-weight:600;}
-        .input-group input, .input-group select{width:100%;padding:10px;border:1px solid var(--border-color);border-radius:5px;font-size:1rem;}
+        
+        /* --- MELHORIA VISUAL DOS CAMPOS --- */
+        .input-group input, .input-group select, textarea, td input {
+            width:100%;
+            padding:10px;
+            border-radius:5px;
+            font-size:1rem;
+        }
+        input:not([readonly]), select:not([disabled]), textarea:not([readonly]) {
+            border: 2px solid var(--secondary-color);
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        input:not([readonly]):focus, select:not([disabled]):focus, textarea:not([readonly]):focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 8px rgba(10, 147, 150, 0.4);
+            outline: none;
+            background-color: #faffff;
+        }
+        input[readonly] {
+            border: 1px solid var(--border-color);
+            background-color: #e9ecef !important;
+            color: #666;
+            cursor: not-allowed;
+        }
+        
+        /* --- ÁREA DE INFORMAÇÕES COMPLEMENTARES --- */
+        .info-box {
+            background-color: #e0f7fa;
+            border-left: 5px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            min-height: 60px;
+            transition: opacity 0.3s ease;
+        }
+        .info-box strong {
+            margin-right: 8px;
+            font-size: 1.1rem;
+        }
+
         .btn{background-color:var(--secondary-color);color:white;padding:12px 20px;border:none;border-radius:5px;cursor:pointer;font-size:1rem;font-weight:bold;width:100%;transition:background-color 0.3s;}
         .btn:hover{background-color:var(--primary-color);}
         .btn.danger{background-color: var(--danger-color);}
@@ -35,16 +99,45 @@
         .success-message{color:var(--success-color);}
         .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:15px;}
         .section-header h2{color:var(--primary-color);}
+        
+        /* Controles (Botões) */
         .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
         .controls select,.controls button{padding:8px 12px;border:1px solid var(--border-color);border-radius:5px;font-size:0.9rem;background-color:white;cursor:pointer;}
         .controls button.primary{background-color:var(--secondary-color);color:white;}
         .controls button.danger{background-color:var(--danger-color);color:white;}
-        .table-container{overflow-x:auto;}
+        .controls button.pdf-btn { background-color: #6c757d; color: white; }
+        
+        /* --- SCROLL LATERAL CUSTOMIZADO --- */
+        .table-container, .chart-wrapper {
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--secondary-color) #f1f1f1;
+        }
+        .table-container::-webkit-scrollbar, 
+        .chart-wrapper::-webkit-scrollbar {
+            height: 12px;
+        }
+        .table-container::-webkit-scrollbar-track, 
+        .chart-wrapper::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        .table-container::-webkit-scrollbar-thumb, 
+        .chart-wrapper::-webkit-scrollbar-thumb {
+            background: var(--secondary-color); 
+            border-radius: 4px;
+            border: 2px solid #f1f1f1;
+        }
+        .table-container::-webkit-scrollbar-thumb:hover, 
+        .chart-wrapper::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
+
         table{width:100%;border-collapse:collapse;margin-top:20px;}
         th,td{padding:12px;text-align:left;border:1px solid var(--border-color);white-space:nowrap;}
         th{background-color:var(--primary-color);color:white;font-weight:600;}
-        td input[type="number"]{width:120px;padding:8px;border:1px solid var(--border-color);border-radius:4px;}
-        td input[readonly]{background-color:#f4f4f9;cursor:not-allowed;color:#666;}
+        td input[type="number"]{width:120px;padding:8px;border-radius:4px;}
+        
         input::-webkit-outer-spin-button,input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
         .positive{color:var(--success-color);}.negative{color:var(--danger-color);}
         .indicators-grid{display:grid;grid-template-columns:repeat(auto-fit, minmax(300px, 1fr));gap:20px;}
@@ -58,7 +151,7 @@
         .chart-wrapper{background:#fff;padding:20px;border-radius:8px;box-shadow:var(--box-shadow);}
         .chart-wrapper h3{text-align:center;margin-bottom:20px;color:var(--primary-color);}
         canvas{width:100% !important;height:auto !important;}
-        #glossary-search{width:100%;padding:12px;font-size:1rem;margin-bottom:20px;border:1px solid var(--border-color);border-radius:5px;}
+        #glossary-search{width:100%;padding:12px;font-size:1rem;margin-bottom:20px;border-radius:5px;}
         .glossary-item{background:#fff;margin-bottom:10px;border-radius:8px;box-shadow:var(--box-shadow);overflow:hidden;}
         .glossary-header{padding:15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:bold;font-size:1.1rem;color:var(--primary-color);border-left:5px solid var(--primary-color);}
         .glossary-header::after{content:'+';font-size:1.5rem;transition:transform 0.3s;}
@@ -93,6 +186,55 @@
             gap: 15px;
             flex-wrap: wrap;
         }
+
+        /* Estilos específicos da aba Diagnóstico */
+        .diagnosis-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .diagnosis-form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Estilos do Título de Seção dentro do Diagnóstico */
+        .section-separator {
+            grid-column: 1 / -1;
+            margin-top: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--secondary-color);
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+        
+        /* Estilo para área de Desbloqueio e Status */
+        .unlock-section {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+        .unlock-section h3 {
+            margin-bottom: 15px;
+            color: #856404;
+        }
+        #generated-code-display {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-left: 15px;
+            vertical-align: middle;
+        }
+        .access-info {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 5px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -105,21 +247,65 @@
         </div>
     </div>
     <div id="app" class="container">
-        <header><h1 id="company-name">Painel Financeiro</h1><button id="logoutBtn">Sair</button></header>
+        <header>
+            <h1 id="company-name">Painel Financeiro</h1>
+            <div style="display: flex; gap: 10px;">
+                <button id="logoutBtn" class="header-btn">Sair</button>
+            </div>
+        </header>
         <nav id="main-nav">
-            <button class="tab-link active" data-tab="entradas-diarias">Entradas Diárias</button>
+            <button class="tab-link active" data-tab="diagnostico">Empresa</button>
+            <button class="tab-link hidden-tab" data-tab="entradas-diarias">Entradas Diárias</button>
             <button class="tab-link" data-tab="entradas-mensais">Entradas Mensais</button>
-            <button class="tab-link" data-tab="indicadores-mensais">Indicadores Mensais</button>
-            <button class="tab-link" data-tab="indicadores-anuais">Indicadores Anuais</button>
-            <button class="tab-link" data-tab="evolucao">Evolução do Negócio</button>
-            <button class="tab-link" data-tab="glossario">Glossário de Ajuda</button>
+            <button class="tab-link hidden-tab" data-tab="indicadores-mensais">Indicadores Mensais</button>
+            <button class="tab-link hidden-tab" data-tab="indicadores-anuais">Indicadores Anuais</button>
+            <button class="tab-link hidden-tab" data-tab="evolucao">Evolução do Negócio</button>
+            <button class="tab-link hidden-tab" data-tab="glossario">Glossário de Ajuda</button>
+            <button class="tab-link hidden-tab" data-tab="diagnostico-consultor">Diagnóstico do Consultor</button>
             <button class="tab-link" data-tab="configuracoes">⚙️ Configurações</button>
         </nav>
         <main>
-            <section id="entradas-diarias" class="tab-content active">
+            <!-- Aba Empresa -->
+            <section id="diagnostico" class="tab-content active">
+                <div class="section-header">
+                    <h2>Diagnóstico Empresarial</h2>
+                    <div class="controls">
+                        <button id="btn-export-company" class="pdf-btn">📄 Baixar PDF</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <p style="margin-bottom: 20px;">Preencha os dados abaixo para gerar um relatório completo da saúde financeira da empresa.</p>
+                    <form id="diagnosis-form">
+                        <div class="diagnosis-form-grid">
+                            <div class="input-group"><label for="diag-corporate-name">Razão Social / Nome Fantasia *</label><input type="text" id="diag-corporate-name" placeholder="Ex: Minha Loja Ltda" required></div>
+                            <div class="input-group"><label for="diag-cnpj">CNPJ / CPF *</label><input type="text" id="diag-cnpj" placeholder="00.000.000/0001-00" required></div>
+                            <div class="input-group"><label for="diag-responsible">Nome do Responsável *</label><input type="text" id="diag-responsible" placeholder="José da Silva" required></div>
+                            <div class="input-group"><label for="diag-email">E-mail de Contato *</label><input type="email" id="diag-email" placeholder="contato@empresa.com" required></div>
+                            <div class="input-group"><label for="diag-phone">WhatsApp / Telefone *</label><input type="tel" id="diag-phone" placeholder="(11) 99999-9999" required></div>
+                            <div class="input-group"><label for="diag-sector">Setor de Atuação</label><select id="diag-sector"><option value="Comércio">Comércio</option><option value="Serviços">Serviços</option><option value="Indústria">Indústria</option><option value="E-commerce">E-commerce</option><option value="Outro">Outro</option></select></div>
+                            <div class="input-group"><label for="diag-tax-regime">Regime Tributário</label><select id="diag-tax-regime"><option value="Simples Nacional">Simples Nacional</option><option value="Lucro Presumido">Lucro Presumido</option><option value="Lucro Real">Lucro Real</option><option value="MEI">MEI</option></select></div>
+                            <h3 class="section-separator">Presença Digital e Ferramentas Utilizadas</h3>
+                            <div class="input-group"><label for="diag-erp">Utiliza ERP</label><select id="diag-erp"><option value="Não">Não</option><option value="Sim">Sim</option></select></div>
+                            <div class="input-group"><label for="diag-instagram">Tem Instagram</label><select id="diag-instagram"><option value="Não">Não</option><option value="Sim">Sim</option></select></div>
+                            <div class="input-group"><label for="diag-facebook">Tem Facebook</label><select id="diag-facebook"><option value="Não">Não</option><option value="Sim">Sim</option></select></div>
+                            <div class="input-group"><label for="diag-landingpage">Tem Landing Page</label><select id="diag-landingpage"><option value="Não">Não</option><option value="Sim">Sim</option></select></div>
+                            <div class="input-group"><label for="diag-site">Tem Site</label><select id="diag-site"><option value="Não">Não</option><option value="Sim">Sim</option></select></div>
+                            <div class="input-group"><label for="diag-ecommerce">Tem Loja Virtual</label><select id="diag-ecommerce"><option value="Não">Não</option><option value="Sim">Sim</option></select></div>
+                            <div class="input-group"><label for="diag-ads">Faz tráfego pago</label><select id="diag-ads"><option value="Não">Não</option><option value="Sim">Sim</option></select></div>
+                            <div class="input-group"><label for="diag-marketplace">Vende em Marketplace — quais?</label><input type="text" id="diag-marketplace" placeholder="Ex: ML, Shopee, Amazon..."></div>
+                            <h3 class="section-separator">Observações Gerais</h3>
+                            <div class="input-group" style="grid-column: 1 / -1;"><label for="diag-observations">Observação Obrigatória / Notas Adicionais</label><textarea id="diag-observations" rows="4" placeholder="Registre aqui observações importantes sobre a empresa..."></textarea></div>
+                        </div>
+                        <button type="submit" class="btn" style="margin-top: 20px;">Salvar Dados da Empresa</button>
+                    </form>
+                </div>
+            </section>
+
+            <section id="entradas-diarias" class="tab-content">
                 <div class="section-header">
                     <h2>Lançamento Diário</h2>
                     <div class="controls">
+                        <button id="btn-export-daily" class="btn" style="background-color: #2e86de; color: white;">📄 Relatório Diário (PDF)</button>
                         <label for="daily-month-selector">Mês:</label>
                         <select id="daily-month-selector"></select>
                     </div>
@@ -141,82 +327,113 @@
                     <h3>Lançamentos do Mês</h3>
                     <table id="daily-entries-table">
                         <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Faturamento (R$)</th>
-                                <th>Despesas (R$)</th>
-                                <th>Comissão (R$)</th>
-                                <th>Outras Rec/Desp (R$)</th>
-                                <th>Nº de Vendas</th>
-                                <th>Ações</th>
-                            </tr>
+                            <tr><th>Data</th><th>Faturamento (R$)</th><th>Despesas (R$)</th><th>Comissão (R$)</th><th>Outras Rec/Desp (R$)</th><th>Nº de Vendas</th><th>Ações</th></tr>
                         </thead>
-                        <tbody>
-                            <!-- Linhas inseridas via JS -->
-                        </tbody>
+                        <tbody></tbody>
                     </table>
                 </div>
             </section>
+            
             <section id="entradas-mensais" class="tab-content">
                 <div class="section-header">
                     <h2>Lançamentos Mensais <span id="auto-calc-notice">(Campos com * são calculados automaticamente)</span></h2>
                     <div class="controls">
-                        <div class="checkbox-control">
-                            <input type="checkbox" id="allow-manual-edit">
-                            <label for="allow-manual-edit">Permitir edição manual dos totais</label>
-                        </div>
+                        <button id="btn-export-monthly-inputs" class="pdf-btn">📄 Baixar PDF</button>
+                        <div class="checkbox-control"><input type="checkbox" id="allow-manual-edit"><label for="allow-manual-edit">Permitir edição manual dos totais</label></div>
                         <label for="year-selector">Ano:</label>
                         <select id="year-selector"></select>
                         <button id="save-data" class="primary">💾 Salvar na Nuvem</button>
                         <button id="recalculate-all">🔄 Recalcular</button>
                     </div>
                 </div>
+                <div id="monthly-field-info" class="info-box" style="display:none;"><span id="monthly-field-text">Clique ou selecione um campo na tabela para ver a descrição detalhada aqui.</span></div>
                 <div class="table-container">
                     <table id="monthly-inputs">
-                        <thead>
-                            <tr><th>Mês</th><th>Faturamento (R$)*</th><th>Custos Variáveis (R$)*</th><th>Custos Fixos (R$)</th><th>Despesas Operacionais (R$)*</th><th>Outras Receitas/Despesas (R$)*</th><th>Número de Vendas*</th><th>Impostos (R$)</th><th>Depreciação (R$)</th><th>Investimentos (CAPEX) (R$)</th><th>Financiamentos (Entradas) (R$)</th><th>Amortização de Dívidas (Saídas) (R$)</th><th>Aporte de Sócios (R$)</th><th>Distribuição de Lucros (R$)</th></tr>
-                        </thead>
+                        <thead><tr><th>Mês</th><th>Faturamento (R$)*</th><th>Número de Vendas*</th><th>Custos Variáveis (R$)*</th><th>Custos Fixos (R$)</th><th>Despesas Operacionais (R$)*</th><th>Depreciação (R$)</th><th>Outras Receitas/Despesas (R$)*</th><th>Investimentos (CAPEX) (R$)</th><th>Financiamentos (Entradas) (R$)</th><th>Amortização de Dívidas (Saídas) (R$)</th><th>Aporte de Sócios (R$)</th><th>Distribuição de Lucros (R$)</th><th>Impostos (R$)</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
             </section>
+
             <section id="indicadores-mensais" class="tab-content"><div class="section-header"><h2>Indicadores Financeiros Mensais</h2><div class="controls"><button id="export-pdf-monthly">📄 Baixar PDF</button><button id="export-excel-monthly">📊 Baixar Excel</button></div></div><div class="table-container"><table id="monthly-indicators-table"><thead><tr><th>Mês</th><th>Lucro Líquido</th><th>Margem Líquida (%)</th><th>Markup (%)</th><th>Fluxo de Caixa Operacional</th><th>Fluxo de Caixa de Investimento</th><th>Fluxo de Caixa de Financiamento</th><th>Fluxo de Caixa Livre</th></tr></thead><tbody></tbody></table></div></section>
-            <section id="indicadores-anuais" class="tab-content"><div class="section-header"><h2>Indicadores Anuais e Gestão da Conta</h2><div class="controls"><button id="recalculate-annual">🔄 Recalcular Indicadores</button><button id="delete-account-btn" class="danger">🗑️ Excluir Conta e Dados</button></div></div><div id="annual-indicators-content"></div><div class="advice-section"><h2>💡 Plano de Ação Personalizado</h2><div id="advice-container"><p>Preencha suas metas na aba 'Configurações' para receber conselhos.</p></div></div></section>
-            <section id="evolucao" class="tab-content"><div class="section-header"><h2>Evolução do Negócio</h2></div><div class="charts-container"><div class="chart-wrapper"><h3>Evolução Mensal (Faturamento, Custos e Lucro)</h3><canvas id="monthlyEvolutionChart"></canvas></div><div class="chart-wrapper"><h3>Evolução do Fluxo de Caixa Livre</h3><canvas id="cashFlowChart"></canvas></div></div></section>
-            <section id="glossario" class="tab-content"><div class="section-header"><h2>Glossário de Termos Financeiros</h2></div><input type="text" id="glossary-search" placeholder="Busque por um indicador (ex: Lucro, ROI...)"><div id="glossary-container"></div></section>
             
+            <section id="indicadores-anuais" class="tab-content">
+                <div class="section-header">
+                    <h2>Indicadores Anuais e Gestão da Conta</h2>
+                    <div class="controls">
+                        <button id="btn-export-annual" class="pdf-btn">📄 Baixar PDF</button>
+                        <button id="recalculate-annual">🔄 Recalcular Indicadores</button>
+                        <button id="delete-account-btn" class="danger">🗑️ Excluir Conta e Dados</button>
+                    </div>
+                </div>
+                <div id="annual-indicators-content"></div>
+                <div class="advice-section"><h2>💡 Plano de Ação Personalizado</h2><div id="advice-container"><p>Preencha suas metas na aba 'Configurações' para receber conselhos.</p></div></div>
+            </section>
+            
+            <section id="evolucao" class="tab-content">
+                <div class="section-header">
+                    <h2>Evolução do Negócio</h2>
+                    <div class="controls"><button id="btn-export-evolution" class="pdf-btn">📄 Baixar PDF</button></div>
+                </div>
+                <div class="charts-container"><div class="chart-wrapper"><h3>Evolução Mensal (Faturamento, Custos e Lucro)</h3><canvas id="monthlyEvolutionChart"></canvas></div><div class="chart-wrapper"><h3>Evolução do Fluxo de Caixa Livre</h3><canvas id="cashFlowChart"></canvas></div></div>
+            </section>
+            
+            <section id="glossario" class="tab-content">
+                <div class="section-header">
+                    <h2>Glossário de Termos Financeiros</h2>
+                    <div class="controls"><button id="btn-export-glossary" class="pdf-btn">📄 Baixar PDF</button></div>
+                </div>
+                <input type="text" id="glossary-search" placeholder="Busque por um indicador (ex: Lucro, ROI...)"><div id="glossary-container"></div>
+            </section>
+            
+            <section id="diagnostico-consultor" class="tab-content">
+                <div class="section-header">
+                    <h2>Diagnóstico do Consultor</h2>
+                    <div class="controls">
+                        <button id="btn-export-consultant" class="pdf-btn">📄 PDF do Parecer</button>
+                        <button id="btn-full-report" class="btn" style="background-color: #d4ac0d; color: #333;">📄 Gerar Relatório Completo</button>
+                        <button id="save-consultant-diagnosis" class="primary">💾 Salvar Parecer</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <p>Espaço reservado para o consultor descrever a análise detalhada da situação financeira da empresa.</p>
+                    <textarea id="consultant-diagnosis-text" rows="15" placeholder="Digite aqui o diagnóstico completo, observações e recomendações estratégicas..." style="width: 100%; margin-top: 15px;"></textarea>
+                </div>
+            </section>
+
             <section id="configuracoes" class="tab-content">
                 <div class="section-header">
                     <h2>Configurações do Negócio</h2>
                     <div class="controls"><button id="save-settings" class="primary">💾 Salvar Configurações</button></div>
                 </div>
-                
                 <h3>Perfil do seu Negócio</h3>
                 <p>Preencha para receber conselhos personalizados. Os valores de média são sugestões e podem ser ajustados.</p>
                 <div class="settings-grid">
-                    <div class="input-group">
-                        <label for="business-type">Qual o seu tipo de negócio?</label>
-                        <select id="business-type">
-                            <option value="varejo">Varejo (Loja Física)</option>
-                            <option value="servicos">Serviços (Agência, Consultoria)</option>
-                            <option value="ecommerce">E-commerce (Loja Online)</option>
-                            <option value="restaurante">Restaurante / Alimentação</option>
-                        </select>
-                    </div>
+                    <div class="input-group"><label for="business-type">Qual o seu tipo de negócio?</label><select id="business-type"><option value="varejo">Varejo (Loja Física)</option><option value="servicos">Serviços (Agência, Consultoria)</option><option value="ecommerce">E-commerce (Loja Online)</option><option value="restaurante">Restaurante / Alimentação</option></select></div>
                     <div class="input-group"><label for="benchmark-margem">Meta de Margem Líquida (%)</label><input type="number" id="benchmark-margem" placeholder="Ex: 15"></div>
                     <div class="input-group"><label for="benchmark-custos">Custo Variável Máximo (% do Faturamento)</label><input type="number" id="benchmark-custos" placeholder="Ex: 40"></div>
                     <div class="input-group"><label for="benchmark-markup">Meta de Markup Mínimo (%)</label><input type="number" id="benchmark-markup" placeholder="Ex: 120"></div>
                 </div>
-
-                <div class="backup-area">
-                    <h3>💾 Backup e Restauração de Dados</h3>
-                    <p style="margin-bottom: 15px;">Faça o download de todos os seus dados para o computador ou restaure um arquivo salvo anteriormente. <strong>Atenção: A restauração substitui todos os dados atuais.</strong></p>
-                    <div class="backup-controls">
-                        <button id="btn-backup-local" class="btn" style="background-color: #2e86de;">⬇️ Baixar Backup (Local)</button>
-                        <button id="btn-restore-local" class="btn" style="background-color: #27ae60;">⬆️ Restaurar Backup</button>
-                        <input type="file" id="input-restore-file" accept=".json" style="display: none;">
+                
+                <!-- Nova Área de Desbloqueio e Status -->
+                <div class="unlock-section">
+                    <h3>🔓 Desbloqueio de Funções Avançadas</h3>
+                    <p>Gere um código aleatório e insira a contra-senha para visualizar todas as abas e cálculos. Formato: <strong>CÓDIGO - DIAS</strong></p>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 15px;">
+                        <button id="btn-generate-unlock-code" class="btn" style="background-color: #d4ac0d; color: black; max-width: 250px;">Gerar Código de Desbloqueio</button>
+                        <span id="generated-code-display"></span>
                     </div>
+                    
+                    <div id="access-status-display" class="access-info" style="display:none;">
+                        <p><strong>Status:</strong> <span id="status-text"></span></p>
+                        <p><strong>Expira em:</strong> <span id="expiration-text"></span></p>
+                        <p><strong>Dias Restantes:</strong> <span id="days-left-text"></span></p>
+                    </div>
+                    
+                    <button id="btn-test-access" class="btn" style="margin-top: 15px; background-color: #6c5ce7; color: white; max-width: 200px;">🧪 Teste (+1 Dia)</button>
                 </div>
+
+                <div class="backup-area"><h3>💾 Backup e Restauração de Dados</h3><p style="margin-bottom: 15px;">Faça o download de todos os seus dados para o computador ou restaure um arquivo salvo anteriormente. <strong>Atenção: A restauração substitui todos os dados atuais.</strong></p><div class="backup-controls"><button id="btn-backup-local" class="btn" style="background-color: #2e86de;">⬇️ Baixar Backup (Local)</button><button id="btn-restore-local" class="btn" style="background-color: #27ae60;">⬆️ Restaurar Backup</button><input type="file" id="input-restore-file" accept=".json" style="display: none;"></div></div>
             </section>
         </main>
     </div>
@@ -267,6 +484,16 @@ const recalculateAllBtn = document.getElementById('recalculate-all');
 const saveSettingsBtn = document.getElementById('save-settings');
 const allowManualEditCheckbox = document.getElementById('allow-manual-edit');
 
+// Botões de Relatório
+const btnFullReport = document.getElementById('btn-full-report');
+const btnExportDaily = document.getElementById('btn-export-daily');
+const btnExportCompany = document.getElementById('btn-export-company');
+const btnExportMonthlyInputs = document.getElementById('btn-export-monthly-inputs');
+const btnExportAnnual = document.getElementById('btn-export-annual');
+const btnExportEvolution = document.getElementById('btn-export-evolution');
+const btnExportGlossary = document.getElementById('btn-export-glossary');
+const btnExportConsultant = document.getElementById('btn-export-consultant');
+
 // Botões de Backup
 const btnBackupLocal = document.getElementById('btn-backup-local');
 const btnRestoreLocal = document.getElementById('btn-restore-local');
@@ -278,6 +505,26 @@ const dailyMonthSelector = document.getElementById('daily-month-selector');
 const dailyMessageEl = document.getElementById('daily-message');
 const cancelEditBtn = document.getElementById('cancel-edit-btn');
 
+// Elementos da aba Diagnóstico
+const diagnosisForm = document.getElementById('diagnosis-form');
+
+// Elementos da Nova Aba Consultor
+const saveConsultantDiagnosisBtn = document.getElementById('save-consultant-diagnosis');
+const consultantDiagnosisText = document.getElementById('consultant-diagnosis-text');
+
+// Elementos de Desbloqueio e Acesso
+const btnGenerateUnlockCode = document.getElementById('btn-generate-unlock-code');
+const generatedCodeDisplay = document.getElementById('generated-code-display');
+const btnTestAccess = document.getElementById('btn-test-access');
+const accessStatusDisplay = document.getElementById('access-status-display');
+const statusText = document.getElementById('status-text');
+const expirationText = document.getElementById('expiration-text');
+const daysLeftText = document.getElementById('days-left-text');
+
+// Elementos da Área de Informação de Campos
+const monthlyFieldInfoBox = document.getElementById('monthly-field-info');
+const monthlyFieldText = document.getElementById('monthly-field-text');
+
 // --- ESTADO DA APLICAÇÃO ---
 let currentUser = null;
 let currentYear = new Date().getFullYear();
@@ -287,7 +534,30 @@ let currentlyEditingIndex = null;
 const DEFAULT_COMPANY_NAME = 'Noga Consultoria'; 
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-const INPUT_FIELDS = ['faturamento','custosVariaveis','custosFixos','despesasOperacionais','outrasReceitasDespesas','numeroDeVendas','impostos','depreciacao','investimentos','financiamentosEntradas','amortizacaoDividas','aporteSocios','distribuicaoLucros'];
+
+const INPUT_FIELDS = [
+    'faturamento', 'numeroDeVendas', 'custosVariaveis', 'custosFixos', 'despesasOperacionais', 'depreciacao',
+    'outrasReceitasDespesas', 'investimentos', 'financiamentosEntradas', 'amortizacaoDividas', 'aporteSocios',
+    'distribuicaoLucros', 'impostos'
+];
+
+// --- DESCRIÇÕES DOS CAMPOS ---
+const FIELD_DESCRIPTIONS = {
+    'faturamento': 'Receita bruta total obtida com a venda de produtos ou prestação de serviços no mês.',
+    'numeroDeVendas': 'Quantidade total de transações comerciais (pedidos ou contratos) realizadas no mês.',
+    'custosVariaveis': 'Gastos que aumentam ou diminuem conforme o volume de vendas (ex: matéria-prima, comissões).',
+    'custosFixos': 'Gastos recorrentes que independem das vendas (ex: aluguel, salários administrativos, internet).',
+    'despesasOperacionais': 'Gastos necessários para manter a operação, mas não ligados diretamente à produção (ex: marketing, escritório).',
+    'depreciacao': 'Perda de valor mensal de equipamentos e bens da empresa (não é uma saída de caixa real).',
+    'outrasReceitasDespesas': 'Entradas ou saídas atípicas, como rendimentos financeiros, multas ou venda de bens usados.',
+    'investimentos': 'Saída de caixa para aquisição de ativos duráveis (CAPEX), como máquinas, veículos ou reformas.',
+    'financiamentosEntradas': 'Dinheiro que entrou no caixa proveniente de empréstimos bancários ou financiamentos.',
+    'amortizacaoDividas': 'Saída de caixa destinada ao pagamento do valor principal de empréstimos e dívidas.',
+    'aporteSocios': 'Dinheiro injetado no caixa da empresa pelos próprios sócios ou investidores.',
+    'distribuicaoLucros': 'Saída de caixa para pagamento de dividendos ou lucros aos sócios.',
+    'impostos': 'Total de tributos pagos sobre o faturamento ou lucro (ex: DAS, ICMS, ISS, IRPJ).'
+};
+
 const GLOSSARY_DATA = {
     faturamento: {nome: "Faturamento", formula: "Preço de Venda × Quantidade Vendida", significado: "Valor total das vendas de produtos ou serviços em um período, antes de qualquer dedução.", exemplo: "Vender 100 produtos a R$50 cada gera um faturamento de R$5.000.", dica: "Aumente o faturamento com estratégias de marketing, diversificação de produtos ou ajuste de preços."},
     faturamentoMedio: {nome: "Faturamento Bruto Médio", formula: "Faturamento Anual Total / 12", significado: "A média mensal do seu faturamento bruto durante o ano. Ajuda a entender a sazonalidade e o desempenho de vendas consistente.", dica: "Compare a média com os meses individuais para identificar seus melhores períodos de venda e planejar campanhas."},
@@ -311,7 +581,6 @@ const GLOSSARY_DATA = {
 // --- FUNÇÕES DE LÓGICA ---
 
 function initialize() {
-    // Força o logout sempre que a página é carregada/atualizada para exigir senha
     auth.signOut().then(() => {
         auth.onAuthStateChanged(handleAuthStateChange);
     });
@@ -341,9 +610,27 @@ function handleRegister(e) {
     const pass = document.getElementById('register-password').value;
     const errorEl = document.getElementById('register-error');
     errorEl.textContent = '';
+    
     auth.createUserWithEmailAndPassword(email, pass)
-        .then(userCredential => db.collection('users').doc(userCredential.user.uid).set({ email: userCredential.user.email, company: DEFAULT_COMPANY_NAME, createdAt: firebase.firestore.FieldValue.serverTimestamp() }))
-        .then(() => { alert('Cadastro realizado com sucesso! Faça o login.'); toggleForms('login'); })
+        .then(userCredential => {
+            // Definição de acesso inicial: 30 dias
+            const now = new Date();
+            const expirationDate = new Date();
+            expirationDate.setDate(now.getDate() + 30);
+
+            return db.collection('users').doc(userCredential.user.uid).set({ 
+                email: userCredential.user.email, 
+                company: DEFAULT_COMPANY_NAME, 
+                createdAt: firebase.firestore.FieldValue.serverTimestamp() 
+            }).then(() => {
+                // Salva configurações iniciais de acesso
+                return db.collection('userSettings').doc(userCredential.user.uid).set({
+                    accessExpiration: expirationDate.toISOString(),
+                    lastAccess: now.toISOString()
+                }, { merge: true });
+            });
+        })
+        .then(() => { alert('Cadastro realizado com sucesso! Acesso liberado por 30 dias.'); toggleForms('login'); })
         .catch(error => {
             switch (error.code) {
                 case 'auth/email-already-in-use': errorEl.textContent = "Este email já está cadastrado."; break;
@@ -395,22 +682,49 @@ function toggleForms(formToShow) {
     document.getElementById('reset-message').textContent = '';
 }
 
-function showApp() {
+async function showApp() {
     loginSection.style.display = 'none';
     app.style.display = 'block';
-    companyNameEl.textContent = DEFAULT_COMPANY_NAME;
-    document.getElementById('business-type').value = userSettings.businessType || 'varejo';
     
+    // Atualiza nome da empresa no header se existir
+    companyNameEl.textContent = userSettings.corporateName || DEFAULT_COMPANY_NAME;
+    
+    // Preenche configurações existentes
+    document.getElementById('business-type').value = userSettings.businessType || 'varejo';
     document.getElementById('benchmark-margem').value = (userSettings.benchmarkMargem != null) ? userSettings.benchmarkMargem : '';
     document.getElementById('benchmark-custos').value = (userSettings.benchmarkCustos != null) ? userSettings.benchmarkCustos : '';
     document.getElementById('benchmark-markup').value = (userSettings.benchmarkMarkup != null) ? userSettings.benchmarkMarkup : '';
 
-    // --- CORREÇÃO: Carrega o estado do checkbox antes de chamar updateAllCalculations ---
+    // Preenche dados do diagnóstico
+    document.getElementById('diag-corporate-name').value = userSettings.corporateName || '';
+    document.getElementById('diag-cnpj').value = userSettings.cnpj || '';
+    document.getElementById('diag-responsible').value = userSettings.responsibleName || '';
+    document.getElementById('diag-email').value = userSettings.contactEmail || '';
+    document.getElementById('diag-phone').value = userSettings.phone || '';
+    document.getElementById('diag-sector').value = userSettings.sector || 'Comércio';
+    document.getElementById('diag-tax-regime').value = userSettings.taxRegime || 'Simples Nacional';
+
+    document.getElementById('diag-erp').value = userSettings.hasErp || 'Não';
+    document.getElementById('diag-instagram').value = userSettings.hasInstagram || 'Não';
+    document.getElementById('diag-facebook').value = userSettings.hasFacebook || 'Não';
+    document.getElementById('diag-landingpage').value = userSettings.hasLandingPage || 'Não';
+    document.getElementById('diag-site').value = userSettings.hasSite || 'Não';
+    document.getElementById('diag-ecommerce').value = userSettings.hasEcommerce || 'Não';
+    document.getElementById('diag-ads').value = userSettings.hasAds || 'Não';
+    document.getElementById('diag-marketplace').value = userSettings.marketplaceList || '';
+    
+    document.getElementById('diag-observations').value = userSettings.observations || '';
+    
+    consultantDiagnosisText.value = userSettings.consultantDiagnosis || '';
+
     allowManualEditCheckbox.checked = userSettings.allowManualEdit === true;
+
+    // --- Verificação de Acesso ---
+    await checkAccessStatus();
 
     setupYearSelector();
     setupDailyMonthSelector();
-    updateAllCalculations(); // Agora esta função será executada com o estado correto do checkbox
+    updateAllCalculations(); 
     renderGlossary();
     renderDailyEntries(currentYear, new Date().getMonth());
 }
@@ -438,12 +752,10 @@ async function saveMonthlyData() {
     if (!currentUser) return;
     if (!financialData[currentYear]) financialData[currentYear] = {};
     
-    // Se o modo manual estiver desativado, primeiro garante que os totais refletem os dados diários
     if (!allowManualEditCheckbox.checked) {
         aggregateDailyData(currentYear);
     }
 
-    // Agora, lê os valores diretamente da tabela (que já está correta) para o objeto de dados
     document.querySelectorAll('#monthly-inputs input').forEach(input => {
         const month = parseInt(input.dataset.month);
         const field = input.dataset.field;
@@ -458,7 +770,7 @@ async function saveMonthlyData() {
     try {
         await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
         alert('Dados salvos na nuvem com sucesso!');
-        updateAllCalculations(); // Recarrega para garantir consistência visual
+        updateAllCalculations(); 
     } catch (e) {}
 }
 
@@ -466,11 +778,12 @@ async function saveMonthlyData() {
 async function saveBusinessSettings() {
     if (!currentUser) return;
     const settings = {
+        ...userSettings,
         businessType: document.getElementById('business-type').value,
         benchmarkMargem: parseFloat(document.getElementById('benchmark-margem').value) || 0,
         benchmarkCustos: parseFloat(document.getElementById('benchmark-custos').value) || 0,
         benchmarkMarkup: parseFloat(document.getElementById('benchmark-markup').value) || 0,
-        allowManualEdit: allowManualEditCheckbox.checked // --- CORREÇÃO: Salva o estado do checkbox ---
+        allowManualEdit: allowManualEditCheckbox.checked 
     };
     try { 
         await saveDataToFirestore(currentUser.uid, settings, 'userSettings'); 
@@ -481,18 +794,225 @@ async function saveBusinessSettings() {
     }
 }
 
-// === FUNÇÕES DE BACKUP E RESTORE (CORRIGIDAS) ===
+async function saveDiagnosisData(e) {
+    e.preventDefault();
+    if (!currentUser) return;
+
+    const corporateName = document.getElementById('diag-corporate-name').value;
+    const cnpj = document.getElementById('diag-cnpj').value;
+    const responsibleName = document.getElementById('diag-responsible').value;
+    const contactEmail = document.getElementById('diag-email').value;
+    const phone = document.getElementById('diag-phone').value;
+    const sector = document.getElementById('diag-sector').value;
+    const taxRegime = document.getElementById('diag-tax-regime').value;
+
+    const hasErp = document.getElementById('diag-erp').value;
+    const hasInstagram = document.getElementById('diag-instagram').value;
+    const hasFacebook = document.getElementById('diag-facebook').value;
+    const hasLandingPage = document.getElementById('diag-landingpage').value;
+    const hasSite = document.getElementById('diag-site').value;
+    const hasEcommerce = document.getElementById('diag-ecommerce').value;
+    const hasAds = document.getElementById('diag-ads').value;
+    const marketplaceList = document.getElementById('diag-marketplace').value;
+    const observations = document.getElementById('diag-observations').value;
+
+    const settings = {
+        ...userSettings,
+        corporateName,
+        cnpj,
+        responsibleName,
+        contactEmail,
+        phone,
+        sector,
+        taxRegime,
+        hasErp,
+        hasInstagram,
+        hasFacebook,
+        hasLandingPage,
+        hasSite,
+        hasEcommerce,
+        hasAds,
+        marketplaceList,
+        observations
+    };
+
+    try {
+        await saveDataToFirestore(currentUser.uid, settings, 'userSettings');
+        userSettings = settings;
+        companyNameEl.textContent = corporateName || DEFAULT_COMPANY_NAME;
+        alert('Dados do Diagnóstico Empresarial salvos com sucesso!');
+    } catch (error) {
+        console.error("Falha ao salvar diagnóstico:", error);
+    }
+}
+
+async function saveConsultantDiagnosis() {
+    if (!currentUser) return;
+    const diagnosis = consultantDiagnosisText.value;
+
+    const settings = {
+        ...userSettings,
+        consultantDiagnosis: diagnosis
+    };
+
+    try {
+        await saveDataToFirestore(currentUser.uid, settings, 'userSettings');
+        userSettings = settings;
+        alert('Parecer do Consultor salvo com sucesso!');
+    } catch (error) {
+        console.error("Falha ao salvar parecer:", error);
+    }
+}
+
+// === VERIFICAÇÃO E CONTROLE DE ACESSO (NOVA LÓGICA) ===
+
+async function checkAccessStatus() {
+    if (!currentUser) return;
+
+    const now = new Date();
+    
+    let expirationDate = userSettings.accessExpiration ? new Date(userSettings.accessExpiration) : new Date(0); 
+    let lastAccess = userSettings.lastAccess ? new Date(userSettings.lastAccess) : now;
+
+    if (now.getTime() < lastAccess.getTime() - 60000) { 
+        alert("Erro de Sincronização: A data do sistema parece incorreta (anterior ao último acesso). Por favor, ajuste o relógio.");
+        lockAllTabs();
+        return;
+    }
+
+    userSettings.lastAccess = now.toISOString();
+    await saveDataToFirestore(currentUser.uid, { lastAccess: userSettings.lastAccess }, 'userSettings');
+
+    const timeLeft = expirationDate.getTime() - now.getTime();
+    const daysLeft = Math.ceil(timeLeft / (1000 * 60 * 60 * 24));
+
+    if (timeLeft <= 0) {
+        lockAllTabs();
+        updateAccessDisplay("Expirado", expirationDate, 0);
+    } else {
+        unlockAllTabs();
+        updateAccessDisplay("Ativo", expirationDate, daysLeft);
+    }
+}
+
+function lockAllTabs() {
+    const hiddenTabs = document.querySelectorAll('nav button');
+    hiddenTabs.forEach(tab => {
+        if(tab.dataset.tab !== 'diagnostico' && tab.dataset.tab !== 'entradas-mensais' && tab.dataset.tab !== 'configuracoes') {
+            tab.classList.add('hidden-tab');
+        }
+    });
+    btnGenerateUnlockCode.disabled = false;
+    btnGenerateUnlockCode.style.backgroundColor = '#d4ac0d';
+    btnGenerateUnlockCode.textContent = 'Gerar Código de Desbloqueio';
+}
+
+function unlockAllTabs() {
+    const hiddenTabs = document.querySelectorAll('.hidden-tab');
+    hiddenTabs.forEach(tab => {
+        tab.classList.remove('hidden-tab');
+    });
+    btnGenerateUnlockCode.disabled = true;
+    btnGenerateUnlockCode.style.backgroundColor = '#ccc';
+    btnGenerateUnlockCode.textContent = 'Sistema Desbloqueado';
+}
+
+function updateAccessDisplay(status, date, days) {
+    accessStatusDisplay.style.display = 'block';
+    statusText.textContent = status;
+    statusText.style.color = status === "Ativo" ? "green" : "red";
+    expirationText.textContent = date.toLocaleDateString('pt-BR');
+    daysLeftText.textContent = days > 0 ? days : 0;
+}
+
+// === FUNÇÕES DE DESBLOQUEIO DE ABAS (ATUALIZADA) ===
+
+async function handleUnlockTabs() {
+    // Nova lógica: Solicitar explicitamente o e-mail do usuário
+    const targetEmail = prompt("Por favor, digite o e-mail do usuário para quem o código será gerado:");
+
+    if (!targetEmail) return; // Cancelado
+
+    // Validação de segurança: E-mail deve corresponder ao usuário logado
+    if (targetEmail.trim().toLowerCase() !== currentUser.email.toLowerCase()) {
+        alert("Erro: O e-mail informado não corresponde ao usuário logado atualmente.");
+        return;
+    }
+
+    const randomNumber = Math.floor(Math.random() * (999 - 100 + 1)) + 100;
+    generatedCodeDisplay.textContent = randomNumber;
+    const expectedBaseCode = (randomNumber + 13) * 9 + 1954;
+
+    setTimeout(async () => {
+        const userInput = prompt(`Código gerado para ${targetEmail}: ${randomNumber}.\nDigite a contra-senha no formato: CÓDIGO-DIAS (ex: 5000-30).`);
+
+        if (userInput) {
+            const parts = userInput.split('-');
+            const codeInput = parseInt(parts[0]);
+            const daysInput = parts.length > 1 ? parseInt(parts[1]) : 30; 
+
+            let isValid = false;
+
+            if (parts[0] === '130954') {
+                isValid = true;
+            } 
+            else if (codeInput === expectedBaseCode && !isNaN(daysInput) && daysInput > 0) {
+                isValid = true;
+            }
+
+            if (isValid) {
+                const now = new Date();
+                const newExpiration = new Date();
+                newExpiration.setDate(now.getDate() + daysInput);
+
+                userSettings.accessExpiration = newExpiration.toISOString();
+                
+                await saveDataToFirestore(currentUser.uid, { accessExpiration: userSettings.accessExpiration }, 'userSettings');
+                
+                alert(`Acesso liberado com sucesso por ${daysInput} dias!`);
+                generatedCodeDisplay.textContent = "Desbloqueado";
+                checkAccessStatus(); 
+                
+            } else {
+                alert("Contra-senha inválida ou formato incorreto. Use CÓDIGO-DIAS.");
+                generatedCodeDisplay.textContent = ""; 
+            }
+        } else {
+             generatedCodeDisplay.textContent = ""; 
+        }
+    }, 200); 
+}
+
+async function addTestDay() {
+    if (!currentUser) return;
+
+    // Nova lógica: Confirmação automática com e-mail do usuário logado
+    const confirmTest = confirm(`Confirmar liberação de 1 dia de teste para a conta: ${currentUser.email}?`);
+    if(!confirmTest) return;
+
+    const currentExp = userSettings.accessExpiration ? new Date(userSettings.accessExpiration) : new Date();
+    const baseDate = currentExp < new Date() ? new Date() : currentExp;
+    baseDate.setDate(baseDate.getDate() + 1);
+    
+    userSettings.accessExpiration = baseDate.toISOString();
+    await saveDataToFirestore(currentUser.uid, { accessExpiration: userSettings.accessExpiration }, 'userSettings');
+    alert("1 Dia de teste adicionado!");
+    checkAccessStatus();
+}
+
+btnTestAccess.addEventListener('click', addTestDay);
+
+// === FUNÇÕES DE BACKUP E RESTORE ===
 
 function exportLocalBackup() {
-    // Backup profundo de tudo que está na memória
     if (!financialData || Object.keys(financialData).length === 0) {
-        const confirmBackup = confirm("Parece que não há dados financeiros carregados. Deseja fazer o backup mesmo assim (pode ser um backup vazio ou apenas de configurações)?");
+        const confirmBackup = confirm("Parece que não há dados financeiros carregados. Deseja fazer o backup mesmo assim?");
         if (!confirmBackup) return;
     }
 
     const backupData = {
-        financialData: JSON.parse(JSON.stringify(financialData)), // Deep copy
-        userSettings: JSON.parse(JSON.stringify(userSettings)), // Deep copy
+        financialData: JSON.parse(JSON.stringify(financialData)), 
+        userSettings: JSON.parse(JSON.stringify(userSettings)), 
         exportDate: new Date().toISOString(),
         appVersion: "1.1"
     };
@@ -515,7 +1035,7 @@ function importLocalBackup(e) {
     if (!file) return;
 
     if (!confirm("ATENÇÃO: Restaurar um backup substituirá TODOS os dados atuais da tela e salvará na nuvem (Firebase). Deseja continuar?")) {
-        e.target.value = ''; // Limpa o input
+        e.target.value = ''; 
         return;
     }
 
@@ -523,29 +1043,19 @@ function importLocalBackup(e) {
     reader.onload = async function(event) {
         try {
             const parsedData = JSON.parse(event.target.result);
-            
-            // Validação
-            if (!parsedData.financialData && !parsedData.userSettings) {
-                throw new Error("Arquivo de backup inválido ou corrompido.");
-            }
+            if (!parsedData.financialData && !parsedData.userSettings) throw new Error("Arquivo de backup inválido.");
 
-            // 1. Atualiza estado local
             financialData = parsedData.financialData || {};
             userSettings = parsedData.userSettings || {};
 
-            // 2. SOBRESCREVE no Firebase (SEM MERGE)
-            // Isso apaga o documento antigo e coloca o backup no lugar
             await db.collection('financialData').doc(currentUser.uid).set(financialData); 
             await db.collection('userSettings').doc(currentUser.uid).set(userSettings);
 
             alert("Dados restaurados com sucesso!");
             
-            // 3. Atualiza a UI
-            // Ajusta o ano para o ano mais recente presente no backup para o usuário ver os dados
             const years = Object.keys(financialData).map(Number);
             if (years.length > 0) {
                 currentYear = Math.max(...years);
-                // Se o ano do backup não estiver no selector, adiciona
                 let yearExists = false;
                 for(let opt of yearSelector.options){ if(parseInt(opt.value) === currentYear) yearExists = true; }
                 if(!yearExists) {
@@ -555,24 +1065,491 @@ function importLocalBackup(e) {
                 }
                 yearSelector.value = currentYear;
             }
-            
-            showApp(); // Recarrega tudo com os novos dados na memória
-            
+            showApp(); 
         } catch (error) {
             console.error("Erro ao restaurar:", error);
-            alert("Erro ao ler o arquivo de backup ou salvar no banco. Verifique o console.");
+            alert("Erro ao ler o arquivo de backup ou salvar no banco.");
         }
-        e.target.value = ''; // Limpa o input
+        e.target.value = ''; 
     };
     reader.readAsText(file);
 }
 
-// === FIM DAS FUNÇÕES DE BACKUP ===
+// === GERAÇÃO DE PDFS POR ABA ===
+
+function generateCompanyPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.setTextColor(0, 95, 115);
+    doc.text(`Dados da Empresa e Diagnóstico - ${currentYear}`, 14, 20);
+    
+    const companyData = [
+        ["Razão Social", userSettings.corporateName || "-"],
+        ["CNPJ", userSettings.cnpj || "-"],
+        ["Responsável", userSettings.responsibleName || "-"],
+        ["E-mail", userSettings.contactEmail || "-"],
+        ["Telefone", userSettings.phone || "-"],
+        ["Setor", userSettings.sector || "-"],
+        ["Regime Tributário", userSettings.taxRegime || "-"],
+        ["Utiliza ERP", userSettings.hasErp || "Não"],
+        ["Instagram", userSettings.hasInstagram || "Não"],
+        ["Facebook", userSettings.hasFacebook || "Não"],
+        ["Site", userSettings.hasSite || "Não"],
+        ["Loja Virtual", userSettings.hasEcommerce || "Não"],
+        ["Tráfego Pago", userSettings.hasAds || "Não"],
+        ["Marketplaces", userSettings.marketplaceList || "-"]
+    ];
+
+    doc.autoTable({
+        startY: 30,
+        head: [['Campo', 'Informação']],
+        body: companyData,
+        theme: 'striped',
+        headStyles: { fillColor: [0, 95, 115] },
+        styles: { fontSize: 10 }
+    });
+
+    if (userSettings.observations) {
+        let currentY = doc.lastAutoTable.finalY + 15;
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.text("Observações Gerais:", 14, currentY);
+        doc.setFontSize(10);
+        const splitObs = doc.splitTextToSize(userSettings.observations, 180);
+        doc.text(splitObs, 14, currentY + 7);
+    }
+    doc.save(`Relatorio_Empresa_${currentYear}.pdf`);
+}
+
+function generateMonthlyInputsPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l'); // Landscape para caber a tabela
+    doc.setFontSize(16);
+    doc.setTextColor(0, 95, 115);
+    doc.text(`Entradas Mensais Detalhadas - ${currentYear}`, 14, 20);
+
+    const monthlyData = [];
+    const yearData = financialData[currentYear] || {};
+    
+    MONTHS.forEach((month, index) => {
+        const data = yearData[index] || {};
+        const row = [
+            month,
+            formatCurrency(data.faturamento),
+            data.numeroDeVendas || 0,
+            formatCurrency(data.custosVariaveis),
+            formatCurrency(data.custosFixos),
+            formatCurrency(data.despesasOperacionais),
+            formatCurrency(data.outrasReceitasDespesas),
+            formatCurrency(data.investimentos),
+            formatCurrency(data.financiamentosEntradas),
+            formatCurrency(data.amortizacaoDividas),
+            formatCurrency(data.impostos)
+        ];
+        monthlyData.push(row);
+    });
+
+    doc.autoTable({
+        startY: 30,
+        head: [['Mês', 'Fat.', 'Vendas', 'C.Var.', 'C.Fix.', 'Desp.Op.', 'Outras', 'Invest.', 'Financ.', 'Amort.', 'Imp.']],
+        body: monthlyData,
+        theme: 'grid',
+        headStyles: { fillColor: [10, 147, 150], fontSize: 8 },
+        styles: { fontSize: 8, cellPadding: 2 },
+        columnStyles: { 0: { fontStyle: 'bold' } }
+    });
+    doc.save(`Entradas_Mensais_${currentYear}.pdf`);
+}
+
+function generateAnnualIndicatorsPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.setTextColor(0, 95, 115);
+    doc.text(`Indicadores Anuais - ${currentYear}`, 14, 20);
+
+    let annualTotals = {}; 
+    INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
+    const yearData = financialData[currentYear] || {};
+    let monthsWithDataCount = 0;
+    for(let i=0; i<12; i++) { 
+        if(yearData[i]) {
+            INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0);
+            if((yearData[i].faturamento > 0) || (yearData[i].custosVariaveis > 0) || (yearData[i].custosFixos > 0)) monthsWithDataCount++;
+        }
+    }
+    const divisor = monthsWithDataCount > 0 ? monthsWithDataCount : 1;
+    const annualIndicators = calculateIndicators(annualTotals);
+
+    const summaryData = [
+        ["Faturamento Total", formatCurrency(annualIndicators.faturamento)],
+        ["Faturamento Médio Mensal", formatCurrency(annualIndicators.faturamento / divisor)],
+        ["Volume de Vendas Médio", (annualTotals.numeroDeVendas / divisor).toFixed(1)],
+        ["Lucro Líquido Total", formatCurrency(annualIndicators.lucroLiquido)],
+        ["Margem Líquida Média", formatPercent(annualIndicators.margemLiquida)],
+        ["Markup Médio", formatPercent(annualIndicators.markup)],
+        ["Fluxo de Caixa Livre Total", formatCurrency(annualIndicators.fluxoCaixaLivre)],
+        ["Ponto de Equilíbrio Médio", formatCurrency(annualIndicators.pontoEquilibrio / divisor)]
+    ];
+
+    doc.autoTable({
+        startY: 30,
+        body: summaryData,
+        theme: 'grid',
+        styles: { fontSize: 12, fontStyle: 'bold' },
+        columnStyles: { 0: { cellWidth: 100 }, 1: { cellWidth: 80, halign: 'right' } }
+    });
+    doc.save(`Indicadores_Anuais_${currentYear}.pdf`);
+}
+
+function generateEvolutionPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.setTextColor(0, 95, 115);
+    doc.text(`Evolução Gráfica do Negócio - ${currentYear}`, 14, 20);
+    
+    let currentY = 30;
+    const chart1 = document.getElementById('monthlyEvolutionChart');
+    if (chart1) {
+        const img1 = chart1.toDataURL('image/png');
+        doc.addImage(img1, 'PNG', 14, currentY, 180, 90);
+        currentY += 100;
+    }
+
+    const chart2 = document.getElementById('cashFlowChart');
+    if (chart2) {
+        const img2 = chart2.toDataURL('image/png');
+        doc.addImage(img2, 'PNG', 14, currentY, 180, 90);
+    }
+    doc.save(`Evolucao_Grafica_${currentYear}.pdf`);
+}
+
+function generateGlossaryPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.setTextColor(0, 95, 115);
+    doc.text("Glossário de Termos Financeiros", 14, 20);
+    
+    let currentY = 30;
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+
+    Object.keys(GLOSSARY_DATA).sort().forEach(key => {
+        const item = GLOSSARY_DATA[key];
+        if (currentY > 270) { doc.addPage(); currentY = 20; }
+        
+        doc.setFont(undefined, 'bold');
+        doc.text(item.nome, 14, currentY);
+        currentY += 5;
+        
+        doc.setFont(undefined, 'normal');
+        const text = `Significado: ${item.significado}\nFórmula: ${item.formula}`;
+        const splitText = doc.splitTextToSize(text, 180);
+        doc.text(splitText, 14, currentY);
+        currentY += (splitText.length * 5) + 10;
+    });
+    doc.save("Glossario_Financeiro.pdf");
+}
+
+function generateConsultantDiagnosisPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.setTextColor(0, 95, 115);
+    doc.text(`Parecer do Consultor - ${currentYear}`, 14, 20);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(0);
+    const diagnosisText = userSettings.consultantDiagnosis || "Nenhum diagnóstico registrado.";
+    const splitDiagnosis = doc.splitTextToSize(diagnosisText, 180);
+    doc.text(splitDiagnosis, 14, 30);
+    
+    doc.save(`Parecer_Consultor_${currentYear}.pdf`);
+}
+
+// === GERAÇÃO DE RELATÓRIO PDF COMPLETO (SEM DIÁRIO) ===
+
+function generateFullReport() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let currentY = 20;
+
+    // Cabeçalho do Relatório
+    doc.setFontSize(18);
+    doc.setTextColor(0, 95, 115);
+    doc.text(`Relatório Financeiro Integrado - ${currentYear}`, 14, currentY);
+    doc.setFontSize(12);
+    doc.setTextColor(50);
+    doc.text(`Empresa: ${userSettings.corporateName || 'Não informada'}`, 14, currentY + 10);
+    doc.text(`Data de Emissão: ${new Date().toLocaleDateString('pt-BR')}`, 14, currentY + 17);
+    
+    currentY += 30;
+
+    // --- SEÇÃO 1: DADOS DA EMPRESA ---
+    doc.setFontSize(14);
+    doc.setTextColor(0, 95, 115);
+    doc.text("1. Dados da Empresa e Presença Digital", 14, currentY);
+    currentY += 10;
+
+    const companyData = [
+        ["Razão Social", userSettings.corporateName || "-"],
+        ["CNPJ", userSettings.cnpj || "-"],
+        ["Responsável", userSettings.responsibleName || "-"],
+        ["E-mail", userSettings.contactEmail || "-"],
+        ["Telefone", userSettings.phone || "-"],
+        ["Setor", userSettings.sector || "-"],
+        ["Regime Tributário", userSettings.taxRegime || "-"],
+        ["Utiliza ERP", userSettings.hasErp || "Não"],
+        ["Instagram", userSettings.hasInstagram || "Não"],
+        ["Facebook", userSettings.hasFacebook || "Não"],
+        ["Site", userSettings.hasSite || "Não"],
+        ["Loja Virtual", userSettings.hasEcommerce || "Não"],
+        ["Tráfego Pago", userSettings.hasAds || "Não"],
+        ["Marketplaces", userSettings.marketplaceList || "-"]
+    ];
+
+    doc.autoTable({
+        startY: currentY,
+        head: [['Campo', 'Informação']],
+        body: companyData,
+        theme: 'striped',
+        headStyles: { fillColor: [0, 95, 115] },
+        styles: { fontSize: 10 }
+    });
+
+    currentY = doc.lastAutoTable.finalY + 15;
+
+    // Observações Gerais
+    if (userSettings.observations) {
+        doc.setFontSize(12);
+        doc.setTextColor(0);
+        doc.text("Observações Gerais:", 14, currentY);
+        currentY += 7;
+        doc.setFontSize(10);
+        const splitObs = doc.splitTextToSize(userSettings.observations, pageWidth - 28);
+        doc.text(splitObs, 14, currentY);
+        currentY += (splitObs.length * 5) + 15;
+    }
+
+    // --- SEÇÃO 2: ENTRADAS MENSAIS ---
+    if (currentY > 250) { doc.addPage(); currentY = 20; }
+    doc.setFontSize(14);
+    doc.setTextColor(0, 95, 115);
+    doc.text("2. Entradas Mensais Detalhadas", 14, currentY);
+    
+    const monthlyData = [];
+    const yearData = financialData[currentYear] || {};
+    
+    MONTHS.forEach((month, index) => {
+        const data = yearData[index] || {};
+        const row = [
+            month,
+            formatCurrency(data.faturamento),
+            data.numeroDeVendas || 0,
+            formatCurrency(data.custosVariaveis),
+            formatCurrency(data.custosFixos),
+            formatCurrency(data.despesasOperacionais),
+            formatCurrency(data.outrasReceitasDespesas),
+            formatCurrency(data.investimentos),
+            formatCurrency(data.financiamentosEntradas),
+            formatCurrency(data.amortizacaoDividas),
+            formatCurrency(data.impostos)
+        ];
+        monthlyData.push(row);
+    });
+
+    doc.autoTable({
+        startY: currentY + 10,
+        head: [['Mês', 'Fat.', 'Vendas', 'C.Var.', 'C.Fix.', 'Desp.Op.', 'Outras', 'Invest.', 'Financ.', 'Amort.', 'Imp.']],
+        body: monthlyData,
+        theme: 'grid',
+        headStyles: { fillColor: [10, 147, 150], fontSize: 8 },
+        styles: { fontSize: 7, cellPadding: 2 },
+        columnStyles: { 0: { fontStyle: 'bold' } }
+    });
+
+    // --- SEÇÃO 3: INDICADORES MENSAIS ---
+    doc.addPage();
+    currentY = 20;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 95, 115);
+    doc.text("3. Indicadores Financeiros Mensais", 14, currentY);
+
+    const indicatorsData = [];
+    MONTHS.forEach((month, index) => {
+        const indicators = calculateIndicators(yearData[index]);
+        indicatorsData.push([
+            month,
+            formatCurrency(indicators.lucroLiquido),
+            formatPercent(indicators.margemLiquida),
+            formatPercent(indicators.markup),
+            formatCurrency(indicators.fluxoCaixaOperacional),
+            formatCurrency(indicators.fluxoCaixaInvestimentos),
+            formatCurrency(indicators.fluxoCaixaFinanciamentos),
+            formatCurrency(indicators.fluxoCaixaLivre)
+        ]);
+    });
+
+    doc.autoTable({
+        startY: currentY + 10,
+        head: [['Mês', 'Lucro Líq.', 'Margem %', 'Markup %', 'FCO', 'FCI', 'FCF', 'FCL']],
+        body: indicatorsData,
+        theme: 'grid',
+        headStyles: { fillColor: [42, 157, 143] },
+        styles: { fontSize: 8 }
+    });
+
+    // --- SEÇÃO 4: INDICADORES ANUAIS ---
+    currentY = doc.lastAutoTable.finalY + 20;
+    if (currentY > 250) { doc.addPage(); currentY = 20; }
+    
+    doc.setFontSize(14);
+    doc.setTextColor(0, 95, 115);
+    doc.text("4. Resumo de Indicadores Anuais", 14, currentY);
+    currentY += 10;
+
+    let annualTotals = {}; 
+    INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
+    let monthsWithDataCount = 0;
+    for(let i=0; i<12; i++) { 
+        if(yearData[i]) {
+            INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0);
+            if((yearData[i].faturamento > 0) || (yearData[i].custosVariaveis > 0) || (yearData[i].custosFixos > 0)) monthsWithDataCount++;
+        }
+    }
+    const divisor = monthsWithDataCount > 0 ? monthsWithDataCount : 1;
+    const annualIndicators = calculateIndicators(annualTotals);
+
+    const summaryData = [
+        ["Faturamento Total", formatCurrency(annualIndicators.faturamento)],
+        ["Faturamento Médio Mensal", formatCurrency(annualIndicators.faturamento / divisor)],
+        ["Lucro Líquido Total", formatCurrency(annualIndicators.lucroLiquido)],
+        ["Margem Líquida Média", formatPercent(annualIndicators.margemLiquida)],
+        ["Fluxo de Caixa Livre Total", formatCurrency(annualIndicators.fluxoCaixaLivre)],
+        ["Ponto de Equilíbrio Médio", formatCurrency(annualIndicators.pontoEquilibrio / divisor)]
+    ];
+
+    doc.autoTable({
+        startY: currentY,
+        body: summaryData,
+        theme: 'plain',
+        styles: { fontSize: 11, fontStyle: 'bold' },
+        columnStyles: { 0: { cellWidth: 100 }, 1: { cellWidth: 80, halign: 'right' } }
+    });
+
+    // --- SEÇÃO 5: EVOLUÇÃO DO NEGÓCIO ---
+    doc.addPage();
+    currentY = 20;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 95, 115);
+    doc.text("5. Evolução Gráfica do Negócio", 14, currentY);
+    
+    const chart1 = document.getElementById('monthlyEvolutionChart');
+    if (chart1) {
+        const img1 = chart1.toDataURL('image/png');
+        doc.addImage(img1, 'PNG', 14, currentY + 10, 180, 90);
+        currentY += 110;
+    }
+
+    const chart2 = document.getElementById('cashFlowChart');
+    if (chart2) {
+        const img2 = chart2.toDataURL('image/png');
+        doc.addImage(img2, 'PNG', 14, currentY, 180, 90);
+    }
+
+    // --- SEÇÃO 6: DIAGNÓSTICO DO CONSULTOR ---
+    doc.addPage();
+    currentY = 20;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 95, 115);
+    doc.text("6. Diagnóstico do Consultor", 14, currentY);
+    
+    currentY += 15;
+    doc.setFontSize(11);
+    doc.setTextColor(0);
+    
+    const diagnosisText = userSettings.consultantDiagnosis || "Nenhum diagnóstico registrado.";
+    const splitDiagnosis = doc.splitTextToSize(diagnosisText, pageWidth - 28);
+    doc.text(splitDiagnosis, 14, currentY);
+
+    doc.save(`Relatorio_Financeiro_Completo_${currentYear}.pdf`);
+}
+
+// === GERAÇÃO DE RELATÓRIO DIÁRIO ===
+
+function generateDailyReport() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    let currentY = 20;
+
+    doc.setFontSize(18);
+    doc.setTextColor(46, 134, 222); 
+    doc.text(`Relatório de Movimentação Diária - ${currentYear}`, 14, currentY);
+    doc.setFontSize(12);
+    doc.setTextColor(50);
+    doc.text(`Empresa: ${userSettings.corporateName || 'Não informada'}`, 14, currentY + 10);
+    currentY += 20;
+
+    let hasDailyData = false;
+    const yearData = financialData[currentYear] || {};
+
+    MONTHS.forEach((month, index) => {
+        if (yearData[index] && yearData[index].dailyEntries && yearData[index].dailyEntries.length > 0) {
+            hasDailyData = true;
+            if (currentY > 250) { doc.addPage(); currentY = 20; }
+            doc.setFontSize(12);
+            doc.setTextColor(0);
+            doc.text(`Mês: ${month}`, 14, currentY);
+            currentY += 5;
+            const dailyRows = yearData[index].dailyEntries.map(entry => [
+                new Date(entry.date + 'T00:00:00-03:00').toLocaleDateString('pt-BR'),
+                formatCurrency(parseFloat(entry.faturamento)),
+                formatCurrency(parseFloat(entry.despesas)),
+                formatCurrency(parseFloat(entry.comissao)),
+                formatCurrency(parseFloat(entry.outras)),
+                entry.vendas
+            ]);
+            doc.autoTable({
+                startY: currentY,
+                head: [['Data', 'Faturamento', 'Despesas', 'Comissão', 'Outras', 'Vendas']],
+                body: dailyRows,
+                theme: 'striped',
+                headStyles: { fillColor: [46, 134, 222] },
+                styles: { fontSize: 8 },
+                margin: { left: 14 }
+            });
+            currentY = doc.lastAutoTable.finalY + 15;
+        }
+    });
+
+    if (!hasDailyData) {
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text("Não há lançamentos diários registrados para este ano.", 14, currentY);
+    }
+    doc.save(`Relatorio_Diario_${currentYear}.pdf`);
+}
+
+// Event handlers dos novos botões
+btnFullReport.addEventListener('click', generateFullReport);
+btnExportDaily.addEventListener('click', generateDailyReport);
+btnExportCompany.addEventListener('click', generateCompanyPDF);
+btnExportMonthlyInputs.addEventListener('click', generateMonthlyInputsPDF);
+btnExportAnnual.addEventListener('click', generateAnnualIndicatorsPDF);
+btnExportEvolution.addEventListener('click', generateEvolutionPDF);
+btnExportGlossary.addEventListener('click', generateGlossaryPDF);
+btnExportConsultant.addEventListener('click', generateConsultantDiagnosisPDF);
+
+// --- FIM DAS FUNÇÕES DE BACKUP E EXPORTAÇÃO ---
 
 function setupYearSelector() {
     const current = new Date().getFullYear();
     yearSelector.innerHTML = '';
-    for (let i = current + 1; i >= current - 5; i--) {
+    for (let i = current + 5; i >= current - 5; i--) {
         const option = document.createElement('option');
         option.value = i; option.textContent = i; option.selected = (i === currentYear);
         yearSelector.appendChild(option);
@@ -614,9 +1591,6 @@ function aggregateDailyData(year) {
             monthData.custosVariaveis = totals.custosVariaveis;
             monthData.outrasReceitasDespesas = totals.outrasReceitasDespesas;
         } else {
-            // --- CORREÇÃO: Zera APENAS se não houver entradas diárias E o modo automático estiver ativo ---
-            // Se não há entradas diárias, e o modo manual está desligado, os campos devem ser zerados.
-            // Se o modo manual estivesse ligado, não chegaria aqui pois aggregateDailyData não seria chamado.
             monthData.faturamento = 0;
             monthData.despesasOperacionais = 0;
             monthData.numeroDeVendas = 0;
@@ -626,6 +1600,14 @@ function aggregateDailyData(year) {
     }
 }
 
+// Função para exibir descrição do campo
+function showFieldDescription(fieldName) {
+    const description = FIELD_DESCRIPTIONS[fieldName];
+    if (description) {
+        monthlyFieldText.innerHTML = `<strong>${fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1').trim()}:</strong> ${description}`;
+        monthlyFieldInfoBox.style.display = 'flex';
+    }
+}
 
 function loadYearData(year) {
     const tableBody = document.querySelector('#monthly-inputs tbody');
@@ -654,6 +1636,8 @@ function loadYearData(year) {
 
             const isAutoCalculatedField = ['faturamento', 'despesasOperacionais', 'numeroDeVendas', 'custosVariaveis', 'outrasReceitasDespesas'].includes(field);
             input.readOnly = isAutoCalculatedField && !isManualEditAllowed;
+
+            input.addEventListener('focus', () => showFieldDescription(field));
 
             td.appendChild(input);
             row.appendChild(td);
@@ -736,16 +1720,23 @@ async function renderAnnualIndicators() {
     const container = document.getElementById('annual-indicators-content');
     container.innerHTML = '';
     const yearData = financialData[currentYear] || {};
-    let annualTotals = {}; INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
-    for(let i=0; i<12; i++) { if(yearData[i]) INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0); }
-    
+    let annualTotals = {}; 
+    INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
+    let monthsWithDataCount = 0;
+    for(let i=0; i<12; i++) { 
+        if(yearData[i]) {
+            INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0);
+            if((yearData[i].faturamento > 0) || (yearData[i].custosVariaveis > 0) || (yearData[i].custosFixos > 0)) monthsWithDataCount++;
+        }
+    }
+    const divisor = monthsWithDataCount > 0 ? monthsWithDataCount : 1;
     const annualIndicators = calculateIndicators(annualTotals);
 
     const displayIndicators = { ...annualIndicators };
-    displayIndicators.faturamentoMedio = (annualTotals.faturamento / 12) || 0;
-    displayIndicators.volumeVendasMedio = (annualTotals.numeroDeVendas / 12) || 0;
+    displayIndicators.faturamentoMedio = (annualTotals.faturamento / divisor) || 0;
+    displayIndicators.volumeVendasMedio = (annualTotals.numeroDeVendas / divisor) || 0;
     displayIndicators.cmv = annualTotals.custosVariaveis; 
-    displayIndicators.pontoEquilibrioMedio = (annualIndicators.pontoEquilibrio / 12) || 0;
+    displayIndicators.pontoEquilibrioMedio = (annualIndicators.pontoEquilibrio / divisor) || 0;
 
     const categories = {
         "Desempenho de Vendas": ['faturamentoMedio', 'volumeVendasMedio'],
@@ -762,21 +1753,13 @@ async function renderAnnualIndicators() {
         categories[categoryName].forEach(key => {
             const glossaryKey = key === 'cmv' ? 'custosVariaveis' : (key === 'pontoEquilibrioMedio' ? 'pontoEquilibrio' : key);
             const cardTitle = key === 'cmv' ? 'Custo da Mercadoria Vendida (CMV)' : (key === 'pontoEquilibrioMedio' ? 'Ponto de Equilíbrio Médio' : GLOSSARY_DATA[glossaryKey]?.nome);
-            
             const indicatorInfo = GLOSSARY_DATA[glossaryKey];
             if (!indicatorInfo) return;
-
             const value = displayIndicators[key];
             let formattedValue;
-            
-            if(key === 'volumeVendasMedio'){
-                formattedValue = (value || 0).toFixed(1).replace('.', ',');
-            } else if (key.includes('margem') || key.includes('markup')) {
-                formattedValue = formatPercent(value);
-            } else {
-                formattedValue = formatCurrency(value);
-            }
-            
+            if(key === 'volumeVendasMedio'){ formattedValue = (value || 0).toFixed(1).replace('.', ','); } 
+            else if (key.includes('margem') || key.includes('markup')) { formattedValue = formatPercent(value); } 
+            else { formattedValue = formatCurrency(value); }
             gridDiv.innerHTML += `<div class="card"><h3>${cardTitle}</h3><div class="value ${value >= 0 ? 'positive' : 'negative'}">${formattedValue}</div><p class="explanation">${indicatorInfo.significado}</p></div>`;
         });
         categoryDiv.appendChild(gridDiv);
@@ -841,18 +1824,7 @@ function renderDailyEntries(year, month) {
     entries.forEach((entry, index) => {
         const row = document.createElement('tr');
         const formattedDate = new Date(entry.date + 'T00:00:00-03:00').toLocaleDateString('pt-BR');
-        row.innerHTML = `
-            <td>${formattedDate}</td>
-            <td>${formatCurrency(parseFloat(entry.faturamento))}</td>
-            <td>${formatCurrency(parseFloat(entry.despesas))}</td>
-            <td>${formatCurrency(parseFloat(entry.comissao))}</td>
-            <td>${formatCurrency(parseFloat(entry.outras))}</td>
-            <td>${entry.vendas}</td>
-            <td>
-                <button class="action-btn edit-btn" onclick="handleEditDailyEntry(${year}, ${month}, ${index})">Editar</button>
-                <button class="action-btn delete-btn" onclick="handleDeleteDailyEntry(${year}, ${month}, ${index})">Excluir</button>
-            </td>
-        `;
+        row.innerHTML = `<td>${formattedDate}</td><td>${formatCurrency(parseFloat(entry.faturamento))}</td><td>${formatCurrency(parseFloat(entry.despesas))}</td><td>${formatCurrency(parseFloat(entry.comissao))}</td><td>${formatCurrency(parseFloat(entry.outras))}</td><td>${entry.vendas}</td><td><button class="action-btn edit-btn" onclick="handleEditDailyEntry(${year}, ${month}, ${index})">Editar</button><button class="action-btn delete-btn" onclick="handleDeleteDailyEntry(${year}, ${month}, ${index})">Excluir</button></td>`;
         tableBody.appendChild(row);
     });
 }
@@ -906,6 +1878,15 @@ recalculateAllBtn.addEventListener('click', updateAllCalculations);
 btnBackupLocal.addEventListener('click', exportLocalBackup);
 btnRestoreLocal.addEventListener('click', () => inputRestoreFile.click());
 inputRestoreFile.addEventListener('change', importLocalBackup);
+
+// Evento da aba Diagnóstico
+diagnosisForm.addEventListener('submit', saveDiagnosisData);
+
+// Evento da Nova Aba Consultor
+saveConsultantDiagnosisBtn.addEventListener('click', saveConsultantDiagnosis);
+
+// Evento de Desbloqueio
+btnGenerateUnlockCode.addEventListener('click', handleUnlockTabs);
 
 mainNav.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
@@ -1029,4 +2010,5 @@ initialize();
 </script>
 
 </body>
-</html>```
+</html>
+```
