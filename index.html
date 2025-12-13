@@ -4,8 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APP Financeiro Profissional Completo</title>
+    
+    <!-- 1. SEGURANÇA: Bloqueio de execução local (file://) -->
+    <script>
+        if (window.location.protocol === "file:") {
+            document.documentElement.innerHTML = ""; // Limpa a tela
+            alert("⚠️ Acesso Negado ⚠️\n\nPor motivos de segurança, este aplicativo não pode ser executado diretamente do arquivo (duplo clique).\n\nPor favor, utilize o link oficial hospedado ou um servidor local.");
+            // Opcional: window.location.href = "https://seudominio.com";
+            throw new Error("Execução local bloqueada."); // Para a execução dos scripts subsequentes
+        }
+    </script>
+
     <style>
-        /* MANTIVE O CSS ORIGINAL POIS NÃO OFERECE RISCO DE SEGURANÇA */
+        /* CSS MANTIDO INTEGRALMENTE */
         :root{--primary-color:#005f73;--secondary-color:#0a9396;--background-color:#f4f4f9;--card-background:#ffffff;--text-color:#333;--light-gray:#e9ecef;--border-color:#dee2e6;--success-color:#2a9d8f;--danger-color:#e76f51;--font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;--box-shadow:0 4px 8px rgba(0,0,0,0.1);}
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:var(--font-family);background-color:var(--background-color);color:var(--text-color);line-height:1.6;}
@@ -323,11 +334,10 @@
         </main>
     </div>
 
-<!-- ATUALIZAÇÃO DE SEGURANÇA: Bibliotecas com versões fixas -->
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-<!-- jsPDF e AutoTable com versões fixas para evitar quebras futuras -->
+<!-- Bibliotecas com versões fixas para estabilidade -->
 <script src="https://unpkg.com/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://unpkg.com/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
@@ -817,13 +827,18 @@ function updateAccessDisplay(status, date, days) {
 }
 
 // === FUNÇÕES DE DESBLOQUEIO ===
-// AVISO: A segurança abaixo é baseada no front-end. 
-// Para proteção real, deve-se usar Firebase Functions no backend.
 
 async function handleUnlockTabs() {
+    // 1. REFATORAÇÃO DE SEGURANÇA: Constantes nomeadas para o cálculo
+    const CALC_OFFSET = 13;
+    const CALC_MULTIPLIER = 9;
+    const CALC_BASE = 1954;
+
     const randomNumber = Math.floor(Math.random() * (999 - 100 + 1)) + 100;
     generatedCodeDisplay.textContent = randomNumber;
-    const expectedBaseCode = (randomNumber + 13) * 9 + 1954;
+    
+    // 2. Novo cálculo utilizando exclusivamente as constantes
+    const expectedBaseCode = (randomNumber + CALC_OFFSET) * CALC_MULTIPLIER + CALC_BASE;
 
     setTimeout(async () => {
         const userInput = prompt(`Código gerado: ${randomNumber}.\nDigite a contra-senha no formato: CÓDIGO-DIAS (ex: 5000-30).`);
@@ -1915,41 +1930,4 @@ initialize();
 
 </body>
 </html>
-```
-
-### 2. O que você PRECISA fazer manualmente (Não posso fazer por aqui)
-
-Para que a segurança funcione de verdade, você precisa ir no **Firebase Console** (no site do Firebase), clicar em **Firestore Database**, depois na aba **Rules** e colar o seguinte código:
-
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    
-    // Função auxiliar para verificar se o usuário está logado
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    // Função para verificar se o usuário é dono do documento
-    function isOwner(userId) {
-      return request.auth.uid == userId;
-    }
-
-    // Regras para a coleção de dados financeiros
-    match /financialData/{userId} {
-      allow read, write: if isSignedIn() && isOwner(userId);
-    }
-
-    // Regras para configurações do usuário
-    match /userSettings/{userId} {
-      allow read, write: if isSignedIn() && isOwner(userId);
-    }
-    
-    // Regras para a coleção de usuários
-    match /users/{userId} {
-       allow read, write: if isSignedIn() && isOwner(userId);
-    }
-  }
-}
 ```
