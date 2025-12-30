@@ -166,7 +166,18 @@ async function handleAuthStateChange(user) {
     } catch (error) { console.error("Erro crítico na autenticação:", error); showLogin(); }
 }
 
-function handleLogin(e) { e.preventDefault(); const email = document.getElementById('login-user').value; const pass = document.getElementById('login-password').value; const errorEl = document.getElementById('login-error'); errorEl.textContent = ''; auth.signInWithEmailAndPassword(email, pass).catch(error => { errorEl.textContent = "Email ou senha inválidos."; }); }
+function handleLogin(e) { 
+    e.preventDefault(); 
+    
+    // CORREÇÃO: Evita que o login seja processado se o formulário estiver oculto (ex: usuário tentando cadastrar)
+    if (loginForm.style.display === 'none') return;
+
+    const email = document.getElementById('login-user').value; 
+    const pass = document.getElementById('login-password').value; 
+    const errorEl = document.getElementById('login-error'); 
+    errorEl.textContent = ''; 
+    auth.signInWithEmailAndPassword(email, pass).catch(error => { errorEl.textContent = "Email ou senha inválidos."; }); 
+}
 
 function handleRegister(e) {
     e.preventDefault();
