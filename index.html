@@ -15,7 +15,7 @@
     </script>
 
     <style>
-        /* CSS MANTIDO INTEGRALMENTE + ADIÇÃO DO BOTÃO EXCEL */
+        /* CSS MANTIDO INTEGRALMENTE + ADIÇÃO DO BOTÃO EXCEL E DEMO */
         :root{--primary-color:#005f73;--secondary-color:#0a9396;--background-color:#f4f4f9;--card-background:#ffffff;--text-color:#333;--light-gray:#e9ecef;--border-color:#dee2e6;--success-color:#2a9d8f;--danger-color:#e76f51;--excel-color:#217346;--font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;--box-shadow:0 4px 8px rgba(0,0,0,0.1);}
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:var(--font-family);background-color:var(--background-color);color:var(--text-color);line-height:1.6;}
@@ -109,8 +109,14 @@
         .diagnosis-form-grid {display: grid;grid-template-columns: 1fr 1fr;gap: 20px;}
         @media (max-width: 768px) {.diagnosis-form-grid {grid-template-columns: 1fr;}}
         .section-separator {grid-column: 1 / -1;margin-top: 25px;padding-bottom: 10px;border-bottom: 2px solid var(--secondary-color);color: var(--primary-color);font-size: 1.2rem;}
+        
         .unlock-section {background-color: #fff3cd;border: 1px solid #ffeeba;color: #856404;padding: 20px;border-radius: 8px;margin-top: 30px;}
         .unlock-section h3 {margin-bottom: 15px;color: #856404;}
+        
+        /* NOVA CLASSE PARA DADOS DE DEMONSTRAÇÃO */
+        .demo-section {background-color: #f3e5f5; border: 1px solid #e1bee7; padding: 20px; border-radius: 8px; margin-top: 30px; color: #4a148c;}
+        .demo-section h3 {color: #6a1b9a; margin-bottom: 10px;}
+
         #generated-code-display {font-size: 1.5rem;font-weight: bold;margin-left: 15px;vertical-align: middle;}
         .access-info {margin-top: 15px;padding: 10px;background-color: rgba(255, 255, 255, 0.6);border-radius: 5px;font-weight: bold;}
     </style>
@@ -320,6 +326,13 @@
                     <div class="input-group"><label for="benchmark-markup">Meta de Markup Mínimo (%)</label><input type="number" id="benchmark-markup" placeholder="Ex: 120"></div>
                 </div>
                 
+                <!-- Nova Área de Dados de Demonstração (Solicitada) -->
+                <div class="demo-section">
+                    <h3>🧪 Dados de Demonstração (Simulação)</h3>
+                    <p>Preenche automaticamente a <strong>Aba Empresa</strong> e os <strong>Valores Mensais</strong> com dados fictícios de um comércio com faturamento médio de R$ 60.000,00. <br><strong>Ideal para testar os relatórios e indicadores.</strong></p>
+                    <button id="btn-populate-demo" class="btn" style="background-color: #6c5ce7; color: white; margin-top: 10px; max-width: 300px;">Preencher Dados de Exemplo</button>
+                </div>
+
                 <div class="unlock-section">
                     <h3>🔓 Desbloqueio de Funções Avançadas</h3>
                     <p>Gere um código aleatório e insira a contra-senha para visualizar todas as abas e cálculos. Formato: <strong>CÓDIGO - DIAS</strong></p>
@@ -392,6 +405,7 @@ const exportExcelMonthlyBtn = document.getElementById('export-excel-monthly');
 const recalculateAllBtn = document.getElementById('recalculate-all');
 const saveSettingsBtn = document.getElementById('save-settings');
 const allowManualEditCheckbox = document.getElementById('allow-manual-edit');
+const btnPopulateDemo = document.getElementById('btn-populate-demo'); // Novo Botão Demo
 
 // Botões de Relatório
 const btnFullReport = document.getElementById('btn-full-report');
@@ -934,6 +948,94 @@ async function resetAccess() {
 btnGenerateUnlockCode.addEventListener('click', handleUnlockTabs);
 btnTestAccess.addEventListener('click', addTestDay);
 btnResetAuth.addEventListener('click', resetAccess);
+
+// === FUNÇÕES DE DADOS DE DEMONSTRAÇÃO (NOVO) ===
+async function handlePopulateDemoData() {
+    if (!currentUser) return;
+
+    const confirmed = confirm(
+        "Atenção: Isso preencherá a aba Empresa e os Valores Mensais com dados de exemplo (Comércio R$ 60k).\n\n" +
+        "Seus dados atuais nessas abas serão substituídos.\n\nDeseja continuar?"
+    );
+
+    if (!confirmed) return;
+
+    // 1. Preencher Aba Empresa
+    const demoCompanyData = {
+        corporateName: "Loja Modelo de Exemplo Ltda",
+        cnpj: "12.345.678/0001-90",
+        responsibleName: "João Empreendedor",
+        contactEmail: currentUser.email,
+        phone: "(11) 98765-4321",
+        sector: "Comércio",
+        taxRegime: "Simples Nacional",
+        hasErp: "Sim",
+        hasInstagram: "Sim",
+        hasFacebook: "Sim",
+        hasSite: "Sim",
+        observations: "Dados gerados automaticamente para demonstração do sistema. Faturamento médio de R$ 60k."
+    };
+    
+    // Atualizar userSettings local e no Firestore
+    userSettings = { ...userSettings, ...demoCompanyData };
+    
+    // Atualizar formulário na tela
+    document.getElementById('diag-corporate-name').value = demoCompanyData.corporateName;
+    document.getElementById('diag-cnpj').value = demoCompanyData.cnpj;
+    document.getElementById('diag-responsible').value = demoCompanyData.responsibleName;
+    document.getElementById('diag-phone').value = demoCompanyData.phone;
+    document.getElementById('diag-sector').value = demoCompanyData.sector;
+    document.getElementById('diag-tax-regime').value = demoCompanyData.taxRegime;
+    document.getElementById('diag-observations').value = demoCompanyData.observations;
+    companyNameEl.textContent = demoCompanyData.corporateName;
+
+    // 2. Preencher Entradas Mensais
+    if (!financialData[currentYear]) financialData[currentYear] = {};
+    
+    // Simulação: Faturamento ~60k, Custos Var ~45%, Custos Fix ~20%, Lucro ~15-20%
+    for (let i = 0; i < 12; i++) {
+        // Variação aleatória de +/- 10%
+        const variation = 1 + (Math.random() * 0.2 - 0.1); 
+        const baseRevenue = 60000 * variation;
+        
+        const monthlyData = {
+            faturamento: parseFloat(baseRevenue.toFixed(2)),
+            numeroDeVendas: Math.floor(300 * variation), // Ticket medio ~200
+            custosVariaveis: parseFloat((baseRevenue * 0.45).toFixed(2)), // CMV + Taxas Cartão + Comissao
+            custosFixos: parseFloat((12000 + (Math.random() * 1000)).toFixed(2)), // Aluguel, Salarios, etc
+            despesasOperacionais: parseFloat((3000 + (Math.random() * 500)).toFixed(2)), // Marketing, Software, etc
+            depreciacao: 500,
+            outrasReceitasDespesas: 0,
+            investimentos: i === 5 ? 5000 : 0, // Investimento pontual em Junho
+            financiamentosEntradas: 0,
+            amortizacaoDividas: 0,
+            aporteSocios: 0,
+            distribuicaoLucros: 0,
+            impostos: parseFloat((baseRevenue * 0.08).toFixed(2)), // Simples Nacional aprox
+            dailyEntries: [] // Limpa diários para não conflitar
+        };
+
+        financialData[currentYear][i] = monthlyData;
+    }
+
+    // Permitir edição manual para ver os dados preenchidos
+    allowManualEditCheckbox.checked = true;
+    userSettings.allowManualEdit = true;
+
+    try {
+        await saveDataToFirestore(currentUser.uid, userSettings, 'userSettings');
+        await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
+        
+        updateAllCalculations(); // Atualiza tabelas e gráficos
+        alert("Dados de demonstração preenchidos com sucesso!");
+    } catch (error) {
+        console.error("Erro ao preencher dados de demo:", error);
+        alert("Erro ao salvar os dados.");
+    }
+}
+
+btnPopulateDemo.addEventListener('click', handlePopulateDemoData);
+
 
 // === FUNÇÕES DE BACKUP E RESTORE ===
 
