@@ -1354,6 +1354,7 @@ function generateFullReport() {
         ["Volume de Vendas Médio", (annualTotals.numeroDeVendas / divisor).toFixed(1)],
         ["Lucro Líquido Total", formatCurrency(annualIndicators.lucroLiquido)],
         ["Margem Líquida Média", formatPercent(annualIndicators.margemLiquida)],
+        ["Markup Médio", formatPercent(annualIndicators.markup)],
         ["Fluxo de Caixa Livre Total", formatCurrency(annualIndicators.fluxoCaixaLivre)],
         ["Ponto de Equilíbrio Médio", formatCurrency(annualIndicators.pontoEquilibrio / divisor)]
     ];
@@ -1957,3 +1958,7 @@ dailyEntryForm.addEventListener('submit', async (e) => {
 
 // --- INICIALIZAÇÃO ---
 initialize();
+</script>
+
+</body>
+</html>
