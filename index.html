@@ -10,14 +10,13 @@
         if (window.location.protocol === "file:") {
             document.documentElement.innerHTML = ""; // Limpa a tela
             alert("⚠️ Acesso Negado ⚠️\n\nPor motivos de segurança, este aplicativo não pode ser executado diretamente do arquivo (duplo clique).\n\nPor favor, utilize o link oficial hospedado ou um servidor local.");
-            // Opcional: window.location.href = "https://seudominio.com";
-            throw new Error("Execução local bloqueada."); // Para a execução dos scripts subsequentes
+            throw new Error("Execução local bloqueada."); 
         }
     </script>
 
     <style>
-        /* CSS MANTIDO INTEGRALMENTE */
-        :root{--primary-color:#005f73;--secondary-color:#0a9396;--background-color:#f4f4f9;--card-background:#ffffff;--text-color:#333;--light-gray:#e9ecef;--border-color:#dee2e6;--success-color:#2a9d8f;--danger-color:#e76f51;--font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;--box-shadow:0 4px 8px rgba(0,0,0,0.1);}
+        /* CSS MANTIDO INTEGRALMENTE + ADIÇÃO DO BOTÃO EXCEL */
+        :root{--primary-color:#005f73;--secondary-color:#0a9396;--background-color:#f4f4f9;--card-background:#ffffff;--text-color:#333;--light-gray:#e9ecef;--border-color:#dee2e6;--success-color:#2a9d8f;--danger-color:#e76f51;--excel-color:#217346;--font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;--box-shadow:0 4px 8px rgba(0,0,0,0.1);}
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:var(--font-family);background-color:var(--background-color);color:var(--text-color);line-height:1.6;}
         .container{max-width:1600px;margin:0 auto;padding:20px;}
@@ -60,10 +59,11 @@
         .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:15px;}
         .section-header h2{color:var(--primary-color);}
         .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
-        .controls select,.controls button{padding:8px 12px;border:1px solid var(--border-color);border-radius:5px;font-size:0.9rem;background-color:white;cursor:pointer;}
+        .controls select,.controls button, .controls label.file-btn {padding:8px 12px;border:1px solid var(--border-color);border-radius:5px;font-size:0.9rem;background-color:white;cursor:pointer;display:inline-block;}
         .controls button.primary{background-color:var(--secondary-color);color:white;}
         .controls button.danger{background-color:var(--danger-color);color:white;}
         .controls button.pdf-btn { background-color: #6c757d; color: white; }
+        .controls button.excel-btn, .controls label.excel-btn { background-color: var(--excel-color); color: white; border: none; }
         .table-container, .chart-wrapper {overflow-x: auto;scrollbar-width: thin;scrollbar-color: var(--secondary-color) #f1f1f1;}
         .table-container::-webkit-scrollbar, .chart-wrapper::-webkit-scrollbar {height: 12px;}
         .table-container::-webkit-scrollbar-track, .chart-wrapper::-webkit-scrollbar-track {background: #f1f1f1; border-radius: 4px;}
@@ -163,6 +163,9 @@
                 <div class="section-header">
                     <h2>Diagnóstico Empresarial</h2>
                     <div class="controls">
+                        <button id="btn-export-company-xlsx" class="excel-btn">📤 Baixar Excel</button>
+                        <label for="btn-import-company-xlsx" class="excel-btn file-btn">📥 Importar Excel</label>
+                        <input type="file" id="btn-import-company-xlsx" accept=".xlsx, .xls" style="display: none;">
                         <button id="btn-export-company" class="pdf-btn">📄 Baixar PDF</button>
                     </div>
                 </div>
@@ -198,6 +201,9 @@
                 <div class="section-header">
                     <h2>Lançamento Diário</h2>
                     <div class="controls">
+                        <button id="btn-export-daily-xlsx" class="excel-btn">📤 Baixar Excel</button>
+                        <label for="btn-import-daily-xlsx" class="excel-btn file-btn">📥 Importar Excel</label>
+                        <input type="file" id="btn-import-daily-xlsx" accept=".xlsx, .xls" style="display: none;">
                         <button id="btn-export-daily" class="btn" style="background-color: #2e86de; color: white;">📄 Relatório Diário (PDF)</button>
                         <label for="daily-month-selector">Mês:</label>
                         <select id="daily-month-selector"></select>
@@ -231,6 +237,9 @@
                 <div class="section-header">
                     <h2>Lançamentos Mensais <span id="auto-calc-notice">(Campos com * são calculados automaticamente)</span></h2>
                     <div class="controls">
+                        <button id="btn-export-monthly-xlsx" class="excel-btn">📤 Baixar Excel</button>
+                        <label for="btn-import-monthly-xlsx" class="excel-btn file-btn">📥 Importar Excel</label>
+                        <input type="file" id="btn-import-monthly-xlsx" accept=".xlsx, .xls" style="display: none;">
                         <button id="btn-export-monthly-inputs" class="pdf-btn">📄 Baixar PDF</button>
                         <div class="checkbox-control"><input type="checkbox" id="allow-manual-edit"><label for="allow-manual-edit">Permitir edição manual dos totais</label></div>
                         <label for="year-selector">Ano:</label>
@@ -248,12 +257,13 @@
                 </div>
             </section>
 
-            <section id="indicadores-mensais" class="tab-content"><div class="section-header"><h2>Indicadores Financeiros Mensais</h2><div class="controls"><button id="export-pdf-monthly" class="pdf-btn">📄 Baixar PDF</button><button id="export-excel-monthly">📊 Baixar Excel</button></div></div><div class="table-container"><table id="monthly-indicators-table"><thead><tr><th>Mês</th><th>Lucro Líquido</th><th>Margem Líquida (%)</th><th>Markup (%)</th><th>Fluxo de Caixa Operacional</th><th>Fluxo de Caixa de Investimento</th><th>Fluxo de Caixa de Financiamento</th><th>Fluxo de Caixa Livre</th></tr></thead><tbody></tbody></table></div></section>
+            <section id="indicadores-mensais" class="tab-content"><div class="section-header"><h2>Indicadores Financeiros Mensais</h2><div class="controls"><button id="export-pdf-monthly" class="pdf-btn">📄 Baixar PDF</button><button id="export-excel-monthly" class="excel-btn">📤 Baixar Excel</button></div></div><div class="table-container"><table id="monthly-indicators-table"><thead><tr><th>Mês</th><th>Lucro Líquido</th><th>Margem Líquida (%)</th><th>Markup (%)</th><th>Fluxo de Caixa Operacional</th><th>Fluxo de Caixa de Investimento</th><th>Fluxo de Caixa de Financiamento</th><th>Fluxo de Caixa Livre</th></tr></thead><tbody></tbody></table></div></section>
             
             <section id="indicadores-anuais" class="tab-content">
                 <div class="section-header">
                     <h2>Indicadores Anuais e Gestão da Conta</h2>
                     <div class="controls">
+                        <button id="btn-export-annual-xlsx" class="excel-btn">📤 Baixar Excel</button>
                         <button id="btn-export-annual" class="pdf-btn">📄 Baixar PDF</button>
                         <button id="recalculate-annual">🔄 Recalcular Indicadores</button>
                         <button id="delete-account-btn" class="danger">🗑️ Excluir Conta e Dados</button>
@@ -266,7 +276,10 @@
             <section id="evolucao" class="tab-content">
                 <div class="section-header">
                     <h2>Evolução do Negócio</h2>
-                    <div class="controls"><button id="btn-export-evolution" class="pdf-btn">📄 Baixar PDF</button></div>
+                    <div class="controls">
+                        <button id="btn-export-evolution-xlsx" class="excel-btn">📤 Baixar Excel</button>
+                        <button id="btn-export-evolution" class="pdf-btn">📄 Baixar PDF</button>
+                    </div>
                 </div>
                 <div class="charts-container"><div class="chart-wrapper"><h3>Evolução Mensal (Faturamento, Custos e Lucro)</h3><canvas id="monthlyEvolutionChart"></canvas></div><div class="chart-wrapper"><h3>Evolução do Fluxo de Caixa Livre</h3><canvas id="cashFlowChart"></canvas></div></div>
             </section>
@@ -391,6 +404,16 @@ const btnExportEvolution = document.getElementById('btn-export-evolution');
 const btnExportGlossary = document.getElementById('btn-export-glossary');
 const btnExportConsultant = document.getElementById('btn-export-consultant');
 
+// Botões XLSX (Novos)
+const btnExportCompanyXLSX = document.getElementById('btn-export-company-xlsx');
+const btnImportCompanyXLSX = document.getElementById('btn-import-company-xlsx');
+const btnExportDailyXLSX = document.getElementById('btn-export-daily-xlsx');
+const btnImportDailyXLSX = document.getElementById('btn-import-daily-xlsx');
+const btnExportMonthlyXLSX = document.getElementById('btn-export-monthly-xlsx');
+const btnImportMonthlyXLSX = document.getElementById('btn-import-monthly-xlsx');
+const btnExportAnnualXLSX = document.getElementById('btn-export-annual-xlsx');
+const btnExportEvolutionXLSX = document.getElementById('btn-export-evolution-xlsx');
+
 // Botões de Backup
 const btnBackupLocal = document.getElementById('btn-backup-local');
 const btnRestoreLocal = document.getElementById('btn-restore-local');
@@ -431,6 +454,7 @@ let userSettings = {};
 let currentlyEditingIndex = null;
 const DEFAULT_COMPANY_NAME = 'Noga Consultoria'; 
 const ADMIN_EMAIL = 'jcnvap@gmail.com'; 
+const DEFAULT_TRIAL_DAYS = 15; // 1. ALTERAÇÃO SOLICITADA: Dias de teste automático
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -514,7 +538,8 @@ function handleRegister(e) {
         .then(userCredential => {
             const now = new Date();
             const expirationDate = new Date();
-            expirationDate.setDate(now.getDate() + 00);
+            // 1. ALTERAÇÃO SOLICITADA: Liberação automática de dias de crédito
+            expirationDate.setDate(now.getDate() + DEFAULT_TRIAL_DAYS);
 
             return db.collection('users').doc(userCredential.user.uid).set({ 
                 email: userCredential.user.email, 
@@ -528,8 +553,10 @@ function handleRegister(e) {
                 }, { merge: true });
             });
         })
-       // .then(() => { alert('Cadastro realizado com sucesso! Acesso liberado por 00 dias.'); toggleForms('login'); })
-        .then(() => { alert('Cadastro realizado com sucesso! Acesso liberado para cadastro.'); toggleForms('login'); })
+        .then(() => { 
+            alert(`Cadastro realizado com sucesso! Acesso liberado automaticamente por ${DEFAULT_TRIAL_DAYS} dias.`); 
+            toggleForms('login'); 
+        })
         .catch(error => {
             switch (error.code) {
                 case 'auth/email-already-in-use': errorEl.textContent = "Este email já está cadastrado."; break;
@@ -697,7 +724,7 @@ async function saveBusinessSettings() {
 }
 
 async function saveDiagnosisData(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!currentUser) return;
 
     const corporateName = document.getElementById('diag-corporate-name').value;
@@ -742,7 +769,7 @@ async function saveDiagnosisData(e) {
         await saveDataToFirestore(currentUser.uid, settings, 'userSettings');
         userSettings = settings;
         companyNameEl.textContent = corporateName || DEFAULT_COMPANY_NAME;
-        alert('Dados do Diagnóstico Empresarial salvos com sucesso!');
+        if(e) alert('Dados do Diagnóstico Empresarial salvos com sucesso!');
     } catch (error) {
         console.error("Falha ao salvar diagnóstico:", error);
     }
@@ -830,7 +857,6 @@ function updateAccessDisplay(status, date, days) {
 // === FUNÇÕES DE DESBLOQUEIO ===
 
 async function handleUnlockTabs() {
-    // 1. REFATORAÇÃO DE SEGURANÇA: Constantes nomeadas para o cálculo
     const CALC_OFFSET = 13;
     const CALC_MULTIPLIER = 9;
     const CALC_BASE = 1954;
@@ -838,7 +864,6 @@ async function handleUnlockTabs() {
     const randomNumber = Math.floor(Math.random() * (999 - 100 + 1)) + 100;
     generatedCodeDisplay.textContent = randomNumber;
     
-    // 2. Novo cálculo utilizando exclusivamente as constantes
     const expectedBaseCode = (randomNumber + CALC_OFFSET) * CALC_MULTIPLIER + CALC_BASE;
 
     setTimeout(async () => {
@@ -850,7 +875,7 @@ async function handleUnlockTabs() {
             const daysInput = parts.length > 1 ? parseInt(parts[1]) : 30; 
 
             let isValid = false;
-            // Senha mestra (Mude periodicamente)
+            // Senha mestra
             if (parts[0] === '130954') {
                 isValid = true;
             } 
@@ -986,7 +1011,274 @@ function importLocalBackup(e) {
     reader.readAsText(file);
 }
 
-// === GERAÇÃO DE PDFS POR ABA ===
+// === FUNÇÕES XLSX (2. ALTERAÇÃO SOLICITADA) ===
+
+// Helper para criar planilha
+function createSheetFromData(data, headers, sheetName) {
+    const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, sheetName);
+    return wb;
+}
+
+// Helper para ler arquivo Excel
+function readXLSXFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            resolve(workbook);
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+// -- Aba Empresa --
+function handleExportCompanyXLSX() {
+    const formMap = {
+        'Razão Social': userSettings.corporateName,
+        'CNPJ': userSettings.cnpj,
+        'Responsável': userSettings.responsibleName,
+        'Email': userSettings.contactEmail,
+        'Telefone': userSettings.phone,
+        'Setor': userSettings.sector,
+        'Regime': userSettings.taxRegime,
+        'ERP': userSettings.hasErp,
+        'Instagram': userSettings.hasInstagram,
+        'Facebook': userSettings.hasFacebook,
+        'Landing Page': userSettings.hasLandingPage,
+        'Site': userSettings.hasSite,
+        'E-commerce': userSettings.hasEcommerce,
+        'Tráfego Pago': userSettings.hasAds,
+        'Marketplace': userSettings.marketplaceList,
+        'Observações': userSettings.observations
+    };
+    
+    const rows = Object.entries(formMap);
+    const wb = createSheetFromData(rows, ['Campo', 'Valor'], 'Dados Empresa');
+    XLSX.writeFile(wb, `Empresa_${currentYear}.xlsx`);
+}
+
+async function handleImportCompanyXLSX(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    try {
+        const wb = await readXLSXFile(file);
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(ws, { header: 1 }); // Array of arrays
+
+        const fieldMapReverse = {
+            'Razão Social': 'diag-corporate-name',
+            'CNPJ': 'diag-cnpj',
+            'Responsável': 'diag-responsible',
+            'Email': 'diag-email',
+            'Telefone': 'diag-phone',
+            'Setor': 'diag-sector',
+            'Regime': 'diag-tax-regime',
+            'ERP': 'diag-erp',
+            'Instagram': 'diag-instagram',
+            'Facebook': 'diag-facebook',
+            'Landing Page': 'diag-landingpage',
+            'Site': 'diag-site',
+            'E-commerce': 'diag-ecommerce',
+            'Tráfego Pago': 'diag-ads',
+            'Marketplace': 'diag-marketplace',
+            'Observações': 'diag-observations'
+        };
+
+        let updated = false;
+        data.forEach(row => {
+            if (row.length >= 2) {
+                const key = row[0];
+                const value = row[1];
+                const elementId = fieldMapReverse[key];
+                if (elementId) {
+                    const el = document.getElementById(elementId);
+                    if (el) { el.value = value || ''; updated = true; }
+                }
+            }
+        });
+
+        if (updated) {
+            saveDiagnosisData(null); // Salva no Firebase
+            alert('Dados da empresa importados com sucesso!');
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao importar arquivo. Verifique o formato.');
+    }
+    e.target.value = '';
+}
+
+// -- Aba Entradas Diárias --
+function handleExportDailyXLSX() {
+    const month = parseInt(dailyMonthSelector.value);
+    const yearData = financialData[currentYear] || {};
+    const monthData = yearData[month] || {};
+    const entries = monthData.dailyEntries || [];
+
+    if (entries.length === 0) {
+        alert('Não há lançamentos para exportar neste mês.');
+        return;
+    }
+
+    const rows = entries.map(e => [e.date, e.faturamento, e.despesas, e.comissao, e.outras, e.vendas]);
+    const wb = createSheetFromData(rows, ['Data', 'Faturamento', 'Despesas', 'Comissão', 'Outras', 'Vendas'], `${MONTHS[month]}_Diario`);
+    XLSX.writeFile(wb, `Diario_${currentYear}_${MONTHS[month]}.xlsx`);
+}
+
+async function handleImportDailyXLSX(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!confirm("A importação irá adicionar os lançamentos da planilha aos existentes. Continuar?")) {
+        e.target.value = ''; return;
+    }
+
+    try {
+        const wb = await readXLSXFile(file);
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(ws); // Objects based on header
+
+        const month = parseInt(dailyMonthSelector.value);
+        if (!financialData[currentYear]) financialData[currentYear] = {};
+        if (!financialData[currentYear][month]) financialData[currentYear][month] = { dailyEntries: [] };
+
+        let addedCount = 0;
+        data.forEach(row => {
+            // Mapping assumptions based on Export headers
+            const date = row['Data'] || row['date'];
+            if (date) {
+                financialData[currentYear][month].dailyEntries.push({
+                    date: date,
+                    faturamento: parseFloat(row['Faturamento'] || 0),
+                    despesas: parseFloat(row['Despesas'] || 0),
+                    comissao: parseFloat(row['Comissão'] || row['Comissao'] || 0),
+                    outras: parseFloat(row['Outras'] || 0),
+                    vendas: parseInt(row['Vendas'] || 0)
+                });
+                addedCount++;
+            }
+        });
+
+        if (addedCount > 0) {
+            await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
+            updateAllCalculations();
+            renderDailyEntries(currentYear, month);
+            alert(`${addedCount} lançamentos importados com sucesso!`);
+        } else {
+            alert('Nenhum dado válido encontrado. Verifique os cabeçalhos (Data, Faturamento, Despesas...).');
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert('Erro na importação. Verifique o arquivo.');
+    }
+    e.target.value = '';
+}
+
+// -- Aba Entradas Mensais --
+function handleExportMonthlyXLSX() {
+    const yearData = financialData[currentYear] || {};
+    const headers = ['Mês', 'Faturamento', 'NumVendas', 'CustosVariaveis', 'CustosFixos', 'DespesasOp', 'Depreciacao', 'Outras', 'Investimentos', 'FinancEntradas', 'AmortDividas', 'AporteSocios', 'DistrLucros', 'Impostos'];
+    
+    const rows = MONTHS.map((m, i) => {
+        const d = yearData[i] || {};
+        return [
+            m, 
+            d.faturamento || 0, d.numeroDeVendas || 0, d.custosVariaveis || 0, d.custosFixos || 0, 
+            d.despesasOperacionais || 0, d.depreciacao || 0, d.outrasReceitasDespesas || 0, 
+            d.investimentos || 0, d.financiamentosEntradas || 0, d.amortizacaoDividas || 0, 
+            d.aporteSocios || 0, d.distribuicaoLucros || 0, d.impostos || 0
+        ];
+    });
+
+    const wb = createSheetFromData(rows, headers, `Mensal_${currentYear}`);
+    XLSX.writeFile(wb, `Entradas_Mensais_${currentYear}.xlsx`);
+}
+
+async function handleImportMonthlyXLSX(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!confirm("A importação substituirá os dados manuais da tabela mensal para este ano. Continuar?")) {
+        e.target.value = ''; return;
+    }
+
+    try {
+        const wb = await readXLSXFile(file);
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const data = XLSX.utils.sheet_to_json(ws); 
+
+        if (!financialData[currentYear]) financialData[currentYear] = {};
+        
+        // Map Excel headers to JSON keys
+        const mapKeys = {
+            'Faturamento': 'faturamento', 'NumVendas': 'numeroDeVendas', 'CustosVariaveis': 'custosVariaveis',
+            'CustosFixos': 'custosFixos', 'DespesasOp': 'despesasOperacionais', 'Depreciacao': 'depreciacao',
+            'Outras': 'outrasReceitasDespesas', 'Investimentos': 'investimentos', 'FinancEntradas': 'financiamentosEntradas',
+            'AmortDividas': 'amortizacaoDividas', 'AporteSocios': 'aporteSocios', 'DistrLucros': 'distribuicaoLucros',
+            'Impostos': 'impostos'
+        };
+
+        data.forEach((row, idx) => {
+            if (idx < 12) { // 12 months
+                if (!financialData[currentYear][idx]) financialData[currentYear][idx] = { dailyEntries: [] };
+                Object.keys(mapKeys).forEach(header => {
+                    if (row[header] !== undefined) {
+                        financialData[currentYear][idx][mapKeys[header]] = parseFloat(row[header]) || 0;
+                    }
+                });
+            }
+        });
+
+        await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
+        updateAllCalculations();
+        alert('Tabela mensal importada e salva!');
+
+    } catch (err) {
+        console.error(err);
+        alert('Erro ao importar. Certifique-se de usar o mesmo modelo da exportação.');
+    }
+    e.target.value = '';
+}
+
+// -- Exportação apenas (Indicadores/Evolução) --
+function handleExportAnnualXLSX() {
+    const tableData = [];
+    const yearData = financialData[currentYear] || {};
+    let annualTotals = {}; 
+    INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
+    
+    for(let i=0; i<12; i++) { 
+        if(yearData[i]) INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0);
+    }
+    const indicators = calculateIndicators(annualTotals);
+    
+    Object.keys(indicators).forEach(k => {
+        tableData.push([k, indicators[k]]);
+    });
+    
+    const wb = createSheetFromData(tableData, ['Indicador', 'Valor Total'], 'Indicadores Anuais');
+    XLSX.writeFile(wb, `Indicadores_Anuais_${currentYear}.xlsx`);
+}
+
+function handleExportEvolutionXLSX() {
+    const yearData = financialData[currentYear] || {};
+    const rows = [];
+    for(let i=0; i<12; i++) {
+        const ind = calculateIndicators(yearData[i]);
+        rows.push([MONTHS[i], ind.faturamento, ind.custosTotais, ind.lucroLiquido, ind.fluxoCaixaLivre]);
+    }
+    const wb = createSheetFromData(rows, ['Mês', 'Faturamento', 'Custos Totais', 'Lucro Líquido', 'Fluxo Caixa Livre'], 'Evolução');
+    XLSX.writeFile(wb, `Evolucao_${currentYear}.xlsx`);
+}
+
+
+// === GERAÇÃO DE PDFS POR ABA (MANTIDO) ===
 
 function generateCompanyPDF() {
     const { jsPDF } = window.jspdf;
@@ -1809,6 +2101,17 @@ saveConsultantDiagnosisBtn.addEventListener('click', saveConsultantDiagnosis);
 // Evento de Desbloqueio
 btnGenerateUnlockCode.addEventListener('click', handleUnlockTabs);
 
+// Eventos XLSX (Novos)
+btnExportCompanyXLSX.addEventListener('click', handleExportCompanyXLSX);
+btnImportCompanyXLSX.addEventListener('change', handleImportCompanyXLSX);
+btnExportDailyXLSX.addEventListener('click', handleExportDailyXLSX);
+btnImportDailyXLSX.addEventListener('change', handleImportDailyXLSX);
+btnExportMonthlyXLSX.addEventListener('click', handleExportMonthlyXLSX);
+btnImportMonthlyXLSX.addEventListener('change', handleImportMonthlyXLSX);
+btnExportAnnualXLSX.addEventListener('click', handleExportAnnualXLSX);
+btnExportEvolutionXLSX.addEventListener('click', handleExportEvolutionXLSX);
+document.getElementById('export-excel-monthly').addEventListener('click', exportMonthlyToExcel); // Existente
+
 mainNav.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
         const tabId = e.target.dataset.tab;
@@ -1837,7 +2140,6 @@ allowManualEditCheckbox.addEventListener('change', () => {
 
 recalculateAnnualBtn.addEventListener('click', renderAnnualIndicators);
 exportPdfMonthlyBtn.addEventListener('click', exportMonthlyToPDF);
-exportExcelMonthlyBtn.addEventListener('click', exportMonthlyToExcel);
 
 
 // *** FUNÇÕES E EVENTOS DA ABA DIÁRIA ***
@@ -1931,4 +2233,3 @@ initialize();
 
 </body>
 </html>
-```
