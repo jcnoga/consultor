@@ -1290,9 +1290,9 @@ function generateConsultantDiagnosisPDF() {
     doc.setFontSize(11);
     doc.setTextColor(0);
     const diagnosisText = userSettings.consultantDiagnosis || "Nenhum diagnóstico registrado.";
-    const splitDiagnosis = doc.splitTextToSize(diagnosisText, 180);
-    doc.text(splitDiagnosis, 14, 30);
-    
+    const splitDiagnosis = doc.splitTextToSize(diagnosisText, pageWidth - 28);
+    doc.text(splitDiagnosis, 14, currentY);
+
     doc.save(`Parecer_Consultor_${currentYear}.pdf`);
 }
 
