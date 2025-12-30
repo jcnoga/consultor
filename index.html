@@ -528,7 +528,8 @@ function handleRegister(e) {
                 }, { merge: true });
             });
         })
-        .then(() => { alert('Cadastro realizado com sucesso! Acesso liberado por 30 dias.'); toggleForms('login'); })
+       // .then(() => { alert('Cadastro realizado com sucesso! Acesso liberado por 00 dias.'); toggleForms('login'); })
+        .then(() => { alert('Cadastro realizado com sucesso! Acesso liberado para cadastro.'); toggleForms('login'); })
         .catch(error => {
             switch (error.code) {
                 case 'auth/email-already-in-use': errorEl.textContent = "Este email já está cadastrado."; break;
