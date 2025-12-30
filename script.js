@@ -1,5 +1,3 @@
---- START OF FILE script.js ---
-
 const firebaseConfig = {
     apiKey: "AIzaSyB30QPE40atu__s4z3WlDBXHaryIE6asfE",
     authDomain: "consultor-3016e.firebaseapp.com",
