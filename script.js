@@ -1,3 +1,5 @@
+--- START OF FILE script.js ---
+
 const firebaseConfig = {
     apiKey: "AIzaSyB30QPE40atu__s4z3WlDBXHaryIE6asfE",
     authDomain: "consultor-3016e.firebaseapp.com",
@@ -466,8 +468,8 @@ async function checkAccessStatus() {
 }
 
 function lockAllTabs() {
-    // Lista de abas que DEVEM permanecer visíveis quando o crédito for 0 (Regra 2)
-    // 'entradas-diarias' foi incluída para satisfazer a Regra 1 (Novo Usuário)
+    // Lista de abas que DEVEM permanecer visíveis quando o crédito for 0.
+    // Inclui 'entradas-diarias' para garantir acesso a novos usuários.
     const allowedTabs = ['diagnostico', 'entradas-diarias', 'entradas-mensais', 'configuracoes'];
     
     const allTabs = document.querySelectorAll('nav button');
@@ -475,15 +477,14 @@ function lockAllTabs() {
     allTabs.forEach(tab => {
         if(allowedTabs.includes(tab.dataset.tab)) {
             // Remove a classe hidden-tab para garantir que seja exibida
-            // Isso garante que novos usuários vejam 'Entradas Diárias' imediatamente
             tab.classList.remove('hidden-tab');
         } else {
-            // Adiciona a classe hidden-tab para ocultar as demais abas (Regra 2)
+            // Adiciona a classe hidden-tab para ocultar as demais abas
             tab.classList.add('hidden-tab');
         }
     });
 
-    // Lógica existente de controle do botão de desbloqueio (INALTERADA)
+    // Lógica existente de controle do botão de desbloqueio
     if(btnGenerateUnlockCode) {
         btnGenerateUnlockCode.disabled = false;
         btnGenerateUnlockCode.style.backgroundColor = '#d4ac0d';
@@ -593,48 +594,53 @@ btnGenerateUnlockCode.addEventListener('click', handleUnlockTabs);
 btnTestAccess.addEventListener('click', addTestDay);
 btnResetAuth.addEventListener('click', resetAccess);
 
-// --- FUNÇÃO AUXILIAR PARA SIMULAÇÃO DIÁRIA (Adicionar ao final do script ou antes de handleResetAndPopulateDemoData) ---
+// === FUNÇÕES DE DADOS DE DEMONSTRAÇÃO E RESET ===
+
+// Função Auxiliar para Geração de Dados Diários Proporcionais
 function generateDailySimulation(year, monthIndex, totals) {
+    // Determina quantos dias exatos tem naquele mês/ano (trata bissextos)
     const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
     const entries = [];
     
-    // Saldos restantes para distribuir
+    // Saldos restantes para distribuir (Garante coerência com o total mensal)
     let remFat = totals.faturamento;
-    let remCustos = totals.custosVariaveis; // Mapeado para 'Comissão/Custos Var' no diário
+    let remCustos = totals.custosVariaveis; // Mapeia para 'Comissão' no diário
     let remDesp = totals.despesasOperacionais;
     let remVendas = totals.numeroDeVendas;
 
     for (let day = 1; day <= daysInMonth; day++) {
         const isLastDay = day === daysInMonth;
+        // Formato de data compatível com input type="date"
         const dateStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
         let dFat, dCustos, dDesp, dVendas;
 
         if (isLastDay) {
-            // No último dia, lançamos exatamente o que sobrou para garantir coerência total com o mensal
-            dFat = remFat;
-            dCustos = remCustos;
-            dDesp = remDesp;
-            dVendas = remVendas;
+            // No último dia, lançamos exatamente o que sobrou para zerar a diferença (Matemática Exata)
+            dFat = parseFloat(remFat.toFixed(2));
+            dCustos = parseFloat(remCustos.toFixed(2));
+            dDesp = parseFloat(remDesp.toFixed(2));
+            dVendas = Math.round(remVendas);
         } else {
-            // Fator de aleatoriedade para simular dias com movimentos diferentes (0.5x a 1.5x da média diária)
-            // Isso cria a "continuidade temporal" variada, mas realista
-            const variance = 0.5 + Math.random(); 
+            // Distribuição Proporcional com leve variância (Simula realidade de comércio)
+            // Variância entre 0.6x e 1.4x da média diária
+            const variance = 0.6 + Math.random() * 0.8; 
             const daysLeft = (daysInMonth - day + 1);
 
+            // Calcula a fatia do dia baseada no saldo restante dividido pelos dias que faltam
             dFat = parseFloat(((remFat / daysLeft) * variance).toFixed(2));
             dCustos = parseFloat(((remCustos / daysLeft) * variance).toFixed(2));
             dDesp = parseFloat(((remDesp / daysLeft) * variance).toFixed(2));
             dVendas = Math.round((remVendas / daysLeft) * variance);
         }
 
-        // Evitar valores negativos por arredondamento
+        // Proteção contra valores negativos (caso a variância seja muito agressiva em saldos baixos)
         dFat = Math.max(0, dFat);
         dCustos = Math.max(0, dCustos);
         dDesp = Math.max(0, dDesp);
         dVendas = Math.max(0, dVendas);
 
-        // Atualiza saldos
+        // Atualiza saldos para o próximo dia
         remFat -= dFat;
         remCustos -= dCustos;
         remDesp -= dDesp;
@@ -645,25 +651,24 @@ function generateDailySimulation(year, monthIndex, totals) {
             faturamento: dFat,
             despesas: dDesp,
             comissao: dCustos, 
-            outras: 0,
+            outras: 0, // Campo 'Outras' zerado na simulação padrão
             vendas: dVendas
         });
     }
     return entries;
 }
 
-// === FUNÇÕES DE DADOS DE DEMONSTRAÇÃO E RESET (ALTERAÇÃO SOLICITADA) ===
 async function handleResetAndPopulateDemoData() {
     if (!currentUser) return;
 
     const confirmed = confirm(
         "AVISO: Esta ação irá ZERAR os dados atuais das abas 'Empresa', 'Valores Mensais' e 'Entradas Diárias', preenchendo-os com dados de simulação (Comércio R$ 60k).\n\n" +
-        "Deseja continuar?"
+        "Esta ação é irreversível e afetará os dados de todo o ano atual.\n\nDeseja continuar?"
     );
 
     if (!confirmed) return;
 
-    // 1. Reset & Configurar Aba Empresa (MANTIDO)
+    // 1. Reset & Configurar Aba Empresa (Lógica Inalterada)
     const demoCompanyData = {
         corporateName: "Loja Modelo de Exemplo Ltda",
         cnpj: "12.345.678/0001-90",
@@ -676,13 +681,11 @@ async function handleResetAndPopulateDemoData() {
         hasInstagram: "Sim",
         hasFacebook: "Sim",
         hasSite: "Sim",
-        observations: "Dados gerados automaticamente para demonstração do sistema. Faturamento médio de R$ 60k."
+        observations: "Dados gerados automaticamente para demonstração do sistema. Faturamento médio de R$ 60k com distribuição diária proporcional."
     };
     
-    // Atualizar userSettings (MANTIDO)
+    // Atualizar userSettings local e na UI (Lógica Inalterada)
     userSettings = { ...userSettings, ...demoCompanyData, allowManualEdit: true };
-    
-    // Atualizar formulário na tela (MANTIDO)
     document.getElementById('diag-corporate-name').value = demoCompanyData.corporateName;
     document.getElementById('diag-cnpj').value = demoCompanyData.cnpj;
     document.getElementById('diag-responsible').value = demoCompanyData.responsibleName;
@@ -692,51 +695,52 @@ async function handleResetAndPopulateDemoData() {
     document.getElementById('diag-observations').value = demoCompanyData.observations;
     companyNameEl.textContent = demoCompanyData.corporateName;
 
-    // 2. Reset & Preencher Entradas Mensais E AGORA AS DIÁRIAS (ATUALIZADO)
+    // 2. Reset & Preencher Entradas Mensais E Diárias
     if (!financialData[currentYear]) financialData[currentYear] = {};
     
     for (let i = 0; i < 12; i++) {
-        // Variação aleatória de +/- 10% para o mensal
+        // Simulação Mensal: Variação aleatória de +/- 10% em torno de 60k
         const variation = 1 + (Math.random() * 0.2 - 0.1); 
         const baseRevenue = 60000 * variation;
         
-        // Valores calculados para o mês
-        const simFaturamento = parseFloat(baseRevenue.toFixed(2));
-        const simCustosVar = parseFloat((baseRevenue * 0.45).toFixed(2));
-        const simDespesasOp = parseFloat((3000 + (Math.random() * 500)).toFixed(2));
-        const simNumVendas = Math.floor(300 * variation);
+        // Definição dos Totais Mensais
+        const monthFaturamento = parseFloat(baseRevenue.toFixed(2));
+        const monthNumVendas = Math.floor(300 * variation);
+        const monthCustosVar = parseFloat((baseRevenue * 0.45).toFixed(2)); // ~45%
+        const monthDespesasOp = parseFloat((3000 + (Math.random() * 500)).toFixed(2));
 
-        // Gera os dados diários baseados nos totais acima (NOVA LÓGICA 1️⃣)
+        // --- Geração dos Lançamentos Diários ---
+        // Chama a função auxiliar para distribuir o total mensal pelos dias do mês
         const generatedDailyEntries = generateDailySimulation(currentYear, i, {
-            faturamento: simFaturamento,
-            custosVariaveis: simCustosVar,
-            despesasOperacionais: simDespesasOp,
-            numeroDeVendas: simNumVendas
+            faturamento: monthFaturamento,
+            custosVariaveis: monthCustosVar,
+            despesasOperacionais: monthDespesasOp,
+            numeroDeVendas: monthNumVendas
         });
 
         const monthlyData = {
-            faturamento: simFaturamento,
-            numeroDeVendas: simNumVendas,
-            custosVariaveis: simCustosVar,
+            faturamento: monthFaturamento,
+            numeroDeVendas: monthNumVendas,
+            custosVariaveis: monthCustosVar,
             custosFixos: parseFloat((12000 + (Math.random() * 1000)).toFixed(2)),
-            despesasOperacionais: simDespesasOp,
+            despesasOperacionais: monthDespesasOp,
             depreciacao: 500,
             outrasReceitasDespesas: 0,
-            investimentos: i === 5 ? 5000 : 0,
+            investimentos: i === 5 ? 5000 : 0, // Exemplo pontual
             financiamentosEntradas: 0,
             amortizacaoDividas: 0,
             aporteSocios: 0,
             distribuicaoLucros: 0,
-            impostos: parseFloat((baseRevenue * 0.08).toFixed(2)),
+            impostos: parseFloat((baseRevenue * 0.08).toFixed(2)), // ~8% Simples
             
-            // Aqui inserimos os dados diários gerados
+            // Array preenchido com dados proporcionais
             dailyEntries: generatedDailyEntries 
         };
 
         financialData[currentYear][i] = monthlyData;
     }
 
-    // 3. Atualizar Checkbox e Salvar (MANTIDO)
+    // 3. Finalização e Salvamento
     allowManualEditCheckbox.checked = true;
 
     try {
@@ -745,16 +749,48 @@ async function handleResetAndPopulateDemoData() {
         
         updateAllCalculations(); 
         
-        // Atualiza a visualização da tabela diária para o mês atual, se estiver visível
-        const currentMonthIndex = parseInt(dailyMonthSelector.value) || 0;
-        renderDailyEntries(currentYear, currentMonthIndex);
+        // Força a renderização da tabela diária para o mês selecionado atualmente
+        const selectedMonth = parseInt(dailyMonthSelector.value) || 0;
+        renderDailyEntries(currentYear, selectedMonth);
 
-        alert("Dados zerados e preenchidos com a simulação (Mensal e Diária) com sucesso!");
+        alert("Simulação concluída! Dados mensais e diários gerados com sucesso.");
     } catch (error) {
         console.error("Erro ao preencher dados de demo:", error);
-        alert("Erro ao salvar os dados.");
+        alert("Erro ao salvar os dados simulados.");
     }
 }
+
+btnResetPopulateDemo.addEventListener('click', handleResetAndPopulateDemoData);
+
+
+// === FUNÇÕES DE BACKUP E RESTORE ===
+
+function exportLocalBackup() {
+    if (!financialData || Object.keys(financialData).length === 0) {
+        const confirmBackup = confirm("Parece que não há dados financeiros carregados. Deseja fazer o backup mesmo assim?");
+        if (!confirmBackup) return;
+    }
+
+    const backupData = {
+        financialData: JSON.parse(JSON.stringify(financialData)), 
+        userSettings: JSON.parse(JSON.stringify(userSettings)), 
+        exportDate: new Date().toISOString(),
+        appVersion: "1.2"
+    };
+
+    const dataStr = JSON.stringify(backupData, null, 2);
+    const blob = new Blob([dataStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `backup_financeiro_${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
 function importLocalBackup(e) {
     const file = e.target.files[0];
     if (!file) return;
