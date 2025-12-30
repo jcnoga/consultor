@@ -163,6 +163,7 @@
                 <div class="section-header">
                     <h2>Diagnóstico Empresarial</h2>
                     <div class="controls">
+                        <!-- Botões XLSX Adicionados -->
                         <button id="btn-export-company-xlsx" class="excel-btn">📤 Baixar Excel</button>
                         <label for="btn-import-company-xlsx" class="excel-btn file-btn">📥 Importar Excel</label>
                         <input type="file" id="btn-import-company-xlsx" accept=".xlsx, .xls" style="display: none;">
@@ -201,6 +202,7 @@
                 <div class="section-header">
                     <h2>Lançamento Diário</h2>
                     <div class="controls">
+                        <!-- Botões XLSX Adicionados -->
                         <button id="btn-export-daily-xlsx" class="excel-btn">📤 Baixar Excel</button>
                         <label for="btn-import-daily-xlsx" class="excel-btn file-btn">📥 Importar Excel</label>
                         <input type="file" id="btn-import-daily-xlsx" accept=".xlsx, .xls" style="display: none;">
@@ -237,6 +239,7 @@
                 <div class="section-header">
                     <h2>Lançamentos Mensais <span id="auto-calc-notice">(Campos com * são calculados automaticamente)</span></h2>
                     <div class="controls">
+                        <!-- Botões XLSX Adicionados -->
                         <button id="btn-export-monthly-xlsx" class="excel-btn">📤 Baixar Excel</button>
                         <label for="btn-import-monthly-xlsx" class="excel-btn file-btn">📥 Importar Excel</label>
                         <input type="file" id="btn-import-monthly-xlsx" accept=".xlsx, .xls" style="display: none;">
@@ -263,7 +266,6 @@
                 <div class="section-header">
                     <h2>Indicadores Anuais e Gestão da Conta</h2>
                     <div class="controls">
-                        <button id="btn-export-annual-xlsx" class="excel-btn">📤 Baixar Excel</button>
                         <button id="btn-export-annual" class="pdf-btn">📄 Baixar PDF</button>
                         <button id="recalculate-annual">🔄 Recalcular Indicadores</button>
                         <button id="delete-account-btn" class="danger">🗑️ Excluir Conta e Dados</button>
@@ -276,10 +278,7 @@
             <section id="evolucao" class="tab-content">
                 <div class="section-header">
                     <h2>Evolução do Negócio</h2>
-                    <div class="controls">
-                        <button id="btn-export-evolution-xlsx" class="excel-btn">📤 Baixar Excel</button>
-                        <button id="btn-export-evolution" class="pdf-btn">📄 Baixar PDF</button>
-                    </div>
+                    <div class="controls"><button id="btn-export-evolution" class="pdf-btn">📄 Baixar PDF</button></div>
                 </div>
                 <div class="charts-container"><div class="chart-wrapper"><h3>Evolução Mensal (Faturamento, Custos e Lucro)</h3><canvas id="monthlyEvolutionChart"></canvas></div><div class="chart-wrapper"><h3>Evolução do Fluxo de Caixa Livre</h3><canvas id="cashFlowChart"></canvas></div></div>
             </section>
@@ -411,8 +410,6 @@ const btnExportDailyXLSX = document.getElementById('btn-export-daily-xlsx');
 const btnImportDailyXLSX = document.getElementById('btn-import-daily-xlsx');
 const btnExportMonthlyXLSX = document.getElementById('btn-export-monthly-xlsx');
 const btnImportMonthlyXLSX = document.getElementById('btn-import-monthly-xlsx');
-const btnExportAnnualXLSX = document.getElementById('btn-export-annual-xlsx');
-const btnExportEvolutionXLSX = document.getElementById('btn-export-evolution-xlsx');
 
 // Botões de Backup
 const btnBackupLocal = document.getElementById('btn-backup-local');
@@ -454,7 +451,7 @@ let userSettings = {};
 let currentlyEditingIndex = null;
 const DEFAULT_COMPANY_NAME = 'Noga Consultoria'; 
 const ADMIN_EMAIL = 'jcnvap@gmail.com'; 
-const DEFAULT_TRIAL_DAYS = 15; // 1. ALTERAÇÃO SOLICITADA: Dias de teste automático
+const DEFAULT_TRIAL_DAYS = 0; // 1. ALTERAÇÃO SOLICITADA: 0 dias de crédito
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 
@@ -538,7 +535,7 @@ function handleRegister(e) {
         .then(userCredential => {
             const now = new Date();
             const expirationDate = new Date();
-            // 1. ALTERAÇÃO SOLICITADA: Liberação automática de dias de crédito
+            // 1. ALTERAÇÃO SOLICITADA: Liberação automática de 0 dias
             expirationDate.setDate(now.getDate() + DEFAULT_TRIAL_DAYS);
 
             return db.collection('users').doc(userCredential.user.uid).set({ 
@@ -554,7 +551,7 @@ function handleRegister(e) {
             });
         })
         .then(() => { 
-            alert(`Cadastro realizado com sucesso! Acesso liberado automaticamente por ${DEFAULT_TRIAL_DAYS} dias.`); 
+            alert(`Cadastro realizado com sucesso! Acesso liberado conforme regra do sistema (${DEFAULT_TRIAL_DAYS} dias).`); 
             toggleForms('login'); 
         })
         .catch(error => {
@@ -1244,37 +1241,6 @@ async function handleImportMonthlyXLSX(e) {
         alert('Erro ao importar. Certifique-se de usar o mesmo modelo da exportação.');
     }
     e.target.value = '';
-}
-
-// -- Exportação apenas (Indicadores/Evolução) --
-function handleExportAnnualXLSX() {
-    const tableData = [];
-    const yearData = financialData[currentYear] || {};
-    let annualTotals = {}; 
-    INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
-    
-    for(let i=0; i<12; i++) { 
-        if(yearData[i]) INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0);
-    }
-    const indicators = calculateIndicators(annualTotals);
-    
-    Object.keys(indicators).forEach(k => {
-        tableData.push([k, indicators[k]]);
-    });
-    
-    const wb = createSheetFromData(tableData, ['Indicador', 'Valor Total'], 'Indicadores Anuais');
-    XLSX.writeFile(wb, `Indicadores_Anuais_${currentYear}.xlsx`);
-}
-
-function handleExportEvolutionXLSX() {
-    const yearData = financialData[currentYear] || {};
-    const rows = [];
-    for(let i=0; i<12; i++) {
-        const ind = calculateIndicators(yearData[i]);
-        rows.push([MONTHS[i], ind.faturamento, ind.custosTotais, ind.lucroLiquido, ind.fluxoCaixaLivre]);
-    }
-    const wb = createSheetFromData(rows, ['Mês', 'Faturamento', 'Custos Totais', 'Lucro Líquido', 'Fluxo Caixa Livre'], 'Evolução');
-    XLSX.writeFile(wb, `Evolucao_${currentYear}.xlsx`);
 }
 
 
@@ -2108,8 +2074,6 @@ btnExportDailyXLSX.addEventListener('click', handleExportDailyXLSX);
 btnImportDailyXLSX.addEventListener('change', handleImportDailyXLSX);
 btnExportMonthlyXLSX.addEventListener('click', handleExportMonthlyXLSX);
 btnImportMonthlyXLSX.addEventListener('change', handleImportMonthlyXLSX);
-btnExportAnnualXLSX.addEventListener('click', handleExportAnnualXLSX);
-btnExportEvolutionXLSX.addEventListener('click', handleExportEvolutionXLSX);
 document.getElementById('export-excel-monthly').addEventListener('click', exportMonthlyToExcel); // Existente
 
 mainNav.addEventListener('click', (e) => {
