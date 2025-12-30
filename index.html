@@ -514,7 +514,7 @@ function handleRegister(e) {
         .then(userCredential => {
             const now = new Date();
             const expirationDate = new Date();
-            expirationDate.setDate(now.getDate() + 30);
+            expirationDate.setDate(now.getDate() + 00);
 
             return db.collection('users').doc(userCredential.user.uid).set({ 
                 email: userCredential.user.email, 
