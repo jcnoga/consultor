@@ -466,15 +466,29 @@ async function checkAccessStatus() {
 }
 
 function lockAllTabs() {
-    const hiddenTabs = document.querySelectorAll('nav button');
-    hiddenTabs.forEach(tab => {
-        if(tab.dataset.tab !== 'diagnostico' && tab.dataset.tab !== 'entradas-mensais' && tab.dataset.tab !== 'configuracoes') {
+    // Lista de abas que DEVEM permanecer visíveis quando o crédito for 0 (Regra 2)
+    // 'entradas-diarias' foi incluída para satisfazer a Regra 1 (Novo Usuário)
+    const allowedTabs = ['diagnostico', 'entradas-diarias', 'entradas-mensais', 'configuracoes'];
+    
+    const allTabs = document.querySelectorAll('nav button');
+    
+    allTabs.forEach(tab => {
+        if(allowedTabs.includes(tab.dataset.tab)) {
+            // Remove a classe hidden-tab para garantir que seja exibida
+            // Isso garante que novos usuários vejam 'Entradas Diárias' imediatamente
+            tab.classList.remove('hidden-tab');
+        } else {
+            // Adiciona a classe hidden-tab para ocultar as demais abas (Regra 2)
             tab.classList.add('hidden-tab');
         }
     });
-    btnGenerateUnlockCode.disabled = false;
-    btnGenerateUnlockCode.style.backgroundColor = '#d4ac0d';
-    btnGenerateUnlockCode.textContent = 'Gerar Código de Desbloqueio';
+
+    // Lógica existente de controle do botão de desbloqueio (INALTERADA)
+    if(btnGenerateUnlockCode) {
+        btnGenerateUnlockCode.disabled = false;
+        btnGenerateUnlockCode.style.backgroundColor = '#d4ac0d';
+        btnGenerateUnlockCode.textContent = 'Gerar Código de Desbloqueio';
+    }
 }
 
 function unlockAllTabs() {
