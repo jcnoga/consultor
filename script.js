@@ -1958,7 +1958,3 @@ dailyEntryForm.addEventListener('submit', async (e) => {
 
 // --- INICIALIZAÇÃO ---
 initialize();
-</script>
-
-</body>
-</html>
