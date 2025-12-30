@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="style.css">
     
     <!-- 1. SEGURANÇA: Bloqueio de execução local (file://) -->
-    <!-- Mantido no HTML para execução imediata antes do render -->
+    <!-- Mantido no HTML para execução imediata antes do render da página -->
     <script>
         if (window.location.protocol === "file:") {
             document.documentElement.innerHTML = ""; // Limpa a tela
