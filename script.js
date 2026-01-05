@@ -70,7 +70,7 @@ const cancelEditBtn = document.getElementById('cancel-edit-btn');
 // Elementos da aba Diagnóstico
 const diagnosisForm = document.getElementById('diagnosis-form');
 
-// Elementos da Nova Aba Consultor
+// Elementos da Nova Aba Consultor (Diagnóstico)
 const saveConsultantDiagnosisBtn = document.getElementById('save-consultant-diagnosis');
 const consultantDiagnosisText = document.getElementById('consultant-diagnosis-text');
 
@@ -168,8 +168,6 @@ async function handleAuthStateChange(user) {
 
 function handleLogin(e) { 
     e.preventDefault(); 
-    
-    // CORREÇÃO: Evita que o login seja processado se o formulário estiver oculto (ex: usuário tentando cadastrar)
     if (loginForm.style.display === 'none') return;
 
     const email = document.getElementById('login-user').value; 
@@ -291,6 +289,11 @@ async function showApp() {
     document.getElementById('diag-observations').value = userSettings.observations || '';
     
     consultantDiagnosisText.value = userSettings.consultantDiagnosis || '';
+
+    // Carregar Avaliação do Consultor (Nova Aba)
+    if(document.getElementById('consultant-evaluation-text')) {
+        document.getElementById('consultant-evaluation-text').value = userSettings.consultantEvaluation || '';
+    }
 
     allowManualEditCheckbox.checked = userSettings.allowManualEdit === true;
 
@@ -477,23 +480,18 @@ async function checkAccessStatus() {
 }
 
 function lockAllTabs() {
-    // Lista de abas que DEVEM permanecer visíveis quando o crédito for 0.
-    // Inclui 'entradas-diarias' para garantir acesso a novos usuários.
     const allowedTabs = ['diagnostico', 'entradas-diarias', 'entradas-mensais', 'configuracoes'];
     
     const allTabs = document.querySelectorAll('nav button');
     
     allTabs.forEach(tab => {
         if(allowedTabs.includes(tab.dataset.tab)) {
-            // Remove a classe hidden-tab para garantir que seja exibida
             tab.classList.remove('hidden-tab');
         } else {
-            // Adiciona a classe hidden-tab para ocultar as demais abas
             tab.classList.add('hidden-tab');
         }
     });
 
-    // Lógica existente de controle do botão de desbloqueio
     if(btnGenerateUnlockCode) {
         btnGenerateUnlockCode.disabled = false;
         btnGenerateUnlockCode.style.backgroundColor = '#d4ac0d';
@@ -540,7 +538,6 @@ async function handleUnlockTabs() {
             const daysInput = parts.length > 1 ? parseInt(parts[1]) : 30; 
 
             let isValid = false;
-            // Senha mestra
             if (parts[0] === '130954') {
                 isValid = true;
             } 
@@ -605,51 +602,41 @@ btnResetAuth.addEventListener('click', resetAccess);
 
 // === FUNÇÕES DE DADOS DE DEMONSTRAÇÃO E RESET ===
 
-// Função Auxiliar para Geração de Dados Diários Proporcionais
 function generateDailySimulation(year, monthIndex, totals) {
-    // Determina quantos dias exatos tem naquele mês/ano (trata bissextos)
     const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
     const entries = [];
     
-    // Saldos restantes para distribuir (Garante coerência com o total mensal)
     let remFat = totals.faturamento;
-    let remCustos = totals.custosVariaveis; // Mapeia para 'Comissão' no diário
+    let remCustos = totals.custosVariaveis; 
     let remDesp = totals.despesasOperacionais;
     let remVendas = totals.numeroDeVendas;
 
     for (let day = 1; day <= daysInMonth; day++) {
         const isLastDay = day === daysInMonth;
-        // Formato de data compatível com input type="date"
         const dateStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
         let dFat, dCustos, dDesp, dVendas;
 
         if (isLastDay) {
-            // No último dia, lançamos exatamente o que sobrou para zerar a diferença (Matemática Exata)
             dFat = parseFloat(remFat.toFixed(2));
             dCustos = parseFloat(remCustos.toFixed(2));
             dDesp = parseFloat(remDesp.toFixed(2));
             dVendas = Math.round(remVendas);
         } else {
-            // Distribuição Proporcional com leve variância (Simula realidade de comércio)
-            // Variância entre 0.6x e 1.4x da média diária
             const variance = 0.6 + Math.random() * 0.8; 
             const daysLeft = (daysInMonth - day + 1);
 
-            // Calcula a fatia do dia baseada no saldo restante dividido pelos dias que faltam
             dFat = parseFloat(((remFat / daysLeft) * variance).toFixed(2));
             dCustos = parseFloat(((remCustos / daysLeft) * variance).toFixed(2));
             dDesp = parseFloat(((remDesp / daysLeft) * variance).toFixed(2));
             dVendas = Math.round((remVendas / daysLeft) * variance);
         }
 
-        // Proteção contra valores negativos (caso a variância seja muito agressiva em saldos baixos)
         dFat = Math.max(0, dFat);
         dCustos = Math.max(0, dCustos);
         dDesp = Math.max(0, dDesp);
         dVendas = Math.max(0, dVendas);
 
-        // Atualiza saldos para o próximo dia
         remFat -= dFat;
         remCustos -= dCustos;
         remDesp -= dDesp;
@@ -660,7 +647,7 @@ function generateDailySimulation(year, monthIndex, totals) {
             faturamento: dFat,
             despesas: dDesp,
             comissao: dCustos, 
-            outras: 0, // Campo 'Outras' zerado na simulação padrão
+            outras: 0, 
             vendas: dVendas
         });
     }
@@ -677,7 +664,6 @@ async function handleResetAndPopulateDemoData() {
 
     if (!confirmed) return;
 
-    // 1. Reset & Configurar Aba Empresa (Lógica Inalterada)
     const demoCompanyData = {
         corporateName: "Loja Modelo de Exemplo Ltda",
         cnpj: "12.345.678/0001-90",
@@ -693,7 +679,6 @@ async function handleResetAndPopulateDemoData() {
         observations: "Dados gerados automaticamente para demonstração do sistema. Faturamento médio de R$ 60k com distribuição diária proporcional."
     };
     
-    // Atualizar userSettings local e na UI (Lógica Inalterada)
     userSettings = { ...userSettings, ...demoCompanyData, allowManualEdit: true };
     document.getElementById('diag-corporate-name').value = demoCompanyData.corporateName;
     document.getElementById('diag-cnpj').value = demoCompanyData.cnpj;
@@ -704,22 +689,17 @@ async function handleResetAndPopulateDemoData() {
     document.getElementById('diag-observations').value = demoCompanyData.observations;
     companyNameEl.textContent = demoCompanyData.corporateName;
 
-    // 2. Reset & Preencher Entradas Mensais E Diárias
     if (!financialData[currentYear]) financialData[currentYear] = {};
     
     for (let i = 0; i < 12; i++) {
-        // Simulação Mensal: Variação aleatória de +/- 10% em torno de 60k
         const variation = 1 + (Math.random() * 0.2 - 0.1); 
         const baseRevenue = 60000 * variation;
         
-        // Definição dos Totais Mensais
         const monthFaturamento = parseFloat(baseRevenue.toFixed(2));
         const monthNumVendas = Math.floor(300 * variation);
-        const monthCustosVar = parseFloat((baseRevenue * 0.45).toFixed(2)); // ~45%
+        const monthCustosVar = parseFloat((baseRevenue * 0.45).toFixed(2)); 
         const monthDespesasOp = parseFloat((3000 + (Math.random() * 500)).toFixed(2));
 
-        // --- Geração dos Lançamentos Diários ---
-        // Chama a função auxiliar para distribuir o total mensal pelos dias do mês
         const generatedDailyEntries = generateDailySimulation(currentYear, i, {
             faturamento: monthFaturamento,
             custosVariaveis: monthCustosVar,
@@ -735,21 +715,18 @@ async function handleResetAndPopulateDemoData() {
             despesasOperacionais: monthDespesasOp,
             depreciacao: 500,
             outrasReceitasDespesas: 0,
-            investimentos: i === 5 ? 5000 : 0, // Exemplo pontual
+            investimentos: i === 5 ? 5000 : 0, 
             financiamentosEntradas: 0,
             amortizacaoDividas: 0,
             aporteSocios: 0,
             distribuicaoLucros: 0,
-            impostos: parseFloat((baseRevenue * 0.08).toFixed(2)), // ~8% Simples
-            
-            // Array preenchido com dados proporcionais
+            impostos: parseFloat((baseRevenue * 0.08).toFixed(2)), 
             dailyEntries: generatedDailyEntries 
         };
 
         financialData[currentYear][i] = monthlyData;
     }
 
-    // 3. Finalização e Salvamento
     allowManualEditCheckbox.checked = true;
 
     try {
@@ -758,7 +735,6 @@ async function handleResetAndPopulateDemoData() {
         
         updateAllCalculations(); 
         
-        // Força a renderização da tabela diária para o mês selecionado atualmente
         const selectedMonth = parseInt(dailyMonthSelector.value) || 0;
         renderDailyEntries(currentYear, selectedMonth);
 
@@ -847,7 +823,6 @@ function importLocalBackup(e) {
 
 // === FUNÇÕES XLSX ===
 
-// Helper para criar planilha
 function createSheetFromData(data, headers, sheetName) {
     const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
     const wb = XLSX.utils.book_new();
@@ -855,7 +830,6 @@ function createSheetFromData(data, headers, sheetName) {
     return wb;
 }
 
-// Helper para ler arquivo Excel
 function readXLSXFile(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -869,7 +843,6 @@ function readXLSXFile(file) {
     });
 }
 
-// -- Aba Empresa --
 function handleExportCompanyXLSX() {
     const formMap = {
         'Razão Social': userSettings.corporateName,
@@ -902,7 +875,7 @@ async function handleImportCompanyXLSX(e) {
     try {
         const wb = await readXLSXFile(file);
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const data = XLSX.utils.sheet_to_json(ws, { header: 1 }); // Array of arrays
+        const data = XLSX.utils.sheet_to_json(ws, { header: 1 }); 
 
         const fieldMapReverse = {
             'Razão Social': 'diag-corporate-name',
@@ -937,7 +910,7 @@ async function handleImportCompanyXLSX(e) {
         });
 
         if (updated) {
-            saveDiagnosisData(null); // Salva no Firebase
+            saveDiagnosisData(null); 
             alert('Dados da empresa importados com sucesso!');
         }
     } catch (err) {
@@ -947,7 +920,6 @@ async function handleImportCompanyXLSX(e) {
     e.target.value = '';
 }
 
-// -- Aba Entradas Diárias --
 function handleExportDailyXLSX() {
     const month = parseInt(dailyMonthSelector.value);
     const yearData = financialData[currentYear] || {};
@@ -975,7 +947,7 @@ async function handleImportDailyXLSX(e) {
     try {
         const wb = await readXLSXFile(file);
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const data = XLSX.utils.sheet_to_json(ws); // Objects based on header
+        const data = XLSX.utils.sheet_to_json(ws); 
 
         const month = parseInt(dailyMonthSelector.value);
         if (!financialData[currentYear]) financialData[currentYear] = {};
@@ -983,7 +955,6 @@ async function handleImportDailyXLSX(e) {
 
         let addedCount = 0;
         data.forEach(row => {
-            // Mapping assumptions based on Export headers
             const date = row['Data'] || row['date'];
             if (date) {
                 financialData[currentYear][month].dailyEntries.push({
@@ -1014,7 +985,6 @@ async function handleImportDailyXLSX(e) {
     e.target.value = '';
 }
 
-// -- Aba Entradas Mensais --
 function handleExportMonthlyXLSX() {
     const yearData = financialData[currentYear] || {};
     const headers = ['Mês', 'Faturamento', 'NumVendas', 'CustosVariaveis', 'CustosFixos', 'DespesasOp', 'Depreciacao', 'Outras', 'Investimentos', 'FinancEntradas', 'AmortDividas', 'AporteSocios', 'DistrLucros', 'Impostos'];
@@ -1049,7 +1019,6 @@ async function handleImportMonthlyXLSX(e) {
 
         if (!financialData[currentYear]) financialData[currentYear] = {};
         
-        // Map Excel headers to JSON keys
         const mapKeys = {
             'Faturamento': 'faturamento', 'NumVendas': 'numeroDeVendas', 'CustosVariaveis': 'custosVariaveis',
             'CustosFixos': 'custosFixos', 'DespesasOp': 'despesasOperacionais', 'Depreciacao': 'depreciacao',
@@ -1059,7 +1028,7 @@ async function handleImportMonthlyXLSX(e) {
         };
 
         data.forEach((row, idx) => {
-            if (idx < 12) { // 12 months
+            if (idx < 12) { 
                 if (!financialData[currentYear][idx]) financialData[currentYear][idx] = { dailyEntries: [] };
                 Object.keys(mapKeys).forEach(header => {
                     if (row[header] !== undefined) {
@@ -1080,7 +1049,6 @@ async function handleImportMonthlyXLSX(e) {
     e.target.value = '';
 }
 
-// -- Exportação apenas (Indicadores/Evolução) --
 function handleExportAnnualXLSX() {
     const tableData = [];
     const yearData = financialData[currentYear] || {};
@@ -1298,10 +1266,11 @@ function generateConsultantDiagnosisPDF() {
     doc.setTextColor(0, 95, 115);
     doc.text(`Parecer do Consultor - ${currentYear}`, 14, 20);
     
+    let currentY = 30;
     doc.setFontSize(11);
     doc.setTextColor(0);
     const diagnosisText = userSettings.consultantDiagnosis || "Nenhum diagnóstico registrado.";
-    const splitDiagnosis = doc.splitTextToSize(diagnosisText, pageWidth - 28);
+    const splitDiagnosis = doc.splitTextToSize(diagnosisText, 180);
     doc.text(splitDiagnosis, 14, currentY);
 
     doc.save(`Parecer_Consultor_${currentYear}.pdf`);
@@ -1828,10 +1797,9 @@ function renderAllCharts() {
     }
 }
 
-// CORREÇÃO DE SEGURANÇA (XSS): Usando createElement em vez de innerHTML
 function renderDailyEntries(year, month) {
     const tableBody = document.querySelector('#daily-entries-table tbody');
-    tableBody.innerHTML = ''; // Limpa a tabela
+    tableBody.innerHTML = ''; 
     
     if (!financialData[year] || !financialData[year][month] || !financialData[year][month].dailyEntries) {
         const tr = document.createElement('tr');
@@ -1853,7 +1821,6 @@ function renderDailyEntries(year, month) {
     entries.forEach((entry, index) => {
         const row = document.createElement('tr');
         
-        // Cria cada célula de forma segura
         const createCell = (text) => {
             const td = document.createElement('td');
             td.textContent = text;
@@ -1869,7 +1836,6 @@ function renderDailyEntries(year, month) {
         row.appendChild(createCell(formatCurrency(parseFloat(entry.outras))));
         row.appendChild(createCell(entry.vendas));
 
-        // Botões de ação (HTML seguro pois é controlado por nós)
         const actionsTd = document.createElement('td');
         actionsTd.innerHTML = `<button class="action-btn edit-btn" onclick="handleEditDailyEntry(${year}, ${month}, ${index})">Editar</button><button class="action-btn delete-btn" onclick="handleDeleteDailyEntry(${year}, ${month}, ${index})">Excluir</button>`;
         row.appendChild(actionsTd);
@@ -1944,7 +1910,7 @@ btnExportDailyXLSX.addEventListener('click', handleExportDailyXLSX);
 btnImportDailyXLSX.addEventListener('change', handleImportDailyXLSX);
 btnExportMonthlyXLSX.addEventListener('click', handleExportMonthlyXLSX);
 btnImportMonthlyXLSX.addEventListener('change', handleImportMonthlyXLSX);
-document.getElementById('export-excel-monthly').addEventListener('click', exportMonthlyToExcel); // Existente
+document.getElementById('export-excel-monthly').addEventListener('click', exportMonthlyToExcel); 
 
 mainNav.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
@@ -2061,5 +2027,164 @@ dailyEntryForm.addEventListener('submit', async (e) => {
     setTimeout(() => dailyMessageEl.textContent = '', 3000);
 });
 
-// --- INICIALIZAÇÃO ---
+
+// --- FUNCIONALIDADE: Gerador de Prompt para IA (Atualizado) ---
+
+const btnGenerateAiPrompt = document.getElementById('btn-generate-ai-prompt');
+const aiPromptContainer = document.getElementById('ai-prompt-container');
+const aiPromptOutput = document.getElementById('ai-prompt-output');
+const btnCopyPrompt = document.getElementById('btn-copy-prompt');
+
+function generateAiPromptData() {
+    if (!currentUser) return;
+
+    // 1. Coleta e Cálculo de Dados Financeiros do Ano Atual
+    const yearData = financialData[currentYear] || {};
+    let annualTotals = {}; 
+    INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
+    
+    let monthsWithDataCount = 0;
+    for(let i=0; i<12; i++) { 
+        if(yearData[i]) {
+            INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0);
+            if((yearData[i].faturamento > 0) || (yearData[i].custosVariaveis > 0)) monthsWithDataCount++;
+        }
+    }
+    
+    const divisor = monthsWithDataCount > 0 ? monthsWithDataCount : 1;
+    const indicators = calculateIndicators(annualTotals);
+
+    // 2. Construção do Prompt Atualizado
+    let promptText = `Aja como um consultor financeiro especializado em pequenos e médios negócios e elabore um plano de ação e negócios para os próximos 90 dias, considerando os seguintes dados:
+
+=== PERFIL DA EMPRESA ===
+Nome: ${userSettings.corporateName || 'Não informado'}
+Setor: ${userSettings.sector || 'Não informado'}
+Regime Tributário: ${userSettings.taxRegime || 'Não informado'}
+Tipo de Negócio: ${document.getElementById('business-type').value}
+
+=== PRESENÇA DIGITAL E FERRAMENTAS ===
+Utiliza ERP: ${userSettings.hasErp || 'Não'}
+Site Institucional: ${userSettings.hasSite || 'Não'}
+E-commerce: ${userSettings.hasEcommerce || 'Não'}
+Landing Page: ${userSettings.hasLandingPage || 'Não'}
+Redes Sociais: Instagram (${userSettings.hasInstagram || 'Não'}), Facebook (${userSettings.hasFacebook || 'Não'})
+Tráfego Pago (Ads): ${userSettings.hasAds || 'Não'}
+Marketplaces Atuais: ${userSettings.marketplaceList || 'Nenhum listado'}
+
+=== DADOS FINANCEIROS (${currentYear}) ===
+Faturamento Total Anual: ${formatCurrency(indicators.faturamento)}
+Faturamento Médio Mensal: ${formatCurrency(indicators.faturamento / divisor)}
+Lucro Líquido Total: ${formatCurrency(indicators.lucroLiquido)}
+Margem Líquida Média: ${formatPercent(indicators.margemLiquida)}
+Markup Médio: ${formatPercent(indicators.markup)}
+Custos Fixos Totais: ${formatCurrency(annualTotals.custosFixos)}
+Custos Variáveis Totais: ${formatCurrency(annualTotals.custosVariaveis)}
+Fluxo de Caixa Livre Total: ${formatCurrency(indicators.fluxoCaixaLivre)}
+
+=== OBSERVAÇÕES REGISTRADAS ===
+${userSettings.observations || 'Sem observações adicionais.'}
+
+=== SOLICITAÇÃO DO PLANO DE AÇÃO ===
+Com base nos dados acima, estruture um plano de ação estratégico de 90 dias.
+
+O plano deve contemplar OBRIGATORIAMENTE os seguintes pontos:
+1. Análise financeira e corte de custos
+2. Treinamento e capacitação da equipe de vendas
+3. Estratégias de parcerias comerciais
+4. Ações de upsell e cross-sell
+5. Estratégias de downsell
+6. Otimização e uso do Google Meu Negócio
+7. Estratégias para redes sociais
+8. Utilização do WhatsApp como canal de vendas e relacionamento
+9. Criação e otimização de landing pages
+10. Estruturação ou melhoria de site institucional
+11. Integração com ERP Bling
+12. Estratégias de vendas em marketplaces
+13. Avaliação de viabilidade para importação direta da China visando venda em site próprio e marketplaces
+
+REGRAS DE FORMATAÇÃO:
+A. Para cada um dos 13 pontos listados acima, forneça a estratégia e liste um EXEMPLO PRÁTICO de como realizar (ex: "Como fazer: [passo a passo breve]").
+B. Ao final de toda a explicação, transforme este plano em um CHECKLIST OPERACIONAL (lista de verificação) organizado por semanas ou fases, para facilitar a execução nos 90 dias.`;
+
+    // 3. Exibição
+    aiPromptOutput.value = promptText;
+    aiPromptContainer.style.display = 'block';
+    aiPromptContainer.scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyPromptToClipboard() {
+    aiPromptOutput.select();
+    aiPromptOutput.setSelectionRange(0, 99999);
+    
+    try {
+        navigator.clipboard.writeText(aiPromptOutput.value).then(() => {
+            alert('Prompt copiado com sucesso! Agora cole no seu assistente de IA preferido.');
+        });
+    } catch (err) {
+        document.execCommand('copy');
+        alert('Prompt copiado!');
+    }
+}
+
+if(btnGenerateAiPrompt) {
+    btnGenerateAiPrompt.addEventListener('click', generateAiPromptData);
+}
+if(btnCopyPrompt) {
+    btnCopyPrompt.addEventListener('click', copyPromptToClipboard);
+}
+
+
+// --- FUNCIONALIDADE: Aba Avaliação do Consultor (Pós-Configurações) ---
+
+const btnSaveEvaluation = document.getElementById('btn-save-evaluation');
+const btnExportEvaluationPdf = document.getElementById('btn-export-evaluation-pdf');
+const evaluationTextarea = document.getElementById('consultant-evaluation-text');
+
+async function saveConsultantEvaluationOnly() {
+    if (!currentUser) return;
+    const evaluation = evaluationTextarea.value;
+
+    const settings = {
+        ...userSettings,
+        consultantEvaluation: evaluation
+    };
+
+    try {
+        await saveDataToFirestore(currentUser.uid, settings, 'userSettings');
+        userSettings = settings;
+        alert('Avaliação do Consultor salva com sucesso!');
+    } catch (error) {
+        console.error("Falha ao salvar avaliação:", error);
+        alert('Erro ao salvar. Verifique a conexão.');
+    }
+}
+
+function generateEvaluationPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
+    doc.setFontSize(16);
+    doc.setTextColor(0, 95, 115);
+    doc.text(`Avaliação e Plano de Ação - ${userSettings.corporateName || 'Empresa'}`, 14, 20);
+    
+    doc.setFontSize(11);
+    doc.setTextColor(0);
+    
+    const text = evaluationTextarea.value || "Nenhuma avaliação registrada.";
+    const splitText = doc.splitTextToSize(text, pageWidth - 28);
+    
+    doc.text(splitText, 14, 30);
+    doc.save(`Avaliacao_Consultor_${new Date().getFullYear()}.pdf`);
+}
+
+if(btnSaveEvaluation) {
+    btnSaveEvaluation.addEventListener('click', saveConsultantEvaluationOnly);
+}
+if(btnExportEvaluationPdf) {
+    btnExportEvaluationPdf.addEventListener('click', generateEvaluationPDF);
+}
+
+// INICIALIZAÇÃO
 initialize();

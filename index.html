@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>APP Financeiro Profissional Completo</title>
-    
     <!-- Link para o arquivo de estilos externo -->
     <link rel="stylesheet" href="style.css">
-    
-    <!-- 1. SEGURANÇA: Bloqueio de execução local (file://) -->
+    <!-- NOTA DE SEGURANÇA: Script de bloqueio file:// removido para permitir execução local -->
+</head>
+
+<!-- 1. SEGURANÇA: Bloqueio de execução local (file://) -->
     <!-- Mantido no HTML para execução imediata antes do render da página -->
     <script>
         if (window.location.protocol === "file:") {
@@ -17,7 +18,7 @@
             throw new Error("Execução local bloqueada."); 
         }
     </script>
-</head>
+	
 <body>
 
     <div id="login-section">
@@ -59,6 +60,8 @@
             <button class="tab-link hidden-tab" data-tab="glossario">Glossário de Ajuda</button>
             <button class="tab-link hidden-tab" data-tab="diagnostico-consultor">Diagnóstico do Consultor</button>
             <button class="tab-link" data-tab="configuracoes">⚙️ Configurações</button>
+            <!-- NOVA ABA -->
+            <button class="tab-link" data-tab="avaliacao-consultor">📋 Avaliação do Consultor</button>
         </nav>
         <main>
             <!-- Aba Empresa -->
@@ -224,12 +227,27 @@
                     <div class="input-group"><label for="benchmark-markup">Meta de Markup Mínimo (%)</label><input type="number" id="benchmark-markup" placeholder="Ex: 120"></div>
                 </div>
                 
-                <!-- Nova Área de Dados de Demonstração (Solicitada) -->
                 <div class="demo-section">
                     <h3>🧪 Simulação e Reset</h3>
                     <p><strong>Atenção:</strong> Esta funcionalidade irá <strong>ZERAR (limpar)</strong> os dados atuais das abas <em>Empresa</em> e <em>Valores Mensais</em> e, em seguida, preenchê-los com dados fictícios de um comércio com faturamento médio de R$ 60.000,00.</p>
                     <p>Ao executar, a opção "Permitir edição manual dos totais" será ativada automaticamente.</p>
                     <button id="btn-reset-populate-demo" class="btn" style="background-color: #6c5ce7; color: white; margin-top: 10px; max-width: 350px;">Simular Dados (Reset + R$ 60k)</button>
+                </div>
+
+                <!-- SEÇÃO IA -->
+                <div class="ai-section">
+                    <h3>🤖 Consultor IA - Gerador de Plano de Ação</h3>
+                    <p>Clique no botão abaixo para gerar um comando completo (prompt) contendo todos os dados financeiros e de perfil da sua empresa. Copie e cole no ChatGPT, Claude ou Gemini para receber um plano estratégico de 90 dias.</p>
+                    
+                    <button id="btn-generate-ai-prompt" class="btn-ai">
+                        ✨ Gerar Prompt de Consultoria
+                    </button>
+
+                    <div id="ai-prompt-container" style="display: none; margin-top: 20px;">
+                        <label for="ai-prompt-output"><strong>Copie o texto abaixo:</strong></label>
+                        <textarea id="ai-prompt-output" rows="12" readonly></textarea>
+                        <button id="btn-copy-prompt" class="btn btn-copy">📋 Copiar para Área de Transferência</button>
+                    </div>
                 </div>
 
                 <div class="unlock-section">
@@ -254,6 +272,21 @@
                 </div>
 
                 <div class="backup-area"><h3>💾 Backup e Restauração de Dados</h3><p style="margin-bottom: 15px;">Faça o download de todos os seus dados para o computador ou restaure um arquivo salvo anteriormente. <strong>Atenção: A restauração substitui todos os dados atuais.</strong></p><div class="backup-controls"><button id="btn-backup-local" class="btn" style="background-color: #2e86de;">⬇️ Baixar Backup (Local)</button><button id="btn-restore-local" class="btn" style="background-color: #27ae60;">⬆️ Restaurar Backup</button><input type="file" id="input-restore-file" accept=".json" style="display: none;"></div></div>
+            </section>
+
+            <!-- NOVA SEÇÃO: AVALIAÇÃO DO CONSULTOR -->
+            <section id="avaliacao-consultor" class="tab-content">
+                <div class="section-header">
+                    <h2>Avaliação e Plano de Ação</h2>
+                    <div class="controls">
+                        <button id="btn-save-evaluation" class="primary">💾 Salvar Avaliação</button>
+                        <button id="btn-export-evaluation-pdf" class="pdf-btn">📄 Baixar PDF</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <p>Utilize este espaço para colar o resultado do plano de ação gerado pela IA ou suas considerações finais.</p>
+                    <textarea id="consultant-evaluation-text" rows="25" style="width: 100%; padding: 15px; border: 1px solid #ccc; border-radius: 5px; resize: vertical; font-family: 'Segoe UI', sans-serif; font-size: 1rem; line-height: 1.5;" placeholder="Cole aqui o resultado da consultoria (Checklist Operacional e Plano de 90 dias)..."></textarea>
+                </div>
             </section>
         </main>
     </div>
