@@ -125,14 +125,6 @@ const FIELD_DESCRIPTIONS = {
 const GLOSSARY_DATA = {
     faturamento: {nome: "Faturamento", formula: "Preço de Venda × Quantidade Vendida", significado: "Valor total das vendas de produtos ou serviços em um período, antes de qualquer dedução.", exemplo: "Vender 100 produtos a R$50 cada gera um faturamento de R$5.000.", dica: "Aumente o faturamento com estratégias de marketing, diversificação de produtos ou ajuste de preços."},
     faturamentoMedio: {nome: "Faturamento Bruto Médio", formula: "Faturamento Anual Total / 12", significado: "A média mensal do seu faturamento bruto durante o ano. Ajuda a entender a sazonalidade e o desempenho de vendas consistente.", dica: "Compare a média com os meses individuais para identificar seus melhores períodos de venda e planejar campanhas."},
-	const BUSINESS_BENCHMARKS = {
-    varejo: { margem: 15, custos: 60, markup: 100 },
-    servicos: { margem: 25, custos: 30, markup: 200 },
-    ecommerce: { margem: 12, custos: 55, markup: 130 },
-    restaurante: { margem: 18, custos: 35, markup: 250 },
-    industria_cosmeticos: { margem: 15, custos: 45, markup: 150 },
-    outras_industrias: { margem: 12, custos: 55, markup: 120 }
-};
     volumeVendasMedio: {nome: "Volume de Vendas Médio", formula: "Número de Vendas Anual Total / 12", significado: "O número médio de vendas realizadas por mês. Indica a sua capacidade de atrair e converter clientes.", dica: "Se o volume médio for baixo, foque em estratégias de marketing para atrair mais clientes ou em otimizar sua taxa de conversão."},
     custosVariaveis: {nome: "Custos Variáveis (CV)", formula: "Custo por Unidade × Quantidade Vendida", significado: "Custos que variam diretamente com o volume de produção ou vendas, como matéria-prima e comissões.", exemplo: "Se o custo da matéria-prima de um produto é R$10, e você vende 100, seu CV é de R$1.000.", dica: "Negocie com fornecedores e otimize a produção para reduzir os custos variáveis por unidade."},
     custosFixos: {nome: "Custos Fixos (CF)", formula: "Soma dos custos que não variam com a produção", significado: "Custos que a empresa tem todo mês, independentemente de vender muito ou pouco, como aluguel e salários fixos.", exemplo: "Aluguel do escritório de R$2.000 e folha de pagamento de R$8.000 somam R$10.000 de custos fixos.", dica: "Revise periodicamente seus custos fixos para identificar oportunidades de redução sem impactar a operação."},
@@ -1953,24 +1945,6 @@ btnImportDailyXLSX.addEventListener('change', handleImportDailyXLSX);
 btnExportMonthlyXLSX.addEventListener('click', handleExportMonthlyXLSX);
 btnImportMonthlyXLSX.addEventListener('change', handleImportMonthlyXLSX);
 document.getElementById('export-excel-monthly').addEventListener('click', exportMonthlyToExcel); // Existente
-
-
-// Gatilho para sugerir metas ao mudar o tipo de negócio
-document.getElementById('business-type').addEventListener('change', (e) => {
-    const type = e.target.value;
-    const bench = BUSINESS_BENCHMARKS[type];
-    if (bench) {
-        document.getElementById('benchmark-margem').value = bench.margem;
-        document.getElementById('benchmark-custos').value = bench.custos;
-        document.getElementById('benchmark-markup').value = bench.markup;
-        
-        // Opcional: Salva automaticamente no estado local para persistência imediata
-        userSettings.businessType = type;
-        userSettings.benchmarkMargem = bench.margem;
-        userSettings.benchmarkCustos = bench.custos;
-        userSettings.benchmarkMarkup = bench.markup;
-    }
-});
 
 mainNav.addEventListener('click', (e) => {
     if (e.target.tagName === 'BUTTON') {
