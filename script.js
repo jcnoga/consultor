@@ -1,5 +1,3 @@
-[file name]: script.js
-[file content begin]
 const firebaseConfig = {
   apiKey: "AIzaSyB30QPE40atu__s4z3WlDBXHaryIE6asfE",
   authDomain: "consultor-3016e.firebaseapp.com",
@@ -127,6 +125,14 @@ const FIELD_DESCRIPTIONS = {
 const GLOSSARY_DATA = {
     faturamento: {nome: "Faturamento", formula: "Preço de Venda × Quantidade Vendida", significado: "Valor total das vendas de produtos ou serviços em um período, antes de qualquer dedução.", exemplo: "Vender 100 produtos a R$50 cada gera um faturamento de R$5.000.", dica: "Aumente o faturamento com estratégias de marketing, diversificação de produtos ou ajuste de preços."},
     faturamentoMedio: {nome: "Faturamento Bruto Médio", formula: "Faturamento Anual Total / 12", significado: "A média mensal do seu faturamento bruto durante o ano. Ajuda a entender a sazonalidade e o desempenho de vendas consistente.", dica: "Compare a média com os meses individuais para identificar seus melhores períodos de venda e planejar campanhas."},
+	const BUSINESS_BENCHMARKS = {
+    varejo: { margem: 15, custos: 60, markup: 100 },
+    servicos: { margem: 25, custos: 30, markup: 200 },
+    ecommerce: { margem: 12, custos: 55, markup: 130 },
+    restaurante: { margem: 18, custos: 35, markup: 250 },
+    industria_cosmeticos: { margem: 15, custos: 45, markup: 150 },
+    outras_industrias: { margem: 12, custos: 55, markup: 120 }
+};
     volumeVendasMedio: {nome: "Volume de Vendas Médio", formula: "Número de Vendas Anual Total / 12", significado: "O número médio de vendas realizadas por mês. Indica a sua capacidade de atrair e converter clientes.", dica: "Se o volume médio for baixo, foque em estratégias de marketing para atrair mais clientes ou em otimizar sua taxa de conversão."},
     custosVariaveis: {nome: "Custos Variáveis (CV)", formula: "Custo por Unidade × Quantidade Vendida", significado: "Custos que variam diretamente com o volume de produção ou vendas, como matéria-prima e comissões.", exemplo: "Se o custo da matéria-prima de um produto é R$10, e você vende 100, seu CV é de R$1.000.", dica: "Negocie com fornecedores e otimize a produção para reduzir os custos variáveis por unidade."},
     custosFixos: {nome: "Custos Fixos (CF)", formula: "Soma dos custos que não variam com a produção", significado: "Custos que a empresa tem todo mês, independentemente de vender muito ou pouco, como aluguel e salários fixos.", exemplo: "Aluguel do escritório de R$2.000 e folha de pagamento de R$8.000 somam R$10.000 de custos fixos.", dica: "Revise periodicamente seus custos fixos para identificar oportunidades de redução sem impactar a operação."},
@@ -142,15 +148,6 @@ const GLOSSARY_DATA = {
     fluxoCaixaInvestimentos: {nome: "Fluxo de Caixa de Investimentos (FCI)", formula: "(-) Aquisição de Ativos (+) Venda de Ativos", significado: "Mostra o caixa utilizado na compra (CAPEX) ou gerado na venda de ativos de longo prazo, como máquinas e imóveis.", exemplo: "A compra de uma máquina por R$20.000 gera um FCI de -R$20.000.", dica: "Um FCI negativo indica que a empresa está investindo em seu crescimento futuro."},
     fluxoCaixaFinanciamentos: {nome: "Fluxo de Caixa de Financiamentos (FCF)", formula: "Novos Empréstimos - Pagamento de Dívidas + Aportes de Sócios - Distribuição de Lucros", significado: "Reflete as transações de caixa com proprietários (sócios) e credores (bancos).", exemplo: "Pegou R$30.000 de empréstimo e pagou R$5.000 aos sócios = FCF de +R$25.000.", dica: "Ajuda a entender como a empresa está financiando suas operações e seu crescimento."},
     fluxoCaixaLivre: {nome: "Fluxo de Caixa Livre (FCL)", formula: "FCO + FCI + FCF", significado: "A variação total de caixa no período. É a métrica mais importante para a saúde financeira de curto prazo.", exemplo: "FCO de R$9.500 + FCI de -R$20.000 + FCF de R$25.000 = FCL de +R$14.500.", dica: "Um FCL positivo significa que a empresa gerou mais caixa do que gastou, aumentando sua reserva financeira."}
-};
-
-const BUSINESS_BENCHMARKS = {
-    varejo: { margem: 15, custos: 60, markup: 100 },
-    servicos: { margem: 25, custos: 30, markup: 200 },
-    ecommerce: { margem: 12, custos: 55, markup: 130 },
-    restaurante: { margem: 18, custos: 35, markup: 250 },
-    industria_cosmeticos: { margem: 15, custos: 45, markup: 150 },
-    outras_industrias: { margem: 12, custos: 55, markup: 120 }
 };
 
 // --- FUNÇÕES DE LÓGICA ---
@@ -2092,4 +2089,3 @@ dailyEntryForm.addEventListener('submit', async (e) => {
 
 // --- INICIALIZAÇÃO ---
 initialize();
-[file content end]
