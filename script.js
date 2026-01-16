@@ -13,8 +13,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// --- SELEÇÃO DE ELEMENTOS DO DOM (Mover para o TOPO) ---
-// Isso corrige o erro de "initialization"
+// --- SELEÇÃO DE ELEMENTOS DO DOM ---
 const app = document.getElementById('app');
 const loginSection = document.getElementById('login-section');
 const loginForm = document.getElementById('login-form');
@@ -24,6 +23,7 @@ const forgotPasswordLink = document.querySelector('.forgot-password');
 const toggleFormsLinks = document.querySelectorAll('.toggle-form');
 const companyNameEl = document.getElementById('company-name');
 const logoutBtn = document.getElementById('logoutBtn');
+const syncBtn = document.getElementById('syncBtn'); 
 const saveDataBtn = document.getElementById('save-data');
 const yearSelector = document.getElementById('year-selector');
 const mainNav = document.getElementById('main-nav');
@@ -144,46 +144,6 @@ const GLOSSARY_DATA = {
     fluxoCaixaLivre: {nome: "Fluxo de Caixa Livre (FCL)", formula: "FCO + FCI + FCF", significado: "A variação total de caixa no período. É a métrica mais importante para a saúde financeira de curto prazo.", exemplo: "FCO de R$9.500 + FCI de -R$20.000 + FCF de R$25.000 = FCL de +R$14.500.", dica: "Um FCL positivo significa que a empresa gerou mais caixa do que gastou, aumentando sua reserva financeira."}
 };
 
-
-
-function handleLogin(e) { 
-    e.preventDefault(); 
-    
-    // Verificação se o form está visível
-    if (loginForm.style.display === 'none') return;
-
-    const email = document.getElementById('login-user').value; 
-    const pass = document.getElementById('login-password').value; 
-    
-    // --- ADICIONE ISTO PARA TESTE ---
-    console.log("Tentando logar com:", email, pass);
-    // --------------------------------
-
-    const errorEl = document.getElementById('login-error'); 
-    
-    errorEl.textContent = ''; 
-    auth.signInWithEmailAndPassword(email, pass)
-        .then(() => {
-            console.log("Login com sucesso!");
-        })
-        .catch(error => { 
-            console.error("Erro Firebase:", error); // Isso vai mostrar o código exato do erro 400
-            
-            // Tratamento de mensagens mais amigável
-            if (error.code === 'auth/user-not-found') {
-                errorEl.textContent = "Usuário não encontrado. Cadastre-se primeiro.";
-            } else if (error.code === 'auth/wrong-password') {
-                errorEl.textContent = "Senha incorreta.";
-            } else if (error.code === 'auth/invalid-email') {
-                errorEl.textContent = "E-mail inválido.";
-            } else {
-                errorEl.textContent = "Erro ao entrar. Verifique console.";
-            }
-        }); 
-}
-
-
-
 // --- FUNÇÕES DE LÓGICA ---
 
 function initialize() {
@@ -206,6 +166,51 @@ async function handleAuthStateChange(user) {
             showLogin();
         }
     } catch (error) { console.error("Erro crítico na autenticação:", error); showLogin(); }
+}
+
+// --- FUNÇÃO DE SINCRONIZAÇÃO (NOVA) ---
+async function handleSync() {
+    if (!currentUser) {
+        alert("Usuário não autenticado. Faça login novamente.");
+        showLogin();
+        return;
+    }
+
+    const originalText = syncBtn.textContent;
+    syncBtn.textContent = "Sincronizando...";
+    syncBtn.disabled = true;
+
+    try {
+        // 1. Recarrega a autenticação para garantir que o token é válido
+        await currentUser.reload();
+        currentUser = auth.currentUser;
+
+        if(!currentUser) throw new Error("Sessão expirada.");
+
+        // 2. Busca dados frescos do Firestore
+        const [newData, newSettings] = await Promise.all([
+            loadDataFromFirestore(currentUser.uid, 'financialData'),
+            loadDataFromFirestore(currentUser.uid, 'userSettings')
+        ]);
+
+        // 3. Atualiza estado local
+        financialData = newData || {};
+        userSettings = newSettings || {};
+
+        // 4. Atualiza a UI (chama showApp que popula os inputs novamente)
+        await showApp(); 
+
+        alert("Sincronização e autenticação concluídas com sucesso!");
+    } catch (error) {
+        console.error("Erro na sincronização:", error);
+        alert("Erro ao sincronizar. Verifique sua conexão ou faça login novamente.");
+        if (error.code === 'auth/user-token-expired' || !auth.currentUser) {
+            showLogin();
+        }
+    } finally {
+        syncBtn.textContent = originalText;
+        syncBtn.disabled = false;
+    }
 }
 
 function handleLogin(e) { 
@@ -1458,620 +1463,4 @@ function generateFullReport() {
     let monthsWithDataCount = 0;
     for(let i=0; i<12; i++) { 
         if(yearData[i]) {
-            INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0);
-            if((yearData[i].faturamento > 0) || (yearData[i].custosVariaveis > 0) || (yearData[i].custosFixos > 0)) monthsWithDataCount++;
-        }
-    }
-    const divisor = monthsWithDataCount > 0 ? monthsWithDataCount : 1;
-    const annualIndicators = calculateIndicators(annualTotals);
-
-    const summaryData = [
-        ["Faturamento Total", formatCurrency(annualIndicators.faturamento)],
-        ["Faturamento Médio Mensal", formatCurrency(annualIndicators.faturamento / divisor)],
-        ["Volume de Vendas Médio", (annualTotals.numeroDeVendas / divisor).toFixed(1)],
-        ["Lucro Líquido Total", formatCurrency(annualIndicators.lucroLiquido)],
-        ["Margem Líquida Média", formatPercent(annualIndicators.margemLiquida)],
-        ["Markup Médio", formatPercent(annualIndicators.markup)],
-        ["Fluxo de Caixa Livre Total", formatCurrency(annualIndicators.fluxoCaixaLivre)],
-        ["Ponto de Equilíbrio Médio", formatCurrency(annualIndicators.pontoEquilibrio / divisor)]
-    ];
-
-    doc.autoTable({
-        startY: currentY,
-        body: summaryData,
-        theme: 'plain',
-        styles: { fontSize: 11, fontStyle: 'bold' },
-        columnStyles: { 0: { cellWidth: 100 }, 1: { cellWidth: 80, halign: 'right' } }
-    });
-
-    doc.addPage();
-    currentY = 20;
-    doc.setFontSize(14);
-    doc.setTextColor(0, 95, 115);
-    doc.text("5. Evolução Gráfica do Negócio", 14, currentY);
-    
-    const chart1 = document.getElementById('monthlyEvolutionChart');
-    if (chart1) {
-        const img1 = chart1.toDataURL('image/png');
-        doc.addImage(img1, 'PNG', 14, currentY + 10, 180, 90);
-        currentY += 110;
-    }
-
-    const chart2 = document.getElementById('cashFlowChart');
-    if (chart2) {
-        const img2 = chart2.toDataURL('image/png');
-        doc.addImage(img2, 'PNG', 14, currentY, 180, 90);
-    }
-
-    doc.addPage();
-    currentY = 20;
-    doc.setFontSize(14);
-    doc.setTextColor(0, 95, 115);
-    doc.text("6. Diagnóstico do Consultor", 14, currentY);
-    
-    currentY += 15;
-    doc.setFontSize(11);
-    doc.setTextColor(0);
-    
-    const diagnosisText = userSettings.consultantDiagnosis || "Nenhum diagnóstico registrado.";
-    const splitDiagnosis = doc.splitTextToSize(diagnosisText, pageWidth - 28);
-    doc.text(splitDiagnosis, 14, currentY);
-
-    doc.save(`Relatorio_Financeiro_Completo_${currentYear}.pdf`);
-}
-
-function generateDailyReport() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    let currentY = 20;
-
-    doc.setFontSize(18);
-    doc.setTextColor(46, 134, 222); 
-    doc.text(`Relatório de Movimentação Diária - ${currentYear}`, 14, currentY);
-    doc.setFontSize(12);
-    doc.setTextColor(50);
-    doc.text(`Empresa: ${userSettings.corporateName || 'Não informada'}`, 14, currentY + 10);
-    currentY += 20;
-
-    let hasDailyData = false;
-    const yearData = financialData[currentYear] || {};
-
-    MONTHS.forEach((month, index) => {
-        if (yearData[index] && yearData[index].dailyEntries && yearData[index].dailyEntries.length > 0) {
-            hasDailyData = true;
-            if (currentY > 250) { doc.addPage(); currentY = 20; }
-            doc.setFontSize(12);
-            doc.setTextColor(0);
-            doc.text(`Mês: ${month}`, 14, currentY);
-            currentY += 5;
-            const dailyRows = yearData[index].dailyEntries.map(entry => [
-                new Date(entry.date + 'T00:00:00-03:00').toLocaleDateString('pt-BR'),
-                formatCurrency(parseFloat(entry.faturamento)),
-                formatCurrency(parseFloat(entry.despesas)),
-                formatCurrency(parseFloat(entry.comissao)),
-                formatCurrency(parseFloat(entry.outras)),
-                entry.vendas
-            ]);
-            doc.autoTable({
-                startY: currentY,
-                head: [['Data', 'Faturamento', 'Despesas', 'Comissão', 'Outras', 'Vendas']],
-                body: dailyRows,
-                theme: 'striped',
-                headStyles: { fillColor: [46, 134, 222] },
-                styles: { fontSize: 8 },
-                margin: { left: 14 }
-            });
-            currentY = doc.lastAutoTable.finalY + 15;
-        }
-    });
-
-    if (!hasDailyData) {
-        doc.setFontSize(11);
-        doc.setTextColor(100);
-        doc.text("Não há lançamentos diários registrados para este ano.", 14, currentY);
-    }
-    doc.save(`Relatorio_Diario_${currentYear}.pdf`);
-}
-
-btnFullReport.addEventListener('click', generateFullReport);
-btnExportDaily.addEventListener('click', generateDailyReport);
-btnExportCompany.addEventListener('click', generateCompanyPDF);
-btnExportMonthlyInputs.addEventListener('click', generateMonthlyInputsPDF);
-btnExportAnnual.addEventListener('click', generateAnnualIndicatorsPDF);
-btnExportEvolution.addEventListener('click', generateEvolutionPDF);
-btnExportGlossary.addEventListener('click', generateGlossaryPDF);
-btnExportConsultant.addEventListener('click', generateConsultantDiagnosisPDF);
-
-
-function setupYearSelector() {
-    const current = new Date().getFullYear();
-    yearSelector.innerHTML = '';
-    for (let i = current + 5; i >= current - 5; i--) {
-        const option = document.createElement('option');
-        option.value = i; option.textContent = i; option.selected = (i === currentYear);
-        yearSelector.appendChild(option);
-    }
-}
-
-function setupDailyMonthSelector() {
-    dailyMonthSelector.innerHTML = '';
-    MONTHS.forEach((month, index) => {
-        const option = document.createElement('option');
-        option.value = index;
-        option.textContent = month;
-        option.selected = (index === new Date().getMonth());
-        dailyMonthSelector.appendChild(option);
-    });
-}
-
-function aggregateDailyData(year) {
-    if (!financialData[year]) return;
-
-    for (let i = 0; i < 12; i++) {
-        const monthData = financialData[year][i];
-        
-        if (!monthData) continue;
-
-        if (monthData.dailyEntries && monthData.dailyEntries.length > 0) {
-            const totals = monthData.dailyEntries.reduce((acc, entry) => {
-                acc.faturamento += parseFloat(entry.faturamento) || 0;
-                acc.despesasOperacionais += parseFloat(entry.despesas) || 0;
-                acc.numeroDeVendas += parseInt(entry.vendas) || 0;
-                acc.custosVariaveis += parseFloat(entry.comissao) || 0;
-                acc.outrasReceitasDespesas += parseFloat(entry.outras) || 0;
-                return acc;
-            }, { faturamento: 0, despesasOperacionais: 0, numeroDeVendas: 0, custosVariaveis: 0, outrasReceitasDespesas: 0 });
-            
-            monthData.faturamento = totals.faturamento;
-            monthData.despesasOperacionais = totals.despesasOperacionais;
-            monthData.numeroDeVendas = totals.numeroDeVendas;
-            monthData.custosVariaveis = totals.custosVariaveis;
-            monthData.outrasReceitasDespesas = totals.outrasReceitasDespesas;
-        } else {
-            monthData.faturamento = 0;
-            monthData.despesasOperacionais = 0;
-            monthData.numeroDeVendas = 0;
-            monthData.custosVariaveis = 0;
-            monthData.outrasReceitasDespesas = 0;
-        }
-    }
-}
-
-function showFieldDescription(fieldName) {
-    const description = FIELD_DESCRIPTIONS[fieldName];
-    if (description) {
-        monthlyFieldText.innerHTML = `<strong>${fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1').trim()}:</strong> ${description}`;
-        monthlyFieldInfoBox.style.display = 'flex';
-    }
-}
-
-function loadYearData(year) {
-    const tableBody = document.querySelector('#monthly-inputs tbody');
-    tableBody.innerHTML = '';
-    
-    if (!financialData[year]) financialData[year] = {};
-
-    const yearData = financialData[year];
-    const isManualEditAllowed = allowManualEditCheckbox.checked;
-
-    MONTHS.forEach((month, index) => {
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${month}</td>`;
-        
-        if (!yearData[index]) yearData[index] = { dailyEntries: [] };
-        const monthData = yearData[index];
-
-        INPUT_FIELDS.forEach(field => {
-            const td = document.createElement('td');
-            const input = document.createElement('input');
-            input.type = 'number';
-            input.dataset.month = index;
-            input.dataset.field = field;
-            input.value = monthData[field] || '';
-            input.placeholder = "0.00";
-
-            const isAutoCalculatedField = ['faturamento', 'despesasOperacionais', 'numeroDeVendas', 'custosVariaveis', 'outrasReceitasDespesas'].includes(field);
-            input.readOnly = isAutoCalculatedField && !isManualEditAllowed;
-
-            input.addEventListener('focus', () => showFieldDescription(field));
-
-            td.appendChild(input);
-            row.appendChild(td);
-        });
-        tableBody.appendChild(row);
-    });
-}
-
-function calculateIndicators(data = {}) {
-    const inputs = {}; INPUT_FIELDS.forEach(field => inputs[field] = data[field] || 0);
-    const {faturamento, custosVariaveis, custosFixos, despesasOperacionais, outrasReceitasDespesas, numeroDeVendas, impostos, depreciacao, investimentos, financiamentosEntradas, amortizacaoDividas, aporteSocios, distribuicaoLucros} = inputs;
-    const lucroBruto = faturamento - custosVariaveis;
-    const lucroOperacional = lucroBruto - custosFixos - despesasOperacionais;
-    const lucroAntesImpostos = lucroOperacional + outrasReceitasDespesas;
-    const lucroLiquido = lucroAntesImpostos - impostos;
-    const margemLiquida = faturamento > 0 ? (lucroLiquido / faturamento) * 100 : 0;
-    const markup = custosVariaveis > 0 ? ((faturamento - custosVariaveis) / custosVariaveis) * 100 : 0;
-    
-    const custosFixosTotais = custosFixos + despesasOperacionais;
-    const indiceMargemContribuicao = faturamento > 0 ? 1 - (custosVariaveis / faturamento) : 0;
-    const pontoEquilibrio = indiceMargemContribuicao > 0 ? custosFixosTotais / indiceMargemContribuicao : 0;
-
-    const fluxoCaixaOperacional = lucroLiquido + depreciacao;
-    const fluxoCaixaInvestimentos = -investimentos;
-    const fluxoCaixaFinanciamentos = financiamentosEntradas - amortizacaoDividas + aporteSocios - distribuicaoLucros;
-    const fluxoCaixaLivre = fluxoCaixaOperacional + fluxoCaixaInvestimentos + fluxoCaixaFinanciamentos;
-    
-    return { 
-        lucroLiquido, margemLiquida, markup, pontoEquilibrio,
-        fluxoCaixaOperacional, fluxoCaixaInvestimentos, fluxoCaixaFinanciamentos, fluxoCaixaLivre, 
-        faturamento, custosTotais: custosFixos + custosVariaveis + despesasOperacionais,
-        custosVariaveis, numeroDeVendas
-    };
-}
-
-function generateBusinessAdvice(indicators, settings) {
-    const adviceList = [];
-    const { benchmarkMargem = 0, benchmarkCustos = 0, benchmarkMarkup = 0, businessType } = settings;
-    if (benchmarkMargem > 0 && indicators.margemLiquida < benchmarkMargem) {
-        let conselho = { titulo: "Margem Líquida Abaixo da Meta", texto: `Sua margem líquida (${formatPercent(indicators.margemLiquida)}) está abaixo da sua meta de ${formatPercent(benchmarkMargem)}. Isso significa que os custos e despesas estão consumindo uma fatia muito grande do seu faturamento.`};
-        if (businessType === 'varejo' || businessType === 'ecommerce') conselho.acao = "Crie um programa de fidelidade para aumentar a recorrência. Uma <strong>landing page</strong> para capturar emails e uma estratégia de email marketing podem ajudar a aumentar as vendas para a mesma base de clientes.";
-        else conselho.acao = "Revise sua precificação. Utilize suas <strong>redes sociais</strong> para comunicar o valor agregado do seu serviço, justificando um preço maior.";
-        adviceList.push(conselho);
-    }
-    if (benchmarkMarkup > 0 && indicators.markup < benchmarkMarkup) {
-        adviceList.push({ titulo: "Markup Abaixo da Meta", texto: `Seu markup médio (${formatPercent(indicators.markup)}) está abaixo do mínimo desejado de ${formatPercent(benchmarkMarkup)}. Isso impacta diretamente sua capacidade de gerar lucro bruto.`, acao: "Otimize sua precificação. Se vender online, utilize um <strong>e-commerce</strong> que permita testes A/B de preços. Considere também vender em <strong>marketplaces</strong> para alcançar um público maior." });
-    }
-    const custoVariavelPercent = indicators.faturamento > 0 ? (indicators.custosTotais / indicators.faturamento) * 100 : 0;
-    if (benchmarkCustos > 0 && custoVariavelPercent > benchmarkCustos) {
-         adviceList.push({ titulo: "Custos Totais Elevados", texto: `Seus custos totais representam ${formatPercent(custoVariavelPercent)} do faturamento, acima da sua meta de ${formatPercent(benchmarkCustos)}.`, acao: "Busque renegociar com seus fornecedores e revise suas despesas fixas. Considere um sistema de gestão (ERP) simples para controlar melhor as compras. A criação de um <strong>site institucional</strong> pode atrair novos fornecedores." });
-    }
-    if (adviceList.length === 0) {
-        adviceList.push({ titulo: "Parabéns, seus indicadores estão ótimos!", texto: "Todos os seus principais indicadores estão dentro das metas que você definiu. Continue monitorando para manter o bom desempenho.", acao: "O próximo passo pode ser a expansão. Use o tráfego pago nas <strong>redes sociais</strong> para testar novos públicos ou explore a venda em novos canais, como um <strong>e-commerce</strong> próprio." });
-    }
-    return adviceList;
-}
-
-function updateAllCalculations() { 
-    if (!allowManualEditCheckbox.checked) {
-        aggregateDailyData(currentYear);
-    }
-    loadYearData(currentYear);
-    renderMonthlyIndicators(); 
-    renderAnnualIndicators(); 
-}
-    
-function renderMonthlyIndicators() {
-    const tableBody = document.querySelector('#monthly-indicators-table tbody');
-    tableBody.innerHTML = '';
-    const yearData = financialData[currentYear] || {};
-    MONTHS.forEach((month, index) => {
-        const indicators = calculateIndicators(yearData[index]);
-        const row = document.createElement('tr');
-        row.innerHTML = `<td>${month}</td><td class="${indicators.lucroLiquido >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.lucroLiquido)}</td><td class="${indicators.margemLiquida >= 0 ? 'positive' : 'negative'}">${formatPercent(indicators.margemLiquida)}</td><td class="${indicators.markup >= 0 ? 'positive' : 'negative'}">${formatPercent(indicators.markup)}</td><td class="${indicators.fluxoCaixaOperacional >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaOperacional)}</td><td class="${indicators.fluxoCaixaInvestimentos >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaInvestimentos)}</td><td class="${indicators.fluxoCaixaFinanciamentos >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaFinanciamentos)}</td><td class="${indicators.fluxoCaixaLivre >= 0 ? 'positive' : 'negative'}"><strong>${formatCurrency(indicators.fluxoCaixaLivre)}</strong></td>`;
-        tableBody.appendChild(row);
-    });
-}
-
-async function renderAnnualIndicators() {
-    const container = document.getElementById('annual-indicators-content');
-    container.innerHTML = '';
-    const yearData = financialData[currentYear] || {};
-    let annualTotals = {}; 
-    INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
-    let monthsWithDataCount = 0;
-    for(let i=0; i<12; i++) { 
-        if(yearData[i]) {
-            INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0);
-            if((yearData[i].faturamento > 0) || (yearData[i].custosVariaveis > 0) || (yearData[i].custosFixos > 0)) monthsWithDataCount++;
-        }
-    }
-    const divisor = monthsWithDataCount > 0 ? monthsWithDataCount : 1;
-    const annualIndicators = calculateIndicators(annualTotals);
-
-    const displayIndicators = { ...annualIndicators };
-    displayIndicators.faturamentoMedio = (annualTotals.faturamento / divisor) || 0;
-    displayIndicators.volumeVendasMedio = (annualTotals.numeroDeVendas / divisor) || 0;
-    displayIndicators.cmv = annualTotals.custosVariaveis; 
-    displayIndicators.pontoEquilibrioMedio = (annualIndicators.pontoEquilibrio / divisor) || 0;
-
-    const categories = {
-        "Desempenho de Vendas": ['faturamentoMedio', 'volumeVendasMedio'],
-        "Rentabilidade e Lucro": ['lucroLiquido', 'margemLiquida', 'markup', 'cmv', 'pontoEquilibrioMedio'],
-        "Fluxo de Caixa": ['fluxoCaixaLivre', 'fluxoCaixaOperacional', 'fluxoCaixaInvestimentos', 'fluxoCaixaFinanciamentos']
-    };
-
-    for (const categoryName in categories) {
-        const categoryDiv = document.createElement('div');
-        categoryDiv.className = 'card-category';
-        categoryDiv.innerHTML = `<h2>${categoryName}</h2>`;
-        const gridDiv = document.createElement('div');
-        gridDiv.className = 'indicators-grid';
-        categories[categoryName].forEach(key => {
-            const glossaryKey = key === 'cmv' ? 'custosVariaveis' : (key === 'pontoEquilibrioMedio' ? 'pontoEquilibrio' : key);
-            const cardTitle = key === 'cmv' ? 'Custo da Mercadoria Vendida (CMV)' : (key === 'pontoEquilibrioMedio' ? 'Ponto de Equilíbrio Médio' : GLOSSARY_DATA[glossaryKey]?.nome);
-            const indicatorInfo = GLOSSARY_DATA[glossaryKey];
-            if (!indicatorInfo) return;
-            const value = displayIndicators[key];
-            let formattedValue;
-            if(key === 'volumeVendasMedio'){ formattedValue = (value || 0).toFixed(1).replace('.', ','); } 
-            else if (key.includes('margem') || key.includes('markup')) { formattedValue = formatPercent(value); } 
-            else { formattedValue = formatCurrency(value); }
-            gridDiv.innerHTML += `<div class="card"><h3>${cardTitle}</h3><div class="value ${value >= 0 ? 'positive' : 'negative'}">${formattedValue}</div><p class="explanation">${indicatorInfo.significado}</p></div>`;
-        });
-        categoryDiv.appendChild(gridDiv);
-        container.appendChild(categoryDiv);
-    }
-    
-    const adviceContainer = document.getElementById('advice-container');
-    if(userSettings && userSettings.businessType){
-        const adviceList = generateBusinessAdvice(annualIndicators, userSettings);
-        adviceContainer.innerHTML = '';
-        adviceList.forEach(advice => {
-            const adviceCard = document.createElement('div');
-            adviceCard.className = 'card';
-            adviceCard.innerHTML = `<h3>${advice.titulo}</h3><p>${advice.texto}</p><hr style="margin: 10px 0;"><p><strong>Ação Sugerida:</strong> ${advice.acao}</p>`;
-            adviceContainer.appendChild(adviceCard);
-        });
-    } else {
-        adviceContainer.innerHTML = `<p>Preencha suas metas na aba 'Configurações' para receber conselhos personalizados.</p>`;
-    }
-}
-    
-let chartInstances = {};
-function renderAllCharts() {
-    const yearData = financialData[currentYear] || {};
-    const labels = MONTHS;
-    const chartData = { faturamento: [], custosTotais: [], lucroLiquido: [], fluxoCaixaLivre: [] };
-    for(let i=0; i<12; i++) {
-        const indicators = calculateIndicators(yearData[i]);
-        chartData.faturamento.push(indicators.faturamento);
-        chartData.custosTotais.push(indicators.custosTotais);
-        chartData.lucroLiquido.push(indicators.lucroLiquido);
-        chartData.fluxoCaixaLivre.push(indicators.fluxoCaixaLivre);
-    }
-    const chartConfigs = {
-        monthlyEvolutionChart: { type: 'line', data: { labels, datasets: [ { label: 'Faturamento', data: chartData.faturamento, borderColor: '#0a9396', fill: false, tension: 0.1 }, { label: 'Custos Totais', data: chartData.custosTotais, borderColor: '#e76f51', fill: false, tension: 0.1 }, { label: 'Lucro Líquido', data: chartData.lucroLiquido, borderColor: '#2a9d8f', fill: false, tension: 0.1 } ]}},
-        cashFlowChart: { type: 'bar', data: { labels, datasets: [ { label: 'Fluxo de Caixa Livre', data: chartData.fluxoCaixaLivre, backgroundColor: (ctx) => (ctx.raw >= 0 ? '#2a9d8f' : '#e76f51') } ]}}
-    };
-    for (const id in chartConfigs) {
-        if(chartInstances[id]) chartInstances[id].destroy();
-        const canvas = document.getElementById(id);
-        if(canvas) chartInstances[id] = new Chart(canvas.getContext('2d'), chartConfigs[id]);
-    }
-}
-
-// CORREÇÃO DE SEGURANÇA (XSS): Usando createElement em vez de innerHTML
-function renderDailyEntries(year, month) {
-    const tableBody = document.querySelector('#daily-entries-table tbody');
-    tableBody.innerHTML = ''; // Limpa a tabela
-    
-    if (!financialData[year] || !financialData[year][month] || !financialData[year][month].dailyEntries) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = '<td colspan="7">Nenhum lançamento para este mês.</td>';
-        tableBody.appendChild(tr);
-        return;
-    }
-
-    const entries = financialData[year][month].dailyEntries;
-    if (entries.length === 0) {
-        const tr = document.createElement('tr');
-        tr.innerHTML = '<td colspan="7">Nenhum lançamento para este mês.</td>';
-        tableBody.appendChild(tr);
-        return;
-    }
-    
-    entries.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    entries.forEach((entry, index) => {
-        const row = document.createElement('tr');
-        
-        // Cria cada célula de forma segura
-        const createCell = (text) => {
-            const td = document.createElement('td');
-            td.textContent = text;
-            return td;
-        };
-
-        const formattedDate = new Date(entry.date + 'T00:00:00-03:00').toLocaleDateString('pt-BR');
-
-        row.appendChild(createCell(formattedDate));
-        row.appendChild(createCell(formatCurrency(parseFloat(entry.faturamento))));
-        row.appendChild(createCell(formatCurrency(parseFloat(entry.despesas))));
-        row.appendChild(createCell(formatCurrency(parseFloat(entry.comissao))));
-        row.appendChild(createCell(formatCurrency(parseFloat(entry.outras))));
-        row.appendChild(createCell(entry.vendas));
-
-        // Botões de ação (HTML seguro pois é controlado por nós)
-        const actionsTd = document.createElement('td');
-        actionsTd.innerHTML = `<button class="action-btn edit-btn" onclick="handleEditDailyEntry(${year}, ${month}, ${index})">Editar</button><button class="action-btn delete-btn" onclick="handleDeleteDailyEntry(${year}, ${month}, ${index})">Excluir</button>`;
-        row.appendChild(actionsTd);
-
-        tableBody.appendChild(row);
-    });
-}
-
-function renderGlossary() {
-    const container = document.getElementById('glossary-container');
-    container.innerHTML = '';
-    Object.keys(GLOSSARY_DATA).sort((a,b) => GLOSSARY_DATA[a].nome.localeCompare(GLOSSARY_DATA[b].nome)).forEach(key => {
-        const item = GLOSSARY_DATA[key];
-        const div = document.createElement('div');
-        div.className = 'glossary-item';
-        div.innerHTML = `<div class="glossary-header">${item.nome}</div><div class="glossary-content"><div><p><strong>Fórmula:</strong> ${item.formula}</p><p><strong>Significado:</strong> ${item.significado}</p><p><strong>Exemplo:</strong> ${item.exemplo}</p><p><strong>Dica:</strong> ${item.dica}</p></div></div>`;
-        container.appendChild(div);
-    });
-    container.querySelectorAll('.glossary-header').forEach(header => {
-        header.addEventListener('click', () => header.parentElement.classList.toggle('active'));
-    });
-}
-    
-function exportMonthlyToPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.text(`Indicadores Mensais - ${currentYear}`, 14, 15);
-    doc.autoTable({ html: '#monthly-indicators-table', startY: 20, theme: 'grid', headStyles: { fillColor: [0, 95, 115] } });
-    doc.save(`Indicadores_${currentYear}.pdf`);
-}
-function exportMonthlyToExcel() {
-    const wb = XLSX.utils.table_to_book(document.getElementById('monthly-indicators-table'), {sheet: 'Indicadores Mensais'});
-    XLSX.writeFile(wb, `Indicadores_${currentYear}.xlsx`);
-}
-
-const formatCurrency = (v) => (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-const formatPercent = (v) => (v || 0).toFixed(2).replace('.', ',') + '%';
-
-
-// --- ATRIBUIÇÃO DE EVENTOS ---
-loginForm.addEventListener('submit', handleLogin);
-registerForm.addEventListener('submit', handleRegister);
-resetPasswordForm.addEventListener('submit', handlePasswordReset);
-forgotPasswordLink.addEventListener('click', () => toggleForms('reset'));
-toggleFormsLinks.forEach(link => {
-    link.addEventListener('click', (e) => toggleForms(e.target.dataset.form));
-});
-logoutBtn.addEventListener('click', () => auth.signOut());
-deleteAccountBtn.addEventListener('click', deleteAccountAndData);
-saveDataBtn.addEventListener('click', saveMonthlyData);
-saveSettingsBtn.addEventListener('click', saveBusinessSettings);
-recalculateAllBtn.addEventListener('click', updateAllCalculations);
-
-// Eventos de Backup
-btnBackupLocal.addEventListener('click', exportLocalBackup);
-btnRestoreLocal.addEventListener('click', () => inputRestoreFile.click());
-inputRestoreFile.addEventListener('change', importLocalBackup);
-
-// Evento da aba Diagnóstico
-diagnosisForm.addEventListener('submit', saveDiagnosisData);
-
-// Evento da Nova Aba Consultor
-saveConsultantDiagnosisBtn.addEventListener('click', saveConsultantDiagnosis);
-
-// Evento de Desbloqueio
-btnGenerateUnlockCode.addEventListener('click', handleUnlockTabs);
-
-// Eventos XLSX (Novos)
-btnExportCompanyXLSX.addEventListener('click', handleExportCompanyXLSX);
-btnImportCompanyXLSX.addEventListener('change', handleImportCompanyXLSX);
-btnExportDailyXLSX.addEventListener('click', handleExportDailyXLSX);
-btnImportDailyXLSX.addEventListener('change', handleImportDailyXLSX);
-btnExportMonthlyXLSX.addEventListener('click', handleExportMonthlyXLSX);
-btnImportMonthlyXLSX.addEventListener('change', handleImportMonthlyXLSX);
-document.getElementById('export-excel-monthly').addEventListener('click', exportMonthlyToExcel); // Existente
-
-mainNav.addEventListener('click', (e) => {
-    if (e.target.tagName === 'BUTTON') {
-        const tabId = e.target.dataset.tab;
-        document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('active'));
-        e.target.classList.add('active');
-        tabContents.forEach(content => content.classList.toggle('active', content.id === tabId));
-        if (tabId === 'evolucao') renderAllCharts();
-        if (tabId === 'indicadores-anuais') renderAnnualIndicators();
-        if (tabId === 'entradas-diarias') {
-            const selectedMonth = parseInt(dailyMonthSelector.value);
-            renderDailyEntries(currentYear, selectedMonth);
-        }
-    }
-});
-
-yearSelector.addEventListener('change', (e) => {
-    currentYear = parseInt(e.target.value);
-    updateAllCalculations();
-    const selectedMonth = parseInt(dailyMonthSelector.value);
-    renderDailyEntries(currentYear, selectedMonth);
-});
-
-allowManualEditCheckbox.addEventListener('change', () => {
-    updateAllCalculations();
-});
-
-recalculateAnnualBtn.addEventListener('click', renderAnnualIndicators);
-exportPdfMonthlyBtn.addEventListener('click', exportMonthlyToPDF);
-
-
-// *** FUNÇÕES E EVENTOS DA ABA DIÁRIA ***
-
-function handleEditDailyEntry(year, month, index) {
-    currentlyEditingIndex = { year, month, index };
-    const entry = financialData[year][month].dailyEntries[index];
-    
-    document.getElementById('daily-date').value = entry.date;
-    document.getElementById('daily-faturamento').value = entry.faturamento;
-    document.getElementById('daily-despesas').value = entry.despesas;
-    document.getElementById('daily-comissao').value = entry.comissao || '';
-    document.getElementById('daily-outras').value = entry.outras || '';
-    document.getElementById('daily-vendas').value = entry.vendas;
-    
-    document.querySelector('#daily-entry-form button[type="submit"]').textContent = 'Atualizar Lançamento';
-    cancelEditBtn.style.display = 'block';
-    dailyEntryForm.scrollIntoView({ behavior: 'smooth' });
-}
-
-async function handleDeleteDailyEntry(year, month, index) {
-    if (confirm('Tem certeza de que deseja excluir este lançamento?')) {
-        financialData[year][month].dailyEntries.splice(index, 1);
-        
-        await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
-        updateAllCalculations();
-        renderDailyEntries(year, month);
-
-        dailyMessageEl.textContent = 'Lançamento excluído com sucesso!';
-        setTimeout(() => dailyMessageEl.textContent = '', 3000);
-    }
-}
-
-function resetDailyFormState() {
-    currentlyEditingIndex = null;
-    dailyEntryForm.reset();
-    document.querySelector('#daily-entry-form button[type="submit"]').textContent = 'Adicionar Lançamento';
-    cancelEditBtn.style.display = 'none';
-}
-
-cancelEditBtn.addEventListener('click', resetDailyFormState);
-
-dailyMonthSelector.addEventListener('change', (e) => {
-    const selectedMonth = parseInt(e.target.value);
-    renderDailyEntries(currentYear, selectedMonth);
-});
-
-dailyEntryForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const date = document.getElementById('daily-date').value;
-    const faturamento = document.getElementById('daily-faturamento').value;
-    const despesas = document.getElementById('daily-despesas').value;
-    const comissao = document.getElementById('daily-comissao').value;
-    const outras = document.getElementById('daily-outras').value;
-    const vendas = document.getElementById('daily-vendas').value;
-    const month = parseInt(dailyMonthSelector.value);
-    
-    let message = '';
-
-    const newEntry = { date, faturamento, despesas, comissao, outras, vendas };
-
-    if (currentlyEditingIndex !== null) {
-        const { year, month: editMonth, index } = currentlyEditingIndex;
-        financialData[year][editMonth].dailyEntries[index] = newEntry;
-        message = 'Lançamento atualizado com sucesso!';
-    } else {
-        if (!financialData[currentYear]) financialData[currentYear] = {};
-        if (!financialData[currentYear][month]) {
-            financialData[currentYear][month] = { dailyEntries: [] };
-        } else if (!financialData[currentYear][month].dailyEntries) {
-            financialData[currentYear][month].dailyEntries = [];
-        }
-        
-        financialData[currentYear][month].dailyEntries.push(newEntry);
-        message = 'Lançamento adicionado com sucesso!';
-    }
-    
-    await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
-    updateAllCalculations();
-    renderDailyEntries(currentYear, month);
-    
-    resetDailyFormState();
-    dailyMessageEl.textContent = message;
-    setTimeout(() => dailyMessageEl.textContent = '', 3000);
-});
-
-// --- INICIALIZAÇÃO ---
-initialize();
+            INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0)

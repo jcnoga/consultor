@@ -1,3 +1,7 @@
+
+### 2. CSS (style.css)
+
+```css
 :root {
     --primary-color: #005f73;
     --secondary-color: #0a9396;
@@ -116,3 +120,27 @@ canvas { width: 100% !important; height: auto !important; }
 
 #generated-code-display { font-size: 1.5rem; font-weight: bold; margin-left: 15px; vertical-align: middle; }
 .access-info { margin-top: 15px; padding: 10px; background-color: rgba(255, 255, 255, 0.6); border-radius: 5px; font-weight: bold; }
+
+/* ESTILOS DO RODAPÉ */
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 40px;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    background-color: var(--light-gray);
+    border-radius: 0 0 8px 8px; /* Arredondar cantos inferiores */
+}
+
+footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+footer a:hover {
+    text-decoration: underline;
+    color: var(--secondary-color);
+}

@@ -8,11 +8,9 @@
     <!-- Link para o arquivo de estilos externo -->
     <link rel="stylesheet" href="style.css">
     
-    <!-- 1. SEGURANÇA: Bloqueio de execução local (file://) -->
-    <!-- Mantido no HTML para execução imediata antes do render da página -->
     <script>
         if (window.location.protocol === "file:") {
-            document.documentElement.innerHTML = ""; // Limpa a tela
+            document.documentElement.innerHTML = ""; 
             alert("⚠️ Acesso Negado ⚠️\n\nPor motivos de segurança, este aplicativo não pode ser executado diretamente do arquivo (duplo clique).\n\nPor favor, utilize o link oficial hospedado ou um servidor local.");
             throw new Error("Execução local bloqueada."); 
         }
@@ -46,6 +44,7 @@
                 </div>
             </div>
             <div style="display: flex; gap: 10px;">
+                <button id="syncBtn" class="header-btn" style="background-color: #27ae60;">🔄 Sincronizar Dados</button>
                 <button id="logoutBtn" class="header-btn">Sair</button>
             </div>
         </header>
@@ -218,7 +217,6 @@
                 <h3>Perfil do seu Negócio</h3>
                 <p>Preencha para receber conselhos personalizados. Os valores de média são sugestões e podem ser ajustados.</p>
                 <div class="settings-grid">
-                 <!--   <div class="input-group"><label for="business-type">Qual o seu tipo de negócio?</label><select id="business-type"><option value="varejo">Varejo (Loja Física)</option><option value="servicos">Serviços (Agência, Consultoria)</option><option value="ecommerce">E-commerce (Loja Online)</option><option value="restaurante">Restaurante / Alimentação</option></select></div> -->
                     <div class="input-group"><label for="business-type">Qual o seu tipo de negócio?</label><select id="business-type">
 					<option value="varejo">Varejo (Loja Física)</option>
 					<option value="servicos">Serviços (Agência, Consultoria)</option>
@@ -231,7 +229,6 @@
                     <div class="input-group"><label for="benchmark-markup">Meta de Markup Mínimo (%)</label><input type="number" id="benchmark-markup" placeholder="Ex: 120"></div>
                 </div>
                 
-                <!-- Nova Área de Dados de Demonstração (Solicitada) -->
                 <div class="demo-section">
                     <h3>🧪 Simulação e Reset</h3>
                     <p><strong>Atenção:</strong> Esta funcionalidade irá <strong>ZERAR (limpar)</strong> os dados atuais das abas <em>Empresa</em> e <em>Valores Mensais</em> e, em seguida, preenchê-los com dados fictícios de um comércio com faturamento médio de R$ 60.000,00.</p>
@@ -263,6 +260,10 @@
                 <div class="backup-area"><h3>💾 Backup e Restauração de Dados</h3><p style="margin-bottom: 15px;">Faça o download de todos os seus dados para o computador ou restaure um arquivo salvo anteriormente. <strong>Atenção: A restauração substitui todos os dados atuais.</strong></p><div class="backup-controls"><button id="btn-backup-local" class="btn" style="background-color: #2e86de;">⬇️ Baixar Backup (Local)</button><button id="btn-restore-local" class="btn" style="background-color: #27ae60;">⬆️ Restaurar Backup</button><input type="file" id="input-restore-file" accept=".json" style="display: none;"></div></div>
             </section>
         </main>
+        
+        <footer>
+            <p>Desenvolvido por <a href="https://www.websitelog.com.br" target="_blank">www.websitelog.com.br</a></p>
+        </footer>
     </div>
 
     <!-- Firebase SDKs -->
@@ -280,3 +281,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+```
