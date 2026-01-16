@@ -144,6 +144,46 @@ const GLOSSARY_DATA = {
     fluxoCaixaLivre: {nome: "Fluxo de Caixa Livre (FCL)", formula: "FCO + FCI + FCF", significado: "A variação total de caixa no período. É a métrica mais importante para a saúde financeira de curto prazo.", exemplo: "FCO de R$9.500 + FCI de -R$20.000 + FCF de R$25.000 = FCL de +R$14.500.", dica: "Um FCL positivo significa que a empresa gerou mais caixa do que gastou, aumentando sua reserva financeira."}
 };
 
+
+
+function handleLogin(e) { 
+    e.preventDefault(); 
+    
+    // Verificação se o form está visível
+    if (loginForm.style.display === 'none') return;
+
+    const email = document.getElementById('login-user').value; 
+    const pass = document.getElementById('login-password').value; 
+    
+    // --- ADICIONE ISTO PARA TESTE ---
+    console.log("Tentando logar com:", email, pass);
+    // --------------------------------
+
+    const errorEl = document.getElementById('login-error'); 
+    
+    errorEl.textContent = ''; 
+    auth.signInWithEmailAndPassword(email, pass)
+        .then(() => {
+            console.log("Login com sucesso!");
+        })
+        .catch(error => { 
+            console.error("Erro Firebase:", error); // Isso vai mostrar o código exato do erro 400
+            
+            // Tratamento de mensagens mais amigável
+            if (error.code === 'auth/user-not-found') {
+                errorEl.textContent = "Usuário não encontrado. Cadastre-se primeiro.";
+            } else if (error.code === 'auth/wrong-password') {
+                errorEl.textContent = "Senha incorreta.";
+            } else if (error.code === 'auth/invalid-email') {
+                errorEl.textContent = "E-mail inválido.";
+            } else {
+                errorEl.textContent = "Erro ao entrar. Verifique console.";
+            }
+        }); 
+}
+
+
+
 // --- FUNÇÕES DE LÓGICA ---
 
 function initialize() {
