@@ -1,4 +1,3 @@
-// --- CONFIGURAÇÃO FIREBASE ---
 const firebaseConfig = {
     apiKey: "AIzaSyB30QPE40atu__s4z3WlDBXHaryIE6asfE",
     authDomain: "consultor-3016e.firebaseapp.com",
@@ -13,7 +12,8 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-// --- SELEÇÃO DE ELEMENTOS DO DOM ---
+// --- LÓGICA DA APLICAÇÃO ---
+
 const app = document.getElementById('app');
 const loginSection = document.getElementById('login-section');
 const loginForm = document.getElementById('login-form');
@@ -23,7 +23,6 @@ const forgotPasswordLink = document.querySelector('.forgot-password');
 const toggleFormsLinks = document.querySelectorAll('.toggle-form');
 const companyNameEl = document.getElementById('company-name');
 const logoutBtn = document.getElementById('logoutBtn');
-const syncBtn = document.getElementById('syncBtn'); 
 const saveDataBtn = document.getElementById('save-data');
 const yearSelector = document.getElementById('year-selector');
 const mainNav = document.getElementById('main-nav');
@@ -35,7 +34,7 @@ const exportExcelMonthlyBtn = document.getElementById('export-excel-monthly');
 const recalculateAllBtn = document.getElementById('recalculate-all');
 const saveSettingsBtn = document.getElementById('save-settings');
 const allowManualEditCheckbox = document.getElementById('allow-manual-edit');
-const btnResetPopulateDemo = document.getElementById('btn-reset-populate-demo');
+const btnResetPopulateDemo = document.getElementById('btn-reset-populate-demo'); // Botão Reset+Simulação
 
 // Botões de Relatório
 const btnFullReport = document.getElementById('btn-full-report');
@@ -47,7 +46,7 @@ const btnExportEvolution = document.getElementById('btn-export-evolution');
 const btnExportGlossary = document.getElementById('btn-export-glossary');
 const btnExportConsultant = document.getElementById('btn-export-consultant');
 
-// Botões XLSX
+// Botões XLSX (Novos)
 const btnExportCompanyXLSX = document.getElementById('btn-export-company-xlsx');
 const btnImportCompanyXLSX = document.getElementById('btn-import-company-xlsx');
 const btnExportDailyXLSX = document.getElementById('btn-export-daily-xlsx');
@@ -89,8 +88,7 @@ const daysLeftText = document.getElementById('days-left-text');
 const monthlyFieldInfoBox = document.getElementById('monthly-field-info');
 const monthlyFieldText = document.getElementById('monthly-field-text');
 
-
-// --- VARIÁVEIS DE ESTADO E CONSTANTES ---
+// --- ESTADO DA APLICAÇÃO ---
 let currentUser = null;
 let currentYear = new Date().getFullYear();
 let financialData = {};
@@ -168,62 +166,15 @@ async function handleAuthStateChange(user) {
     } catch (error) { console.error("Erro crítico na autenticação:", error); showLogin(); }
 }
 
-// --- FUNÇÃO DE SINCRONIZAÇÃO (NOVA) ---
-async function handleSync() {
-    if (!currentUser) {
-        alert("Usuário não autenticado. Faça login novamente.");
-        showLogin();
-        return;
-    }
-
-    const originalText = syncBtn.textContent;
-    syncBtn.textContent = "Sincronizando...";
-    syncBtn.disabled = true;
-
-    try {
-        // 1. Recarrega a autenticação para garantir que o token é válido
-        await currentUser.reload();
-        currentUser = auth.currentUser;
-
-        if(!currentUser) throw new Error("Sessão expirada.");
-
-        // 2. Busca dados frescos do Firestore
-        const [newData, newSettings] = await Promise.all([
-            loadDataFromFirestore(currentUser.uid, 'financialData'),
-            loadDataFromFirestore(currentUser.uid, 'userSettings')
-        ]);
-
-        // 3. Atualiza estado local
-        financialData = newData || {};
-        userSettings = newSettings || {};
-
-        // 4. Atualiza a UI (chama showApp que popula os inputs novamente)
-        await showApp(); 
-
-        alert("Sincronização e autenticação concluídas com sucesso!");
-    } catch (error) {
-        console.error("Erro na sincronização:", error);
-        alert("Erro ao sincronizar. Verifique sua conexão ou faça login novamente.");
-        if (error.code === 'auth/user-token-expired' || !auth.currentUser) {
-            showLogin();
-        }
-    } finally {
-        syncBtn.textContent = originalText;
-        syncBtn.disabled = false;
-    }
-}
-
 function handleLogin(e) { 
     e.preventDefault(); 
     
-    // Agora loginForm já foi definido nas constantes lá em cima
+    // CORREÇÃO: Evita que o login seja processado se o formulário estiver oculto (ex: usuário tentando cadastrar)
     if (loginForm.style.display === 'none') return;
 
-    // Correção: pegar o valor aqui dentro, não fora
     const email = document.getElementById('login-user').value; 
     const pass = document.getElementById('login-password').value; 
     const errorEl = document.getElementById('login-error'); 
-    
     errorEl.textContent = ''; 
     auth.signInWithEmailAndPassword(email, pass).catch(error => { errorEl.textContent = "Email ou senha inválidos."; }); 
 }
@@ -526,18 +477,23 @@ async function checkAccessStatus() {
 }
 
 function lockAllTabs() {
+    // Lista de abas que DEVEM permanecer visíveis quando o crédito for 0.
+    // Inclui 'entradas-diarias' para garantir acesso a novos usuários.
     const allowedTabs = ['diagnostico', 'entradas-diarias', 'entradas-mensais', 'configuracoes'];
     
     const allTabs = document.querySelectorAll('nav button');
     
     allTabs.forEach(tab => {
         if(allowedTabs.includes(tab.dataset.tab)) {
+            // Remove a classe hidden-tab para garantir que seja exibida
             tab.classList.remove('hidden-tab');
         } else {
+            // Adiciona a classe hidden-tab para ocultar as demais abas
             tab.classList.add('hidden-tab');
         }
     });
 
+    // Lógica existente de controle do botão de desbloqueio
     if(btnGenerateUnlockCode) {
         btnGenerateUnlockCode.disabled = false;
         btnGenerateUnlockCode.style.backgroundColor = '#d4ac0d';
@@ -649,41 +605,51 @@ btnResetAuth.addEventListener('click', resetAccess);
 
 // === FUNÇÕES DE DADOS DE DEMONSTRAÇÃO E RESET ===
 
+// Função Auxiliar para Geração de Dados Diários Proporcionais
 function generateDailySimulation(year, monthIndex, totals) {
+    // Determina quantos dias exatos tem naquele mês/ano (trata bissextos)
     const daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
     const entries = [];
     
+    // Saldos restantes para distribuir (Garante coerência com o total mensal)
     let remFat = totals.faturamento;
-    let remCustos = totals.custosVariaveis; 
+    let remCustos = totals.custosVariaveis; // Mapeia para 'Comissão' no diário
     let remDesp = totals.despesasOperacionais;
     let remVendas = totals.numeroDeVendas;
 
     for (let day = 1; day <= daysInMonth; day++) {
         const isLastDay = day === daysInMonth;
+        // Formato de data compatível com input type="date"
         const dateStr = `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
         
         let dFat, dCustos, dDesp, dVendas;
 
         if (isLastDay) {
+            // No último dia, lançamos exatamente o que sobrou para zerar a diferença (Matemática Exata)
             dFat = parseFloat(remFat.toFixed(2));
             dCustos = parseFloat(remCustos.toFixed(2));
             dDesp = parseFloat(remDesp.toFixed(2));
             dVendas = Math.round(remVendas);
         } else {
+            // Distribuição Proporcional com leve variância (Simula realidade de comércio)
+            // Variância entre 0.6x e 1.4x da média diária
             const variance = 0.6 + Math.random() * 0.8; 
             const daysLeft = (daysInMonth - day + 1);
 
+            // Calcula a fatia do dia baseada no saldo restante dividido pelos dias que faltam
             dFat = parseFloat(((remFat / daysLeft) * variance).toFixed(2));
             dCustos = parseFloat(((remCustos / daysLeft) * variance).toFixed(2));
             dDesp = parseFloat(((remDesp / daysLeft) * variance).toFixed(2));
             dVendas = Math.round((remVendas / daysLeft) * variance);
         }
 
+        // Proteção contra valores negativos (caso a variância seja muito agressiva em saldos baixos)
         dFat = Math.max(0, dFat);
         dCustos = Math.max(0, dCustos);
         dDesp = Math.max(0, dDesp);
         dVendas = Math.max(0, dVendas);
 
+        // Atualiza saldos para o próximo dia
         remFat -= dFat;
         remCustos -= dCustos;
         remDesp -= dDesp;
@@ -694,7 +660,7 @@ function generateDailySimulation(year, monthIndex, totals) {
             faturamento: dFat,
             despesas: dDesp,
             comissao: dCustos, 
-            outras: 0,
+            outras: 0, // Campo 'Outras' zerado na simulação padrão
             vendas: dVendas
         });
     }
@@ -711,6 +677,7 @@ async function handleResetAndPopulateDemoData() {
 
     if (!confirmed) return;
 
+    // 1. Reset & Configurar Aba Empresa (Lógica Inalterada)
     const demoCompanyData = {
         corporateName: "Loja Modelo de Exemplo Ltda",
         cnpj: "12.345.678/0001-90",
@@ -726,6 +693,7 @@ async function handleResetAndPopulateDemoData() {
         observations: "Dados gerados automaticamente para demonstração do sistema. Faturamento médio de R$ 60k com distribuição diária proporcional."
     };
     
+    // Atualizar userSettings local e na UI (Lógica Inalterada)
     userSettings = { ...userSettings, ...demoCompanyData, allowManualEdit: true };
     document.getElementById('diag-corporate-name').value = demoCompanyData.corporateName;
     document.getElementById('diag-cnpj').value = demoCompanyData.cnpj;
@@ -736,17 +704,22 @@ async function handleResetAndPopulateDemoData() {
     document.getElementById('diag-observations').value = demoCompanyData.observations;
     companyNameEl.textContent = demoCompanyData.corporateName;
 
+    // 2. Reset & Preencher Entradas Mensais E Diárias
     if (!financialData[currentYear]) financialData[currentYear] = {};
     
     for (let i = 0; i < 12; i++) {
+        // Simulação Mensal: Variação aleatória de +/- 10% em torno de 60k
         const variation = 1 + (Math.random() * 0.2 - 0.1); 
         const baseRevenue = 60000 * variation;
         
+        // Definição dos Totais Mensais
         const monthFaturamento = parseFloat(baseRevenue.toFixed(2));
         const monthNumVendas = Math.floor(300 * variation);
         const monthCustosVar = parseFloat((baseRevenue * 0.45).toFixed(2)); // ~45%
         const monthDespesasOp = parseFloat((3000 + (Math.random() * 500)).toFixed(2));
 
+        // --- Geração dos Lançamentos Diários ---
+        // Chama a função auxiliar para distribuir o total mensal pelos dias do mês
         const generatedDailyEntries = generateDailySimulation(currentYear, i, {
             faturamento: monthFaturamento,
             custosVariaveis: monthCustosVar,
@@ -762,19 +735,21 @@ async function handleResetAndPopulateDemoData() {
             despesasOperacionais: monthDespesasOp,
             depreciacao: 500,
             outrasReceitasDespesas: 0,
-            investimentos: i === 5 ? 5000 : 0, 
+            investimentos: i === 5 ? 5000 : 0, // Exemplo pontual
             financiamentosEntradas: 0,
             amortizacaoDividas: 0,
             aporteSocios: 0,
             distribuicaoLucros: 0,
-            impostos: parseFloat((baseRevenue * 0.08).toFixed(2)), 
+            impostos: parseFloat((baseRevenue * 0.08).toFixed(2)), // ~8% Simples
             
+            // Array preenchido com dados proporcionais
             dailyEntries: generatedDailyEntries 
         };
 
         financialData[currentYear][i] = monthlyData;
     }
 
+    // 3. Finalização e Salvamento
     allowManualEditCheckbox.checked = true;
 
     try {
@@ -783,6 +758,7 @@ async function handleResetAndPopulateDemoData() {
         
         updateAllCalculations(); 
         
+        // Força a renderização da tabela diária para o mês selecionado atualmente
         const selectedMonth = parseInt(dailyMonthSelector.value) || 0;
         renderDailyEntries(currentYear, selectedMonth);
 
@@ -871,6 +847,7 @@ function importLocalBackup(e) {
 
 // === FUNÇÕES XLSX ===
 
+// Helper para criar planilha
 function createSheetFromData(data, headers, sheetName) {
     const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
     const wb = XLSX.utils.book_new();
@@ -878,6 +855,7 @@ function createSheetFromData(data, headers, sheetName) {
     return wb;
 }
 
+// Helper para ler arquivo Excel
 function readXLSXFile(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -891,6 +869,7 @@ function readXLSXFile(file) {
     });
 }
 
+// -- Aba Empresa --
 function handleExportCompanyXLSX() {
     const formMap = {
         'Razão Social': userSettings.corporateName,
@@ -958,7 +937,7 @@ async function handleImportCompanyXLSX(e) {
         });
 
         if (updated) {
-            saveDiagnosisData(null); 
+            saveDiagnosisData(null); // Salva no Firebase
             alert('Dados da empresa importados com sucesso!');
         }
     } catch (err) {
@@ -968,6 +947,7 @@ async function handleImportCompanyXLSX(e) {
     e.target.value = '';
 }
 
+// -- Aba Entradas Diárias --
 function handleExportDailyXLSX() {
     const month = parseInt(dailyMonthSelector.value);
     const yearData = financialData[currentYear] || {};
@@ -995,7 +975,7 @@ async function handleImportDailyXLSX(e) {
     try {
         const wb = await readXLSXFile(file);
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const data = XLSX.utils.sheet_to_json(ws); 
+        const data = XLSX.utils.sheet_to_json(ws); // Objects based on header
 
         const month = parseInt(dailyMonthSelector.value);
         if (!financialData[currentYear]) financialData[currentYear] = {};
@@ -1003,6 +983,7 @@ async function handleImportDailyXLSX(e) {
 
         let addedCount = 0;
         data.forEach(row => {
+            // Mapping assumptions based on Export headers
             const date = row['Data'] || row['date'];
             if (date) {
                 financialData[currentYear][month].dailyEntries.push({
@@ -1033,6 +1014,7 @@ async function handleImportDailyXLSX(e) {
     e.target.value = '';
 }
 
+// -- Aba Entradas Mensais --
 function handleExportMonthlyXLSX() {
     const yearData = financialData[currentYear] || {};
     const headers = ['Mês', 'Faturamento', 'NumVendas', 'CustosVariaveis', 'CustosFixos', 'DespesasOp', 'Depreciacao', 'Outras', 'Investimentos', 'FinancEntradas', 'AmortDividas', 'AporteSocios', 'DistrLucros', 'Impostos'];
@@ -1067,6 +1049,7 @@ async function handleImportMonthlyXLSX(e) {
 
         if (!financialData[currentYear]) financialData[currentYear] = {};
         
+        // Map Excel headers to JSON keys
         const mapKeys = {
             'Faturamento': 'faturamento', 'NumVendas': 'numeroDeVendas', 'CustosVariaveis': 'custosVariaveis',
             'CustosFixos': 'custosFixos', 'DespesasOp': 'despesasOperacionais', 'Depreciacao': 'depreciacao',
@@ -1076,7 +1059,7 @@ async function handleImportMonthlyXLSX(e) {
         };
 
         data.forEach((row, idx) => {
-            if (idx < 12) { 
+            if (idx < 12) { // 12 months
                 if (!financialData[currentYear][idx]) financialData[currentYear][idx] = { dailyEntries: [] };
                 Object.keys(mapKeys).forEach(header => {
                     if (row[header] !== undefined) {
@@ -1097,6 +1080,7 @@ async function handleImportMonthlyXLSX(e) {
     e.target.value = '';
 }
 
+// -- Exportação apenas (Indicadores/Evolução) --
 function handleExportAnnualXLSX() {
     const tableData = [];
     const yearData = financialData[currentYear] || {};
@@ -1314,11 +1298,10 @@ function generateConsultantDiagnosisPDF() {
     doc.setTextColor(0, 95, 115);
     doc.text(`Parecer do Consultor - ${currentYear}`, 14, 20);
     
-    let currentY = 30;
     doc.setFontSize(11);
     doc.setTextColor(0);
     const diagnosisText = userSettings.consultantDiagnosis || "Nenhum diagnóstico registrado.";
-    const splitDiagnosis = doc.splitTextToSize(diagnosisText, 180); // Adjusted width
+    const splitDiagnosis = doc.splitTextToSize(diagnosisText, pageWidth - 28);
     doc.text(splitDiagnosis, 14, currentY);
 
     doc.save(`Parecer_Consultor_${currentYear}.pdf`);
@@ -1464,619 +1447,619 @@ function generateFullReport() {
     for(let i=0; i<12; i++) { 
         if(yearData[i]) {
             INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0);
+            if((yearData[i].faturamento > 0) || (yearData[i].custosVariaveis > 0) || (yearData[i].custosFixos > 0)) monthsWithDataCount++;
         }
     }
-    
+    const divisor = monthsWithDataCount > 0 ? monthsWithDataCount : 1;
+    const annualIndicators = calculateIndicators(annualTotals);
+
     const summaryData = [
-        ["Faturamento Total", formatCurrency(annualTotals.faturamento)],
-        ["Lucro Líquido Total", formatCurrency(annualTotals.lucroLiquido)], 
-        ["Total de Vendas", annualTotals.numeroDeVendas],
-        ["Custos Variáveis", formatCurrency(annualTotals.custosVariaveis)],
-        ["Custos Fixos", formatCurrency(annualTotals.custosFixos)],
-        ["Despesas Operacionais", formatCurrency(annualTotals.despesasOperacionais)]
+        ["Faturamento Total", formatCurrency(annualIndicators.faturamento)],
+        ["Faturamento Médio Mensal", formatCurrency(annualIndicators.faturamento / divisor)],
+        ["Volume de Vendas Médio", (annualTotals.numeroDeVendas / divisor).toFixed(1)],
+        ["Lucro Líquido Total", formatCurrency(annualIndicators.lucroLiquido)],
+        ["Margem Líquida Média", formatPercent(annualIndicators.margemLiquida)],
+        ["Markup Médio", formatPercent(annualIndicators.markup)],
+        ["Fluxo de Caixa Livre Total", formatCurrency(annualIndicators.fluxoCaixaLivre)],
+        ["Ponto de Equilíbrio Médio", formatCurrency(annualIndicators.pontoEquilibrio / divisor)]
     ];
 
     doc.autoTable({
         startY: currentY,
         body: summaryData,
-        theme: 'grid',
-        styles: { fontSize: 10, fontStyle: 'bold' },
+        theme: 'plain',
+        styles: { fontSize: 11, fontStyle: 'bold' },
         columnStyles: { 0: { cellWidth: 100 }, 1: { cellWidth: 80, halign: 'right' } }
     });
 
-    doc.save(`Relatorio_Completo_${currentYear}.pdf`);
+    doc.addPage();
+    currentY = 20;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 95, 115);
+    doc.text("5. Evolução Gráfica do Negócio", 14, currentY);
+    
+    const chart1 = document.getElementById('monthlyEvolutionChart');
+    if (chart1) {
+        const img1 = chart1.toDataURL('image/png');
+        doc.addImage(img1, 'PNG', 14, currentY + 10, 180, 90);
+        currentY += 110;
+    }
+
+    const chart2 = document.getElementById('cashFlowChart');
+    if (chart2) {
+        const img2 = chart2.toDataURL('image/png');
+        doc.addImage(img2, 'PNG', 14, currentY, 180, 90);
+    }
+
+    doc.addPage();
+    currentY = 20;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 95, 115);
+    doc.text("6. Diagnóstico do Consultor", 14, currentY);
+    
+    currentY += 15;
+    doc.setFontSize(11);
+    doc.setTextColor(0);
+    
+    const diagnosisText = userSettings.consultantDiagnosis || "Nenhum diagnóstico registrado.";
+    const splitDiagnosis = doc.splitTextToSize(diagnosisText, pageWidth - 28);
+    doc.text(splitDiagnosis, 14, currentY);
+
+    doc.save(`Relatorio_Financeiro_Completo_${currentYear}.pdf`);
 }
 
-// === FUNÇÕES AUXILIARES E DE FORMATAÇÃO ===
+function generateDailyReport() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    let currentY = 20;
 
-function formatCurrency(value) {
-    return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
+    doc.setFontSize(18);
+    doc.setTextColor(46, 134, 222); 
+    doc.text(`Relatório de Movimentação Diária - ${currentYear}`, 14, currentY);
+    doc.setFontSize(12);
+    doc.setTextColor(50);
+    doc.text(`Empresa: ${userSettings.corporateName || 'Não informada'}`, 14, currentY + 10);
+    currentY += 20;
+
+    let hasDailyData = false;
+    const yearData = financialData[currentYear] || {};
+
+    MONTHS.forEach((month, index) => {
+        if (yearData[index] && yearData[index].dailyEntries && yearData[index].dailyEntries.length > 0) {
+            hasDailyData = true;
+            if (currentY > 250) { doc.addPage(); currentY = 20; }
+            doc.setFontSize(12);
+            doc.setTextColor(0);
+            doc.text(`Mês: ${month}`, 14, currentY);
+            currentY += 5;
+            const dailyRows = yearData[index].dailyEntries.map(entry => [
+                new Date(entry.date + 'T00:00:00-03:00').toLocaleDateString('pt-BR'),
+                formatCurrency(parseFloat(entry.faturamento)),
+                formatCurrency(parseFloat(entry.despesas)),
+                formatCurrency(parseFloat(entry.comissao)),
+                formatCurrency(parseFloat(entry.outras)),
+                entry.vendas
+            ]);
+            doc.autoTable({
+                startY: currentY,
+                head: [['Data', 'Faturamento', 'Despesas', 'Comissão', 'Outras', 'Vendas']],
+                body: dailyRows,
+                theme: 'striped',
+                headStyles: { fillColor: [46, 134, 222] },
+                styles: { fontSize: 8 },
+                margin: { left: 14 }
+            });
+            currentY = doc.lastAutoTable.finalY + 15;
+        }
+    });
+
+    if (!hasDailyData) {
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text("Não há lançamentos diários registrados para este ano.", 14, currentY);
+    }
+    doc.save(`Relatorio_Diario_${currentYear}.pdf`);
 }
 
-function formatPercent(value) {
-    return (value || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
-}
+btnFullReport.addEventListener('click', generateFullReport);
+btnExportDaily.addEventListener('click', generateDailyReport);
+btnExportCompany.addEventListener('click', generateCompanyPDF);
+btnExportMonthlyInputs.addEventListener('click', generateMonthlyInputsPDF);
+btnExportAnnual.addEventListener('click', generateAnnualIndicatorsPDF);
+btnExportEvolution.addEventListener('click', generateEvolutionPDF);
+btnExportGlossary.addEventListener('click', generateGlossaryPDF);
+btnExportConsultant.addEventListener('click', generateConsultantDiagnosisPDF);
 
-function parseCurrency(value) {
-    if (typeof value === 'number') return value;
-    if (!value) return 0;
-    return parseFloat(value.replace(/\./g, '').replace(',', '.')) || 0;
-}
-
-// === LÓGICA DE CÁLCULO FINANCEIRO ===
-
-function calculateIndicators(data) {
-    if (!data) data = {};
-    const fat = data.faturamento || 0;
-    const cv = data.custosVariaveis || 0;
-    const cf = data.custosFixos || 0;
-    const despOp = data.despesasOperacionais || 0;
-    const outras = data.outrasReceitasDespesas || 0;
-    const impostos = data.impostos || 0;
-    const depreciacao = data.depreciacao || 0;
-    
-    // Cálculos Intermediários
-    const lucroBruto = fat - cv;
-    const lucroOperacional = lucroBruto - cf - despOp;
-    const lucroLiquido = lucroOperacional + outras - impostos;
-    
-    // Margens e Índices
-    const margemLiquida = fat > 0 ? (lucroLiquido / fat) * 100 : 0;
-    const markup = cv > 0 ? ((fat - cv) / cv) * 100 : 0;
-    const margemContribuicao = fat - cv;
-    const indiceMargemContribuicao = fat > 0 ? margemContribuicao / fat : 0;
-    
-    const pontoEquilibrio = indiceMargemContribuicao > 0 ? (cf + despOp) / indiceMargemContribuicao : 0;
-    
-    // Fluxos de Caixa
-    // FCO: Lucro Líquido + Depreciação (Non-cash expense added back)
-    const fco = lucroLiquido + depreciacao; 
-    
-    // FCI: Investimentos (Capex) - Assumindo que 'investimentos' é saída (-)
-    const fci = -(data.investimentos || 0);
-    
-    // FCF: Entradas de Financ. - Amortização - Distribuição Lucros + Aporte Sócios
-    const fcf = (data.financiamentosEntradas || 0) - (data.amortizacaoDividas || 0) + (data.aporteSocios || 0) - (data.distribuicaoLucros || 0);
-    
-    const fcl = fco + fci + fcf;
-
-    return {
-        faturamento: fat,
-        custosTotais: cv + cf + despOp + impostos,
-        lucroBruto,
-        lucroOperacional,
-        lucroLiquido,
-        margemLiquida,
-        markup,
-        pontoEquilibrio,
-        fluxoCaixaOperacional: fco,
-        fluxoCaixaInvestimentos: fci,
-        fluxoCaixaFinanciamentos: fcf,
-        fluxoCaixaLivre: fcl
-    };
-}
-
-// === GERENCIAMENTO DE TABELAS E DOM ===
 
 function setupYearSelector() {
+    const current = new Date().getFullYear();
     yearSelector.innerHTML = '';
-    const startYear = 2023;
-    const endYear = new Date().getFullYear() + 2;
-    
-    for (let y = startYear; y <= endYear; y++) {
+    for (let i = current + 5; i >= current - 5; i--) {
         const option = document.createElement('option');
-        option.value = y;
-        option.textContent = y;
-        if (y === currentYear) option.selected = true;
+        option.value = i; option.textContent = i; option.selected = (i === currentYear);
         yearSelector.appendChild(option);
     }
 }
 
 function setupDailyMonthSelector() {
     dailyMonthSelector.innerHTML = '';
-    MONTHS.forEach((m, i) => {
+    MONTHS.forEach((month, index) => {
         const option = document.createElement('option');
-        option.value = i;
-        option.textContent = m;
-        if (i === new Date().getMonth()) option.selected = true;
+        option.value = index;
+        option.textContent = month;
+        option.selected = (index === new Date().getMonth());
         dailyMonthSelector.appendChild(option);
     });
 }
 
 function aggregateDailyData(year) {
     if (!financialData[year]) return;
-    
-    // Se a edição manual estiver ativada, não sobrescrevemos os dados mensais com a soma dos diários
-    if (allowManualEditCheckbox.checked) return;
 
     for (let i = 0; i < 12; i++) {
         const monthData = financialData[year][i];
-        if (monthData && monthData.dailyEntries && monthData.dailyEntries.length > 0) {
-            const totals = monthData.dailyEntries.reduce((acc, entry) => {
-                acc.faturamento += entry.faturamento || 0;
-                acc.despesas += entry.despesas || 0; // Vai para Despesas Operacionais
-                acc.comissao += entry.comissao || 0; // Vai para Custos Variáveis
-                acc.outras += entry.outras || 0;     // Vai para Outras Rec/Desp
-                acc.vendas += entry.vendas || 0;
-                return acc;
-            }, { faturamento: 0, despesas: 0, comissao: 0, outras: 0, vendas: 0 });
+        
+        if (!monthData) continue;
 
-            // Atualiza os campos mensais calculados
-            monthData.faturamento = parseFloat(totals.faturamento.toFixed(2));
-            monthData.despesasOperacionais = parseFloat(totals.despesas.toFixed(2));
-            monthData.custosVariaveis = parseFloat(totals.comissao.toFixed(2));
-            monthData.outrasReceitasDespesas = parseFloat(totals.outras.toFixed(2));
-            monthData.numeroDeVendas = totals.vendas;
+        if (monthData.dailyEntries && monthData.dailyEntries.length > 0) {
+            const totals = monthData.dailyEntries.reduce((acc, entry) => {
+                acc.faturamento += parseFloat(entry.faturamento) || 0;
+                acc.despesasOperacionais += parseFloat(entry.despesas) || 0;
+                acc.numeroDeVendas += parseInt(entry.vendas) || 0;
+                acc.custosVariaveis += parseFloat(entry.comissao) || 0;
+                acc.outrasReceitasDespesas += parseFloat(entry.outras) || 0;
+                return acc;
+            }, { faturamento: 0, despesasOperacionais: 0, numeroDeVendas: 0, custosVariaveis: 0, outrasReceitasDespesas: 0 });
+            
+            monthData.faturamento = totals.faturamento;
+            monthData.despesasOperacionais = totals.despesasOperacionais;
+            monthData.numeroDeVendas = totals.numeroDeVendas;
+            monthData.custosVariaveis = totals.custosVariaveis;
+            monthData.outrasReceitasDespesas = totals.outrasReceitasDespesas;
+        } else {
+            monthData.faturamento = 0;
+            monthData.despesasOperacionais = 0;
+            monthData.numeroDeVendas = 0;
+            monthData.custosVariaveis = 0;
+            monthData.outrasReceitasDespesas = 0;
         }
     }
 }
 
-function renderDailyEntries(year, monthIndex) {
-    const tbody = document.querySelector('#daily-entries-table tbody');
-    tbody.innerHTML = '';
-    
-    const yearData = financialData[year] || {};
-    const monthData = yearData[monthIndex] || { dailyEntries: [] };
-    const entries = monthData.dailyEntries || [];
+function showFieldDescription(fieldName) {
+    const description = FIELD_DESCRIPTIONS[fieldName];
+    if (description) {
+        monthlyFieldText.innerHTML = `<strong>${fieldName.charAt(0).toUpperCase() + fieldName.slice(1).replace(/([A-Z])/g, ' $1').trim()}:</strong> ${description}`;
+        monthlyFieldInfoBox.style.display = 'flex';
+    }
+}
 
-    // Ordenar por data
+function loadYearData(year) {
+    const tableBody = document.querySelector('#monthly-inputs tbody');
+    tableBody.innerHTML = '';
+    
+    if (!financialData[year]) financialData[year] = {};
+
+    const yearData = financialData[year];
+    const isManualEditAllowed = allowManualEditCheckbox.checked;
+
+    MONTHS.forEach((month, index) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${month}</td>`;
+        
+        if (!yearData[index]) yearData[index] = { dailyEntries: [] };
+        const monthData = yearData[index];
+
+        INPUT_FIELDS.forEach(field => {
+            const td = document.createElement('td');
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.dataset.month = index;
+            input.dataset.field = field;
+            input.value = monthData[field] || '';
+            input.placeholder = "0.00";
+
+            const isAutoCalculatedField = ['faturamento', 'despesasOperacionais', 'numeroDeVendas', 'custosVariaveis', 'outrasReceitasDespesas'].includes(field);
+            input.readOnly = isAutoCalculatedField && !isManualEditAllowed;
+
+            input.addEventListener('focus', () => showFieldDescription(field));
+
+            td.appendChild(input);
+            row.appendChild(td);
+        });
+        tableBody.appendChild(row);
+    });
+}
+
+function calculateIndicators(data = {}) {
+    const inputs = {}; INPUT_FIELDS.forEach(field => inputs[field] = data[field] || 0);
+    const {faturamento, custosVariaveis, custosFixos, despesasOperacionais, outrasReceitasDespesas, numeroDeVendas, impostos, depreciacao, investimentos, financiamentosEntradas, amortizacaoDividas, aporteSocios, distribuicaoLucros} = inputs;
+    const lucroBruto = faturamento - custosVariaveis;
+    const lucroOperacional = lucroBruto - custosFixos - despesasOperacionais;
+    const lucroAntesImpostos = lucroOperacional + outrasReceitasDespesas;
+    const lucroLiquido = lucroAntesImpostos - impostos;
+    const margemLiquida = faturamento > 0 ? (lucroLiquido / faturamento) * 100 : 0;
+    const markup = custosVariaveis > 0 ? ((faturamento - custosVariaveis) / custosVariaveis) * 100 : 0;
+    
+    const custosFixosTotais = custosFixos + despesasOperacionais;
+    const indiceMargemContribuicao = faturamento > 0 ? 1 - (custosVariaveis / faturamento) : 0;
+    const pontoEquilibrio = indiceMargemContribuicao > 0 ? custosFixosTotais / indiceMargemContribuicao : 0;
+
+    const fluxoCaixaOperacional = lucroLiquido + depreciacao;
+    const fluxoCaixaInvestimentos = -investimentos;
+    const fluxoCaixaFinanciamentos = financiamentosEntradas - amortizacaoDividas + aporteSocios - distribuicaoLucros;
+    const fluxoCaixaLivre = fluxoCaixaOperacional + fluxoCaixaInvestimentos + fluxoCaixaFinanciamentos;
+    
+    return { 
+        lucroLiquido, margemLiquida, markup, pontoEquilibrio,
+        fluxoCaixaOperacional, fluxoCaixaInvestimentos, fluxoCaixaFinanciamentos, fluxoCaixaLivre, 
+        faturamento, custosTotais: custosFixos + custosVariaveis + despesasOperacionais,
+        custosVariaveis, numeroDeVendas
+    };
+}
+
+function generateBusinessAdvice(indicators, settings) {
+    const adviceList = [];
+    const { benchmarkMargem = 0, benchmarkCustos = 0, benchmarkMarkup = 0, businessType } = settings;
+    if (benchmarkMargem > 0 && indicators.margemLiquida < benchmarkMargem) {
+        let conselho = { titulo: "Margem Líquida Abaixo da Meta", texto: `Sua margem líquida (${formatPercent(indicators.margemLiquida)}) está abaixo da sua meta de ${formatPercent(benchmarkMargem)}. Isso significa que os custos e despesas estão consumindo uma fatia muito grande do seu faturamento.`};
+        if (businessType === 'varejo' || businessType === 'ecommerce') conselho.acao = "Crie um programa de fidelidade para aumentar a recorrência. Uma <strong>landing page</strong> para capturar emails e uma estratégia de email marketing podem ajudar a aumentar as vendas para a mesma base de clientes.";
+        else conselho.acao = "Revise sua precificação. Utilize suas <strong>redes sociais</strong> para comunicar o valor agregado do seu serviço, justificando um preço maior.";
+        adviceList.push(conselho);
+    }
+    if (benchmarkMarkup > 0 && indicators.markup < benchmarkMarkup) {
+        adviceList.push({ titulo: "Markup Abaixo da Meta", texto: `Seu markup médio (${formatPercent(indicators.markup)}) está abaixo do mínimo desejado de ${formatPercent(benchmarkMarkup)}. Isso impacta diretamente sua capacidade de gerar lucro bruto.`, acao: "Otimize sua precificação. Se vender online, utilize um <strong>e-commerce</strong> que permita testes A/B de preços. Considere também vender em <strong>marketplaces</strong> para alcançar um público maior." });
+    }
+    const custoVariavelPercent = indicators.faturamento > 0 ? (indicators.custosTotais / indicators.faturamento) * 100 : 0;
+    if (benchmarkCustos > 0 && custoVariavelPercent > benchmarkCustos) {
+         adviceList.push({ titulo: "Custos Totais Elevados", texto: `Seus custos totais representam ${formatPercent(custoVariavelPercent)} do faturamento, acima da sua meta de ${formatPercent(benchmarkCustos)}.`, acao: "Busque renegociar com seus fornecedores e revise suas despesas fixas. Considere um sistema de gestão (ERP) simples para controlar melhor as compras. A criação de um <strong>site institucional</strong> pode atrair novos fornecedores." });
+    }
+    if (adviceList.length === 0) {
+        adviceList.push({ titulo: "Parabéns, seus indicadores estão ótimos!", texto: "Todos os seus principais indicadores estão dentro das metas que você definiu. Continue monitorando para manter o bom desempenho.", acao: "O próximo passo pode ser a expansão. Use o tráfego pago nas <strong>redes sociais</strong> para testar novos públicos ou explore a venda em novos canais, como um <strong>e-commerce</strong> próprio." });
+    }
+    return adviceList;
+}
+
+function updateAllCalculations() { 
+    if (!allowManualEditCheckbox.checked) {
+        aggregateDailyData(currentYear);
+    }
+    loadYearData(currentYear);
+    renderMonthlyIndicators(); 
+    renderAnnualIndicators(); 
+}
+    
+function renderMonthlyIndicators() {
+    const tableBody = document.querySelector('#monthly-indicators-table tbody');
+    tableBody.innerHTML = '';
+    const yearData = financialData[currentYear] || {};
+    MONTHS.forEach((month, index) => {
+        const indicators = calculateIndicators(yearData[index]);
+        const row = document.createElement('tr');
+        row.innerHTML = `<td>${month}</td><td class="${indicators.lucroLiquido >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.lucroLiquido)}</td><td class="${indicators.margemLiquida >= 0 ? 'positive' : 'negative'}">${formatPercent(indicators.margemLiquida)}</td><td class="${indicators.markup >= 0 ? 'positive' : 'negative'}">${formatPercent(indicators.markup)}</td><td class="${indicators.fluxoCaixaOperacional >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaOperacional)}</td><td class="${indicators.fluxoCaixaInvestimentos >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaInvestimentos)}</td><td class="${indicators.fluxoCaixaFinanciamentos >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaFinanciamentos)}</td><td class="${indicators.fluxoCaixaLivre >= 0 ? 'positive' : 'negative'}"><strong>${formatCurrency(indicators.fluxoCaixaLivre)}</strong></td>`;
+        tableBody.appendChild(row);
+    });
+}
+
+async function renderAnnualIndicators() {
+    const container = document.getElementById('annual-indicators-content');
+    container.innerHTML = '';
+    const yearData = financialData[currentYear] || {};
+    let annualTotals = {}; 
+    INPUT_FIELDS.forEach(field => annualTotals[field] = 0);
+    let monthsWithDataCount = 0;
+    for(let i=0; i<12; i++) { 
+        if(yearData[i]) {
+            INPUT_FIELDS.forEach(field => annualTotals[field] += yearData[i][field] || 0);
+            if((yearData[i].faturamento > 0) || (yearData[i].custosVariaveis > 0) || (yearData[i].custosFixos > 0)) monthsWithDataCount++;
+        }
+    }
+    const divisor = monthsWithDataCount > 0 ? monthsWithDataCount : 1;
+    const annualIndicators = calculateIndicators(annualTotals);
+
+    const displayIndicators = { ...annualIndicators };
+    displayIndicators.faturamentoMedio = (annualTotals.faturamento / divisor) || 0;
+    displayIndicators.volumeVendasMedio = (annualTotals.numeroDeVendas / divisor) || 0;
+    displayIndicators.cmv = annualTotals.custosVariaveis; 
+    displayIndicators.pontoEquilibrioMedio = (annualIndicators.pontoEquilibrio / divisor) || 0;
+
+    const categories = {
+        "Desempenho de Vendas": ['faturamentoMedio', 'volumeVendasMedio'],
+        "Rentabilidade e Lucro": ['lucroLiquido', 'margemLiquida', 'markup', 'cmv', 'pontoEquilibrioMedio'],
+        "Fluxo de Caixa": ['fluxoCaixaLivre', 'fluxoCaixaOperacional', 'fluxoCaixaInvestimentos', 'fluxoCaixaFinanciamentos']
+    };
+
+    for (const categoryName in categories) {
+        const categoryDiv = document.createElement('div');
+        categoryDiv.className = 'card-category';
+        categoryDiv.innerHTML = `<h2>${categoryName}</h2>`;
+        const gridDiv = document.createElement('div');
+        gridDiv.className = 'indicators-grid';
+        categories[categoryName].forEach(key => {
+            const glossaryKey = key === 'cmv' ? 'custosVariaveis' : (key === 'pontoEquilibrioMedio' ? 'pontoEquilibrio' : key);
+            const cardTitle = key === 'cmv' ? 'Custo da Mercadoria Vendida (CMV)' : (key === 'pontoEquilibrioMedio' ? 'Ponto de Equilíbrio Médio' : GLOSSARY_DATA[glossaryKey]?.nome);
+            const indicatorInfo = GLOSSARY_DATA[glossaryKey];
+            if (!indicatorInfo) return;
+            const value = displayIndicators[key];
+            let formattedValue;
+            if(key === 'volumeVendasMedio'){ formattedValue = (value || 0).toFixed(1).replace('.', ','); } 
+            else if (key.includes('margem') || key.includes('markup')) { formattedValue = formatPercent(value); } 
+            else { formattedValue = formatCurrency(value); }
+            gridDiv.innerHTML += `<div class="card"><h3>${cardTitle}</h3><div class="value ${value >= 0 ? 'positive' : 'negative'}">${formattedValue}</div><p class="explanation">${indicatorInfo.significado}</p></div>`;
+        });
+        categoryDiv.appendChild(gridDiv);
+        container.appendChild(categoryDiv);
+    }
+    
+    const adviceContainer = document.getElementById('advice-container');
+    if(userSettings && userSettings.businessType){
+        const adviceList = generateBusinessAdvice(annualIndicators, userSettings);
+        adviceContainer.innerHTML = '';
+        adviceList.forEach(advice => {
+            const adviceCard = document.createElement('div');
+            adviceCard.className = 'card';
+            adviceCard.innerHTML = `<h3>${advice.titulo}</h3><p>${advice.texto}</p><hr style="margin: 10px 0;"><p><strong>Ação Sugerida:</strong> ${advice.acao}</p>`;
+            adviceContainer.appendChild(adviceCard);
+        });
+    } else {
+        adviceContainer.innerHTML = `<p>Preencha suas metas na aba 'Configurações' para receber conselhos personalizados.</p>`;
+    }
+}
+    
+let chartInstances = {};
+function renderAllCharts() {
+    const yearData = financialData[currentYear] || {};
+    const labels = MONTHS;
+    const chartData = { faturamento: [], custosTotais: [], lucroLiquido: [], fluxoCaixaLivre: [] };
+    for(let i=0; i<12; i++) {
+        const indicators = calculateIndicators(yearData[i]);
+        chartData.faturamento.push(indicators.faturamento);
+        chartData.custosTotais.push(indicators.custosTotais);
+        chartData.lucroLiquido.push(indicators.lucroLiquido);
+        chartData.fluxoCaixaLivre.push(indicators.fluxoCaixaLivre);
+    }
+    const chartConfigs = {
+        monthlyEvolutionChart: { type: 'line', data: { labels, datasets: [ { label: 'Faturamento', data: chartData.faturamento, borderColor: '#0a9396', fill: false, tension: 0.1 }, { label: 'Custos Totais', data: chartData.custosTotais, borderColor: '#e76f51', fill: false, tension: 0.1 }, { label: 'Lucro Líquido', data: chartData.lucroLiquido, borderColor: '#2a9d8f', fill: false, tension: 0.1 } ]}},
+        cashFlowChart: { type: 'bar', data: { labels, datasets: [ { label: 'Fluxo de Caixa Livre', data: chartData.fluxoCaixaLivre, backgroundColor: (ctx) => (ctx.raw >= 0 ? '#2a9d8f' : '#e76f51') } ]}}
+    };
+    for (const id in chartConfigs) {
+        if(chartInstances[id]) chartInstances[id].destroy();
+        const canvas = document.getElementById(id);
+        if(canvas) chartInstances[id] = new Chart(canvas.getContext('2d'), chartConfigs[id]);
+    }
+}
+
+// CORREÇÃO DE SEGURANÇA (XSS): Usando createElement em vez de innerHTML
+function renderDailyEntries(year, month) {
+    const tableBody = document.querySelector('#daily-entries-table tbody');
+    tableBody.innerHTML = ''; // Limpa a tabela
+    
+    if (!financialData[year] || !financialData[year][month] || !financialData[year][month].dailyEntries) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="7">Nenhum lançamento para este mês.</td>';
+        tableBody.appendChild(tr);
+        return;
+    }
+
+    const entries = financialData[year][month].dailyEntries;
+    if (entries.length === 0) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = '<td colspan="7">Nenhum lançamento para este mês.</td>';
+        tableBody.appendChild(tr);
+        return;
+    }
+    
     entries.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     entries.forEach((entry, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${new Date(entry.date + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
-            <td>${formatCurrency(entry.faturamento)}</td>
-            <td>${formatCurrency(entry.despesas)}</td>
-            <td>${formatCurrency(entry.comissao)}</td>
-            <td>${formatCurrency(entry.outras)}</td>
-            <td>${entry.vendas}</td>
-            <td>
-                <button class="action-btn edit-btn" onclick="editDailyEntry(${index})">✎</button>
-                <button class="action-btn delete-btn" onclick="deleteDailyEntry(${index})">🗑</button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
+        const row = document.createElement('tr');
+        
+        // Cria cada célula de forma segura
+        const createCell = (text) => {
+            const td = document.createElement('td');
+            td.textContent = text;
+            return td;
+        };
 
-function updateAllCalculations() {
-    if (!financialData[currentYear]) financialData[currentYear] = {};
-    
-    // 1. Agregar dados diários se necessário
-    aggregateDailyData(currentYear);
+        const formattedDate = new Date(entry.date + 'T00:00:00-03:00').toLocaleDateString('pt-BR');
 
-    const tbodyInputs = document.querySelector('#monthly-inputs tbody');
-    const tbodyIndicators = document.querySelector('#monthly-indicators-table tbody');
-    tbodyInputs.innerHTML = '';
-    tbodyIndicators.innerHTML = '';
+        row.appendChild(createCell(formattedDate));
+        row.appendChild(createCell(formatCurrency(parseFloat(entry.faturamento))));
+        row.appendChild(createCell(formatCurrency(parseFloat(entry.despesas))));
+        row.appendChild(createCell(formatCurrency(parseFloat(entry.comissao))));
+        row.appendChild(createCell(formatCurrency(parseFloat(entry.outras))));
+        row.appendChild(createCell(entry.vendas));
 
-    const chartLabels = [];
-    const chartFat = [];
-    const chartCustos = [];
-    const chartLucro = [];
-    const chartFCL = [];
+        // Botões de ação (HTML seguro pois é controlado por nós)
+        const actionsTd = document.createElement('td');
+        actionsTd.innerHTML = `<button class="action-btn edit-btn" onclick="handleEditDailyEntry(${year}, ${month}, ${index})">Editar</button><button class="action-btn delete-btn" onclick="handleDeleteDailyEntry(${year}, ${month}, ${index})">Excluir</button>`;
+        row.appendChild(actionsTd);
 
-    MONTHS.forEach((month, index) => {
-        const data = financialData[currentYear][index] || {};
-        const indicators = calculateIndicators(data);
-
-        // Renderizar Linha de Inputs
-        const trInput = document.createElement('tr');
-        // Define se os campos são somente leitura baseados na config
-        const isReadOnly = !allowManualEditCheckbox.checked;
-        const readOnlyAttr = isReadOnly ? 'readonly' : '';
-        const readOnlyClass = isReadOnly ? 'readonly-input' : '';
-
-        // Helper para criar input cell
-        const createInput = (field, val, readOnly = false) => `
-            <td><input type="number" step="0.01" 
-                data-month="${index}" 
-                data-field="${field}" 
-                value="${(val || 0)}" 
-                ${readOnly ? 'readonly' : ''}
-                onchange="saveMonthlyData()"></td>`;
-
-        trInput.innerHTML = `
-            <td style="font-weight:bold;">${month}</td>
-            ${createInput('faturamento', data.faturamento, isReadOnly)}
-            ${createInput('numeroDeVendas', data.numeroDeVendas, isReadOnly)}
-            ${createInput('custosVariaveis', data.custosVariaveis, isReadOnly)}
-            ${createInput('custosFixos', data.custosFixos)}
-            ${createInput('despesasOperacionais', data.despesasOperacionais, isReadOnly)}
-            ${createInput('depreciacao', data.depreciacao)}
-            ${createInput('outrasReceitasDespesas', data.outrasReceitasDespesas, isReadOnly)}
-            ${createInput('investimentos', data.investimentos)}
-            ${createInput('financiamentosEntradas', data.financiamentosEntradas)}
-            ${createInput('amortizacaoDividas', data.amortizacaoDividas)}
-            ${createInput('aporteSocios', data.aporteSocios)}
-            ${createInput('distribuicaoLucros', data.distribuicaoLucros)}
-            ${createInput('impostos', data.impostos)}
-        `;
-        tbodyInputs.appendChild(trInput);
-
-        // Renderizar Linha de Indicadores
-        const trInd = document.createElement('tr');
-        trInd.innerHTML = `
-            <td>${month}</td>
-            <td class="${indicators.lucroLiquido >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.lucroLiquido)}</td>
-            <td>${formatPercent(indicators.margemLiquida)}</td>
-            <td>${formatPercent(indicators.markup)}</td>
-            <td>${formatCurrency(indicators.fluxoCaixaOperacional)}</td>
-            <td>${formatCurrency(indicators.fluxoCaixaInvestimentos)}</td>
-            <td>${formatCurrency(indicators.fluxoCaixaFinanciamentos)}</td>
-            <td class="${indicators.fluxoCaixaLivre >= 0 ? 'positive' : 'negative'}" style="font-weight:bold;">${formatCurrency(indicators.fluxoCaixaLivre)}</td>
-        `;
-        tbodyIndicators.appendChild(trInd);
-
-        // Dados para Gráficos
-        chartLabels.push(month.substr(0, 3));
-        chartFat.push(indicators.faturamento);
-        chartCustos.push(indicators.custosTotais);
-        chartLucro.push(indicators.lucroLiquido);
-        chartFCL.push(indicators.fluxoCaixaLivre);
-    });
-
-    updateCharts(chartLabels, chartFat, chartCustos, chartLucro, chartFCL);
-    updateAnnualIndicators();
-    updateAdvice();
-
-    // Reaplicar listeners para info box nos inputs
-    document.querySelectorAll('#monthly-inputs input').forEach(input => {
-        input.addEventListener('focus', (e) => showFieldInfo(e.target.dataset.field));
-        input.addEventListener('click', (e) => showFieldInfo(e.target.dataset.field));
-    });
-}
-
-function updateAnnualIndicators() {
-    const container = document.getElementById('annual-indicators-content');
-    let totals = {};
-    INPUT_FIELDS.forEach(f => totals[f] = 0);
-    
-    let count = 0;
-    for(let i=0; i<12; i++) {
-        if(financialData[currentYear] && financialData[currentYear][i]) {
-            const d = financialData[currentYear][i];
-            INPUT_FIELDS.forEach(f => totals[f] += (d[f] || 0));
-            if(d.faturamento > 0) count++;
-        }
-    }
-    
-    const indicators = calculateIndicators(totals);
-    const divisor = count > 0 ? count : 1;
-
-    container.innerHTML = `
-        <div class="indicators-grid">
-            <div class="card">
-                <div class="card-category"><h2>💰 Resultados Operacionais</h2></div>
-                <h3>Faturamento Anual</h3><div class="value">${formatCurrency(indicators.faturamento)}</div>
-                <h3>Lucro Líquido Anual</h3><div class="value ${indicators.lucroLiquido >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.lucroLiquido)}</div>
-                <h3>Margem Líquida Média</h3><div class="value">${formatPercent(indicators.margemLiquida)}</div>
-            </div>
-            <div class="card">
-                <div class="card-category"><h2>📉 Custos e Eficiência</h2></div>
-                <h3>Custos Variáveis Totais</h3><div class="value">${formatCurrency(totals.custosVariaveis)}</div>
-                <h3>Custos Fixos Totais</h3><div class="value">${formatCurrency(totals.custosFixos)}</div>
-                <h3>Ponto de Equilíbrio (Médio/Mês)</h3><div class="value">${formatCurrency(indicators.pontoEquilibrio / divisor)}</div>
-            </div>
-            <div class="card">
-                <div class="card-category"><h2>📊 Fluxo de Caixa (Caixa Real)</h2></div>
-                <h3>Fluxo de Caixa Operacional</h3><div class="value">${formatCurrency(indicators.fluxoCaixaOperacional)}</div>
-                <h3>Fluxo de Caixa Livre (Accum.)</h3><div class="value ${indicators.fluxoCaixaLivre >= 0 ? 'positive' : 'negative'}">${formatCurrency(indicators.fluxoCaixaLivre)}</div>
-                <p class="explanation">Dinheiro real que sobrou no bolso após pagar tudo e investir.</p>
-            </div>
-        </div>
-    `;
-}
-
-// === EDIÇÃO DIÁRIA ===
-
-dailyEntryForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!currentUser) return;
-
-    const date = document.getElementById('daily-date').value;
-    const faturamento = parseFloat(document.getElementById('daily-faturamento').value);
-    const despesas = parseFloat(document.getElementById('daily-despesas').value);
-    const comissao = parseFloat(document.getElementById('daily-comissao').value) || 0;
-    const outras = parseFloat(document.getElementById('daily-outras').value) || 0;
-    const vendas = parseInt(document.getElementById('daily-vendas').value);
-
-    // Validação de Mês
-    const entryDate = new Date(date);
-    const entryMonth = entryDate.getMonth();
-    const entryYear = entryDate.getFullYear();
-
-    if (entryYear !== currentYear) {
-        if(confirm(`A data selecionada é do ano ${entryYear}. Deseja mudar o painel para este ano?`)) {
-            currentYear = entryYear;
-            // Atualiza seletor de ano
-            let yearExists = false;
-            for(let opt of yearSelector.options) { if(parseInt(opt.value) === currentYear) yearExists = true; }
-            if(!yearExists) {
-                const opt = document.createElement('option'); opt.value = currentYear; opt.textContent = currentYear;
-                yearSelector.appendChild(opt);
-            }
-            yearSelector.value = currentYear;
-            await showApp(); // Recarrega
-        } else {
-            return;
-        }
-    }
-
-    if (!financialData[currentYear]) financialData[currentYear] = {};
-    if (!financialData[currentYear][entryMonth]) financialData[currentYear][entryMonth] = { dailyEntries: [] };
-
-    const newEntry = { date, faturamento, despesas, comissao, outras, vendas };
-
-    if (currentlyEditingIndex !== null) {
-        // Editando existente
-        financialData[currentYear][entryMonth].dailyEntries[currentlyEditingIndex] = newEntry;
-        currentlyEditingIndex = null;
-        cancelEditBtn.style.display = 'none';
-        dailyEntryForm.querySelector('button[type="submit"]').textContent = 'Adicionar Lançamento';
-        dailyMessageEl.textContent = 'Lançamento atualizado!';
-    } else {
-        // Novo
-        financialData[currentYear][entryMonth].dailyEntries.push(newEntry);
-        dailyMessageEl.textContent = 'Lançamento adicionado!';
-    }
-
-    // Salvar e atualizar
-    await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
-    
-    // Resetar form
-    dailyEntryForm.reset();
-    document.getElementById('daily-date').valueAsDate = new Date();
-    
-    // Atualizar UI
-    dailyMonthSelector.value = entryMonth;
-    renderDailyEntries(currentYear, entryMonth);
-    updateAllCalculations();
-    
-    setTimeout(() => dailyMessageEl.textContent = '', 3000);
-});
-
-window.editDailyEntry = (index) => {
-    const month = parseInt(dailyMonthSelector.value);
-    const entries = financialData[currentYear][month].dailyEntries;
-    // Precisamos achar a entrada correta, pois a renderização pode estar ordenada
-    const sortedEntries = [...entries].sort((a, b) => new Date(a.date) - new Date(b.date));
-    const entryToEdit = sortedEntries[index];
-    
-    // Agora achar o índice real no array original
-    const realIndex = entries.indexOf(entryToEdit);
-    
-    document.getElementById('daily-date').value = entryToEdit.date;
-    document.getElementById('daily-faturamento').value = entryToEdit.faturamento;
-    document.getElementById('daily-despesas').value = entryToEdit.despesas;
-    document.getElementById('daily-comissao').value = entryToEdit.comissao;
-    document.getElementById('daily-outras').value = entryToEdit.outras;
-    document.getElementById('daily-vendas').value = entryToEdit.vendas;
-
-    currentlyEditingIndex = realIndex;
-    dailyEntryForm.querySelector('button[type="submit"]').textContent = 'Salvar Alteração';
-    cancelEditBtn.style.display = 'inline-block';
-    window.scrollTo(0, document.getElementById('entradas-diarias').offsetTop);
-};
-
-window.deleteDailyEntry = async (index) => {
-    if(!confirm("Tem certeza que deseja excluir este lançamento?")) return;
-    
-    const month = parseInt(dailyMonthSelector.value);
-    const entries = financialData[currentYear][month].dailyEntries;
-    const sortedEntries = [...entries].sort((a, b) => new Date(a.date) - new Date(b.date));
-    const entryToDelete = sortedEntries[index];
-    const realIndex = entries.indexOf(entryToDelete);
-
-    financialData[currentYear][month].dailyEntries.splice(realIndex, 1);
-    
-    await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
-    renderDailyEntries(currentYear, month);
-    updateAllCalculations();
-};
-
-cancelEditBtn.addEventListener('click', () => {
-    currentlyEditingIndex = null;
-    dailyEntryForm.reset();
-    dailyEntryForm.querySelector('button[type="submit"]').textContent = 'Adicionar Lançamento';
-    cancelEditBtn.style.display = 'none';
-});
-
-// === GRÁFICOS E GLOSSÁRIO ===
-
-let chartInstance1 = null;
-let chartInstance2 = null;
-
-function updateCharts(labels, fat, custos, lucro, fcl) {
-    const ctx1 = document.getElementById('monthlyEvolutionChart').getContext('2d');
-    const ctx2 = document.getElementById('cashFlowChart').getContext('2d');
-
-    if (chartInstance1) chartInstance1.destroy();
-    if (chartInstance2) chartInstance2.destroy();
-
-    chartInstance1 = new Chart(ctx1, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                { label: 'Faturamento', data: fat, backgroundColor: '#2a9d8f' },
-                { label: 'Custos Totais', data: custos, backgroundColor: '#e76f51' },
-                { label: 'Lucro Líquido', data: lucro, type: 'line', borderColor: '#264653', borderWidth: 2, fill: false }
-            ]
-        },
-        options: { responsive: true }
-    });
-
-    chartInstance2 = new Chart(ctx2, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Fluxo de Caixa Livre',
-                data: fcl,
-                borderColor: '#e9c46a',
-                backgroundColor: 'rgba(233, 196, 106, 0.2)',
-                fill: true
-            }]
-        },
-        options: { responsive: true }
+        tableBody.appendChild(row);
     });
 }
 
 function renderGlossary() {
     const container = document.getElementById('glossary-container');
     container.innerHTML = '';
-    const term = document.getElementById('glossary-search').value.toLowerCase();
-
-    Object.values(GLOSSARY_DATA).forEach(item => {
-        if (item.nome.toLowerCase().includes(term)) {
-            const div = document.createElement('div');
-            div.className = 'glossary-item';
-            div.innerHTML = `
-                <div class="glossary-header">${item.nome}</div>
-                <div class="glossary-content">
-                    <div>
-                        <p><strong>Fórmula:</strong> ${item.formula}</p>
-                        <p><strong>Significado:</strong> ${item.significado}</p>
-                        <p><strong>Exemplo:</strong> ${item.exemplo}</p>
-                        <p><strong>💡 Dica do Consultor:</strong> ${item.dica}</p>
-                    </div>
-                </div>
-            `;
-            div.querySelector('.glossary-header').addEventListener('click', () => {
-                div.classList.toggle('active');
-            });
-            container.appendChild(div);
-        }
+    Object.keys(GLOSSARY_DATA).sort((a,b) => GLOSSARY_DATA[a].nome.localeCompare(GLOSSARY_DATA[b].nome)).forEach(key => {
+        const item = GLOSSARY_DATA[key];
+        const div = document.createElement('div');
+        div.className = 'glossary-item';
+        div.innerHTML = `<div class="glossary-header">${item.nome}</div><div class="glossary-content"><div><p><strong>Fórmula:</strong> ${item.formula}</p><p><strong>Significado:</strong> ${item.significado}</p><p><strong>Exemplo:</strong> ${item.exemplo}</p><p><strong>Dica:</strong> ${item.dica}</p></div></div>`;
+        container.appendChild(div);
+    });
+    container.querySelectorAll('.glossary-header').forEach(header => {
+        header.addEventListener('click', () => header.parentElement.classList.toggle('active'));
     });
 }
-
-function showFieldInfo(fieldName) {
-    if(FIELD_DESCRIPTIONS[fieldName]) {
-        monthlyFieldInfoBox.style.display = 'flex';
-        monthlyFieldText.innerHTML = `<strong>${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}:</strong> ${FIELD_DESCRIPTIONS[fieldName]}`;
-    }
+    
+function exportMonthlyToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text(`Indicadores Mensais - ${currentYear}`, 14, 15);
+    doc.autoTable({ html: '#monthly-indicators-table', startY: 20, theme: 'grid', headStyles: { fillColor: [0, 95, 115] } });
+    doc.save(`Indicadores_${currentYear}.pdf`);
+}
+function exportMonthlyToExcel() {
+    const wb = XLSX.utils.table_to_book(document.getElementById('monthly-indicators-table'), {sheet: 'Indicadores Mensais'});
+    XLSX.writeFile(wb, `Indicadores_${currentYear}.xlsx`);
 }
 
-function updateAdvice() {
-    const container = document.getElementById('advice-container');
-    const businessType = userSettings.businessType || 'geral';
-    const margins = [];
-    
-    for(let i=0; i<12; i++) {
-        if(financialData[currentYear] && financialData[currentYear][i] && financialData[currentYear][i].faturamento > 0) {
-            const ind = calculateIndicators(financialData[currentYear][i]);
-            margins.push(ind.margemLiquida);
-        }
-    }
-    
-    if (margins.length === 0) {
-        container.innerHTML = "<p>Insira dados de faturamento e custos para receber conselhos.</p>";
-        return;
-    }
+const formatCurrency = (v) => (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const formatPercent = (v) => (v || 0).toFixed(2).replace('.', ',') + '%';
 
-    const avgMargin = margins.reduce((a,b)=>a+b, 0) / margins.length;
-    const targetMargin = userSettings.benchmarkMargem || 15;
-    
-    let advice = "";
-    if(avgMargin < targetMargin) {
-        advice += `<p class="negative">⚠️ Sua margem média (${avgMargin.toFixed(1)}%) está abaixo da meta (${targetMargin}%). Tente reduzir custos variáveis ou revisar a precificação.</p>`;
-    } else {
-        advice += `<p class="positive">✅ Ótimo trabalho! Sua margem (${avgMargin.toFixed(1)}%) está saudável.</p>`;
-    }
 
-    if (businessType === 'restaurante' && avgMargin < 10) {
-        advice += "<p>💡 Para restaurantes, fique atento ao CMV (Custo da Mercadoria Vendida). Ele não deve passar de 35%.</p>";
-    }
-    
-    container.innerHTML = advice;
-}
+// --- ATRIBUIÇÃO DE EVENTOS ---
+loginForm.addEventListener('submit', handleLogin);
+registerForm.addEventListener('submit', handleRegister);
+resetPasswordForm.addEventListener('submit', handlePasswordReset);
+forgotPasswordLink.addEventListener('click', () => toggleForms('reset'));
+toggleFormsLinks.forEach(link => {
+    link.addEventListener('click', (e) => toggleForms(e.target.dataset.form));
+});
+logoutBtn.addEventListener('click', () => auth.signOut());
+deleteAccountBtn.addEventListener('click', deleteAccountAndData);
+saveDataBtn.addEventListener('click', saveMonthlyData);
+saveSettingsBtn.addEventListener('click', saveBusinessSettings);
+recalculateAllBtn.addEventListener('click', updateAllCalculations);
 
-// === EVENT LISTENERS GERAIS ===
+// Eventos de Backup
+btnBackupLocal.addEventListener('click', exportLocalBackup);
+btnRestoreLocal.addEventListener('click', () => inputRestoreFile.click());
+inputRestoreFile.addEventListener('change', importLocalBackup);
 
-// Navegação de Abas
-document.querySelectorAll('.tab-link').forEach(button => {
-    button.addEventListener('click', () => {
+// Evento da aba Diagnóstico
+diagnosisForm.addEventListener('submit', saveDiagnosisData);
+
+// Evento da Nova Aba Consultor
+saveConsultantDiagnosisBtn.addEventListener('click', saveConsultantDiagnosis);
+
+// Evento de Desbloqueio
+btnGenerateUnlockCode.addEventListener('click', handleUnlockTabs);
+
+// Eventos XLSX (Novos)
+btnExportCompanyXLSX.addEventListener('click', handleExportCompanyXLSX);
+btnImportCompanyXLSX.addEventListener('change', handleImportCompanyXLSX);
+btnExportDailyXLSX.addEventListener('click', handleExportDailyXLSX);
+btnImportDailyXLSX.addEventListener('change', handleImportDailyXLSX);
+btnExportMonthlyXLSX.addEventListener('click', handleExportMonthlyXLSX);
+btnImportMonthlyXLSX.addEventListener('change', handleImportMonthlyXLSX);
+document.getElementById('export-excel-monthly').addEventListener('click', exportMonthlyToExcel); // Existente
+
+mainNav.addEventListener('click', (e) => {
+    if (e.target.tagName === 'BUTTON') {
+        const tabId = e.target.dataset.tab;
         document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        
-        button.classList.add('active');
-        document.getElementById(button.dataset.tab).classList.add('active');
-    });
+        e.target.classList.add('active');
+        tabContents.forEach(content => content.classList.toggle('active', content.id === tabId));
+        if (tabId === 'evolucao') renderAllCharts();
+        if (tabId === 'indicadores-anuais') renderAnnualIndicators();
+        if (tabId === 'entradas-diarias') {
+            const selectedMonth = parseInt(dailyMonthSelector.value);
+            renderDailyEntries(currentYear, selectedMonth);
+        }
+    }
 });
 
-// Event Listeners de Login/Registro
-if(loginForm) loginForm.addEventListener('submit', handleLogin);
-if(registerForm) registerForm.addEventListener('submit', handleRegister);
-if(resetPasswordForm) resetPasswordForm.addEventListener('submit', handlePasswordReset);
-if(logoutBtn) logoutBtn.addEventListener('click', () => auth.signOut());
-if(syncBtn) syncBtn.addEventListener('click', handleSync);
-
-// Event Listeners de Configuração
-if(saveSettingsBtn) saveSettingsBtn.addEventListener('click', saveBusinessSettings);
-if(saveDataBtn) saveDataBtn.addEventListener('click', saveMonthlyData);
-if(yearSelector) yearSelector.addEventListener('change', (e) => {
+yearSelector.addEventListener('change', (e) => {
     currentYear = parseInt(e.target.value);
     updateAllCalculations();
-    renderDailyEntries(currentYear, parseInt(dailyMonthSelector.value));
+    const selectedMonth = parseInt(dailyMonthSelector.value);
+    renderDailyEntries(currentYear, selectedMonth);
 });
-if(dailyMonthSelector) dailyMonthSelector.addEventListener('change', (e) => {
-    renderDailyEntries(currentYear, parseInt(e.target.value));
-});
-if(recalculateAnnualBtn) recalculateAnnualBtn.addEventListener('click', updateAllCalculations);
-if(recalculateAllBtn) recalculateAllBtn.addEventListener('click', updateAllCalculations);
-if(deleteAccountBtn) deleteAccountBtn.addEventListener('click', deleteAccountAndData);
-if(allowManualEditCheckbox) allowManualEditCheckbox.addEventListener('change', () => {
+
+allowManualEditCheckbox.addEventListener('change', () => {
     updateAllCalculations();
 });
 
-// Event Listeners de Exportação PDF
-if(btnExportDaily) btnExportDaily.addEventListener('click', () => alert("Funcionalidade de PDF Diário simplificado. Use o Excel para detalhes completos."));
-if(btnExportCompany) btnExportCompany.addEventListener('click', generateCompanyPDF);
-if(btnExportMonthlyInputs) btnExportMonthlyInputs.addEventListener('click', generateMonthlyInputsPDF);
-if(btnExportAnnual) btnExportAnnual.addEventListener('click', generateAnnualIndicatorsPDF);
-if(btnExportEvolution) btnExportEvolution.addEventListener('click', generateEvolutionPDF);
-if(btnExportGlossary) btnExportGlossary.addEventListener('click', generateGlossaryPDF);
-if(btnExportConsultant) btnExportConsultant.addEventListener('click', generateConsultantDiagnosisPDF);
-if(btnFullReport) btnFullReport.addEventListener('click', generateFullReport);
+recalculateAnnualBtn.addEventListener('click', renderAnnualIndicators);
+exportPdfMonthlyBtn.addEventListener('click', exportMonthlyToPDF);
 
-// Event Listeners de Exportação/Importação Excel
-if(btnExportCompanyXLSX) btnExportCompanyXLSX.addEventListener('click', handleExportCompanyXLSX);
-if(btnImportCompanyXLSX) btnImportCompanyXLSX.addEventListener('change', handleImportCompanyXLSX);
-if(btnExportDailyXLSX) btnExportDailyXLSX.addEventListener('click', handleExportDailyXLSX);
-if(btnImportDailyXLSX) btnImportDailyXLSX.addEventListener('change', handleImportDailyXLSX);
-if(btnExportMonthlyXLSX) btnExportMonthlyXLSX.addEventListener('click', handleExportMonthlyXLSX);
-if(btnImportMonthlyXLSX) btnImportMonthlyXLSX.addEventListener('change', handleImportMonthlyXLSX);
-if(btnExportAnnualXLSX) btnExportAnnualXLSX.addEventListener('click', handleExportAnnualXLSX);
-if(btnExportEvolutionXLSX) btnExportEvolutionXLSX.addEventListener('click', handleExportEvolutionXLSX);
 
-// Event Listeners de Diagnóstico
-if(diagnosisForm) diagnosisForm.addEventListener('submit', saveDiagnosisData);
-if(saveConsultantDiagnosisBtn) saveConsultantDiagnosisBtn.addEventListener('click', saveConsultantDiagnosis);
+// *** FUNÇÕES E EVENTOS DA ABA DIÁRIA ***
 
-// Backup
-if(btnBackupLocal) btnBackupLocal.addEventListener('click', exportLocalBackup);
-if(btnRestoreLocal) btnRestoreLocal.addEventListener('click', () => inputRestoreFile.click());
-if(inputRestoreFile) inputRestoreFile.addEventListener('change', importLocalBackup);
-
-// Busca no Glossário
-document.getElementById('glossary-search').addEventListener('input', renderGlossary);
-
-// Toggle Forms (Login/Registro)
-toggleFormsLinks.forEach(link => {
-    link.addEventListener('click', () => toggleForms(link.dataset.form));
-});
-if(forgotPasswordLink) forgotPasswordLink.addEventListener('click', () => toggleForms('reset'));
-
-// INICIALIZAÇÃO
-// === INICIALIZAÇÃO ===
-function initialize() {
-    setupYearSelector();
-    setupDailyMonthSelector();
-    renderDailyEntries(currentYear, new Date().getMonth());
-    updateAllCalculations();
-    renderGlossary();
+function handleEditDailyEntry(year, month, index) {
+    currentlyEditingIndex = { year, month, index };
+    const entry = financialData[year][month].dailyEntries[index];
+    
+    document.getElementById('daily-date').value = entry.date;
+    document.getElementById('daily-faturamento').value = entry.faturamento;
+    document.getElementById('daily-despesas').value = entry.despesas;
+    document.getElementById('daily-comissao').value = entry.comissao || '';
+    document.getElementById('daily-outras').value = entry.outras || '';
+    document.getElementById('daily-vendas').value = entry.vendas;
+    
+    document.querySelector('#daily-entry-form button[type="submit"]').textContent = 'Atualizar Lançamento';
+    cancelEditBtn.style.display = 'block';
+    dailyEntryForm.scrollIntoView({ behavior: 'smooth' });
 }
 
-//document.addEventListener('DOMContentLoaded', initialize);
+async function handleDeleteDailyEntry(year, month, index) {
+    if (confirm('Tem certeza de que deseja excluir este lançamento?')) {
+        financialData[year][month].dailyEntries.splice(index, 1);
+        
+        await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
+        updateAllCalculations();
+        renderDailyEntries(year, month);
+
+        dailyMessageEl.textContent = 'Lançamento excluído com sucesso!';
+        setTimeout(() => dailyMessageEl.textContent = '', 3000);
+    }
+}
+
+function resetDailyFormState() {
+    currentlyEditingIndex = null;
+    dailyEntryForm.reset();
+    document.querySelector('#daily-entry-form button[type="submit"]').textContent = 'Adicionar Lançamento';
+    cancelEditBtn.style.display = 'none';
+}
+
+cancelEditBtn.addEventListener('click', resetDailyFormState);
+
+dailyMonthSelector.addEventListener('change', (e) => {
+    const selectedMonth = parseInt(e.target.value);
+    renderDailyEntries(currentYear, selectedMonth);
+});
+
+dailyEntryForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const date = document.getElementById('daily-date').value;
+    const faturamento = document.getElementById('daily-faturamento').value;
+    const despesas = document.getElementById('daily-despesas').value;
+    const comissao = document.getElementById('daily-comissao').value;
+    const outras = document.getElementById('daily-outras').value;
+    const vendas = document.getElementById('daily-vendas').value;
+    const month = parseInt(dailyMonthSelector.value);
+    
+    let message = '';
+
+    const newEntry = { date, faturamento, despesas, comissao, outras, vendas };
+
+    if (currentlyEditingIndex !== null) {
+        const { year, month: editMonth, index } = currentlyEditingIndex;
+        financialData[year][editMonth].dailyEntries[index] = newEntry;
+        message = 'Lançamento atualizado com sucesso!';
+    } else {
+        if (!financialData[currentYear]) financialData[currentYear] = {};
+        if (!financialData[currentYear][month]) {
+            financialData[currentYear][month] = { dailyEntries: [] };
+        } else if (!financialData[currentYear][month].dailyEntries) {
+            financialData[currentYear][month].dailyEntries = [];
+        }
+        
+        financialData[currentYear][month].dailyEntries.push(newEntry);
+        message = 'Lançamento adicionado com sucesso!';
+    }
+    
+    await saveDataToFirestore(currentUser.uid, financialData, 'financialData');
+    updateAllCalculations();
+    renderDailyEntries(currentYear, month);
+    
+    resetDailyFormState();
+    dailyMessageEl.textContent = message;
+    setTimeout(() => dailyMessageEl.textContent = '', 3000);
+});
+
+// --- INICIALIZAÇÃO ---
+initialize();
