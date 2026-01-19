@@ -2070,4 +2070,13 @@ toggleFormsLinks.forEach(link => {
 if(forgotPasswordLink) forgotPasswordLink.addEventListener('click', () => toggleForms('reset'));
 
 // INICIALIZAÇÃO
-document.addEventListener('DOMContentLoaded', initialize);
+// === INICIALIZAÇÃO ===
+function initialize() {
+    setupYearSelector();
+    setupDailyMonthSelector();
+    renderDailyEntries(currentYear, new Date().getMonth());
+    updateAllCalculations();
+    renderGlossary();
+}
+
+//document.addEventListener('DOMContentLoaded', initialize);
